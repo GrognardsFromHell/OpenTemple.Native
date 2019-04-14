@@ -70,6 +70,7 @@ jobs:
   - task: DownloadPipelineArtifact@1
     inputs:
       downloadPath: $(System.DefaultWorkingDirectory)/build
+  - script: dir /s
   - task: NuGetCommand@2
     inputs:
       command: 'pack'
