@@ -67,7 +67,6 @@ jobs:
   - Linux
   steps:
   - checkout: self
-    submodules: false # Submodules are not needed to build the NuGet package
   - task: DownloadPipelineArtifact@1
     inputs:
       downloadPath: $(System.DefaultWorkingDirectory)/build
