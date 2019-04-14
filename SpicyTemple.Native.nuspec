@@ -10,8 +10,8 @@
     </metadata>
 
     <files>
-        <file src="build\SpicyTemple.Native.dll" target="runtimes\win-x64\native"/>
-        <file src="build\libSpicyTemple.Native.so" target="runtimes\linux-x64\native"/>
-        <file src="build\libSpicyTemple.Native.dylib" target="runtimes\osx-x64\native"/>
+        <file src="build\native_lib_windows\SpicyTemple.Native.dll" target="runtimes\win-x64\native"/>
+        <file src="build\native_lib_linux\libSpicyTemple.Native.so" target="runtimes\linux-x64\native"/>
+        <file src="build\native_lib_osx\libSpicyTemple.Native.dylib" target="runtimes\osx-x64\native"/>
     </files>
 </package>
