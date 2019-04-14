@@ -73,8 +73,8 @@ jobs:
       downloadPath: $(System.DefaultWorkingDirectory)/build
   - task: NuGetCommand@2
     inputs:
-      command: 'restore'
-      packagesToPack: SpicyTemple.Native.nuspec
+      command: 'pack'
+      packagesToPack: 'SpicyTemple.Native.nuspec'
       versioningScheme: byPrereleaseNumber
       majorVersion: '$(Major)'
       minorVersion: '$(Minor)'
