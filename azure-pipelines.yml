@@ -84,6 +84,6 @@ jobs:
       gitHubConnection: shartte
       action: 'create'
       target: '$(Build.SourceVersion)'
-      assets: '$(System.DefaultWorkingDirectory)/*.nupkg'
+      assets: '$(Build.ArtifactStagingDirectory)/*.nupkg'
       tagSource: 'manual'
       tag: 'v$(Build.BuildNumber)'
