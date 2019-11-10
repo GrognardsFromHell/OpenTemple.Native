@@ -85,8 +85,14 @@ jobs:
       - uses: actions/download-artifact@master
         with:
           name: native_lib_macos
-      - run: find
-        shell: bash
+      - run: |
+        nuget pack -NonInteractive -OutputFileNamesWithoutVersion |
+        nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/shartte/index.json" -UserName shartte -Password GH_TOKEN
+        nuget push "*.nupkg" -Source "GitHub"
+      - uses: actions/upload-artifact@master
+        with:
+          name: nuget_package
+          path: '*.nupkg'
 
 # - job: AggregateBuildArtifacts
 #   pool:

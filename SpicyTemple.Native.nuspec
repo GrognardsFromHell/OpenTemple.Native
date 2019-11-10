@@ -2,7 +2,7 @@
 <package >
     <metadata>
         <id>SpicyTemple.Native</id>
-        <version>$version$</version>
+        <version>1.0.0</version>
         <authors>Various</authors>
         <description>SpicyTemplate Native Libraries for Windows, Mac OS, and Linux (x64)</description>
         <title>SpicyTemple Native Libraries</title>
@@ -10,8 +10,9 @@
     </metadata>
 
     <files>
-        <file src="build\native_lib_windows\SpicyTemple.Native.dll" target="runtimes\win-x64\native"/>
-        <file src="build\native_lib_linux\libSpicyTemple.Native.so" target="runtimes\linux-x64\native"/>
-        <file src="build\native_lib_osx\libSpicyTemple.Native.dylib" target="runtimes\osx-x64\native"/>
+        <file src="native_lib_windows\SpicyTemple.Native.dll" target="runtimes\win-x64\native"/>
+        <file src="native_lib_windows_pdb\SpicyTemple.Native.pdb" target="runtimes\win-x64\native"/>
+        <file src="native_lib_linux\libSpicyTemple.Native.so" target="runtimes\linux-x64\native"/>
+        <file src="native_lib_macos\libSpicyTemple.Native.dylib" target="runtimes\osx-x64\native"/>
     </files>
 </package>
