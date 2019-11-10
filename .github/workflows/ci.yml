@@ -65,3 +65,55 @@ jobs:
         with:
           name: native_lib_macos_stripped
           path: 'build-stripped/libSpicyTemple.Native.dylib'
+
+  build-nuget-package:
+    name: Build NuGet Package
+    needs: [build-linux, build-windows, build-macosx]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v1
+      # Download all the dependents
+      - uses: actions/download-artifact@master
+        with:
+          name: native_lib_linux
+      - uses: actions/download-artifact@master
+        with:
+          name: native_lib_windows
+      - uses: actions/download-artifact@master
+        with:
+          name: native_lib_windows_pdb
+      - uses: actions/download-artifact@master
+        with:
+          name: native_lib_macos
+      - run: find
+        shell: bash
+
+# - job: AggregateBuildArtifacts
+#   pool:
+#     vmImage: 'vs2017-win2016'
+#   dependsOn:
+#   - Windows
+#   - Mac
+#   - Linux
+#   steps:
+#   - checkout: self
+#   - task: DownloadPipelineArtifact@1
+#     inputs:
+#       downloadPath: $(System.DefaultWorkingDirectory)/build
+#   - task: NuGetCommand@2
+#     inputs:
+#       command: 'pack'
+#       packagesToPack: 'SpicyTemple.Native.nuspec'
+#       versioningScheme: byPrereleaseNumber
+#       majorVersion: '$(Major)'
+#       minorVersion: '$(Minor)'
+#       patchVersion: '$(Patch)'
+#       verbosityPack: 'detailed'
+#   - task: GitHubRelease@0
+#     inputs:
+#       gitHubConnection: shartte
+#       action: 'create'
+#       target: '$(Build.SourceVersion)'
+#       assets: '$(Build.ArtifactStagingDirectory)/*.nupkg'
+#       tagSource: 'manual'
+#       tag: 'v$(Build.BuildNumber)'
