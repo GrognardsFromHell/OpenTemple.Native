@@ -53,7 +53,7 @@ jobs:
         with:
           submodules: 'recursive'
           lfs: true
-      - script: brew install ninja nasm          
+      - run: brew install ninja nasm          
       - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
       - run: cmake --build build --config RelWithDebInfo
       - run: mkdir build-debug && strip -g -o build-debug/libSpicyTemple.Native.dylib build/libSpicyTemple.Native.dylib
