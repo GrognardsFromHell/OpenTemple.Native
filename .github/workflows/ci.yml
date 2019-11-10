@@ -87,41 +87,11 @@ jobs:
           name: native_lib_macos
       - name: Setup Nuget.exe
         uses: warrenbuckley/Setup-Nuget@v1
-      - run: |
-          nuget pack -NonInteractive
-          nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/shartte/index.json" -UserName shartte -Password GH_TOKEN
-          nuget push "*.nupkg" -Source "GitHub"
+      - run: nuget pack -NonInteractive
       - uses: actions/upload-artifact@master
         with:
           name: nuget_package
           path: '*.nupkg'
-
-# - job: AggregateBuildArtifacts
-#   pool:
-#     vmImage: 'vs2017-win2016'
-#   dependsOn:
-#   - Windows
-#   - Mac
-#   - Linux
-#   steps:
-#   - checkout: self
-#   - task: DownloadPipelineArtifact@1
-#     inputs:
-#       downloadPath: $(System.DefaultWorkingDirectory)/build
-#   - task: NuGetCommand@2
-#     inputs:
-#       command: 'pack'
-#       packagesToPack: 'SpicyTemple.Native.nuspec'
-#       versioningScheme: byPrereleaseNumber
-#       majorVersion: '$(Major)'
-#       minorVersion: '$(Minor)'
-#       patchVersion: '$(Patch)'
-#       verbosityPack: 'detailed'
-#   - task: GitHubRelease@0
-#     inputs:
-#       gitHubConnection: shartte
-#       action: 'create'
-#       target: '$(Build.SourceVersion)'
-#       assets: '$(Build.ArtifactStagingDirectory)/*.nupkg'
-#       tagSource: 'manual'
-#       tag: 'v$(Build.BuildNumber)'
+      - run: |
+          nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/shartte/index.json" -UserName shartte -Password ${{ secrets.GITHUB_TOKEN }}
+          nuget push "*.nupkg" -Source "GitHub"
