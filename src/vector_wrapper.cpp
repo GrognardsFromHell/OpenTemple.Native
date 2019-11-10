@@ -1,6 +1,7 @@
 
 #include "utils.h"
 
+#include <cstdlib>
 #include <cstdint>
 #include <vector>
 #include <limits>
