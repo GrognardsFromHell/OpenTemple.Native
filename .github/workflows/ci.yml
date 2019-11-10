@@ -14,7 +14,7 @@ jobs:
       - run: sudo apt-get install -y nasm
       - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
       - run: cmake --build build --config RelWithDebInfo
-      - run: mkdir build-debug && strip -g -o build-debug/libSpicyTemple.Native.so build/libSpicyTemple.Native.so
+      - run: mkdir build-stripped && strip --strip-unneeded -o build-stripped/libSpicyTemple.Native.so build/libSpicyTemple.Native.so
       - uses: actions/upload-artifact@master
         with:
           name: native_lib_linux
@@ -22,7 +22,7 @@ jobs:
       - uses: actions/upload-artifact@master
         with:
           name: native_lib_linux_stripped
-          path: 'build-debug/libSpicyTemple.Native.so'
+          path: 'build-stripped/libSpicyTemple.Native.so'
 
   build-windows:
     name: Build Windows 64-bit
@@ -56,7 +56,7 @@ jobs:
       - run: brew install ninja nasm          
       - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
       - run: cmake --build build --config RelWithDebInfo
-      - run: mkdir build-debug && strip -g -o build-debug/libSpicyTemple.Native.dylib build/libSpicyTemple.Native.dylib
+      - run: mkdir build-stripped && strip -o build-stripped/libSpicyTemple.Native.dylib build/libSpicyTemple.Native.dylib
       - uses: actions/upload-artifact@master
         with:
           name: native_lib_macos
@@ -64,4 +64,4 @@ jobs:
       - uses: actions/upload-artifact@master
         with:
           name: native_lib_macos_stripped
-          path: 'build-debug/libSpicyTemple.Native.dylib'
+          path: 'build-stripped/libSpicyTemple.Native.dylib'
