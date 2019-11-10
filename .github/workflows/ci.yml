@@ -46,8 +46,8 @@ jobs:
           path: 'build/RelWithDebInfo/SpicyTemple.Native.pdb'
 
   build-macosx:
-    name: Build Linux 64-bit
-    runs-on: ubuntu-latest
+    name: Build MacOSX 64-bit
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v1
         with:
