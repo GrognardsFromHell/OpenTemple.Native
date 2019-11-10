@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <limits>
 
 NATIVE_API uint32_t vector_get_size(std::vector<uint8_t> *vector) {
   if (vector->size() > std::numeric_limits<uint32_t>::max()) {
