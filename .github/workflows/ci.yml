@@ -14,11 +14,16 @@ jobs:
       - run: sudo apt-get install -y nasm
       - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
       - run: cmake --build build --config RelWithDebInfo
+      - run: mkdir build-debug && strip -g -o build-debug/libSpicyTemple.Native.so build/libSpicyTemple.Native.so
       - uses: actions/upload-artifact@master
         with:
           name: native_lib_linux
           path: 'build/libSpicyTemple.Native.so'
-  
+      - uses: actions/upload-artifact@master
+        with:
+          name: native_lib_linux_stripped
+          path: 'build-debug/libSpicyTemple.Native.so'
+
   build-windows:
     name: Build Windows 64-bit
     runs-on: windows-latest
@@ -34,8 +39,8 @@ jobs:
     - uses: actions/upload-artifact@master
       with:
           name: native_lib_windows
-          path: 'build/SpicyTemple.Native.dll'
+          path: 'build/RelWithDebInfo/SpicyTemple.Native.dll'
     - uses: actions/upload-artifact@master
       with:
           name: native_lib_windows_pdb
-          path: 'build/SpicyTemple.Native.pdb'
+          path: 'build/RelWithDebInfo/SpicyTemple.Native.pdb'
