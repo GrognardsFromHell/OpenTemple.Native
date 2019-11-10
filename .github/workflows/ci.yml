@@ -11,7 +11,7 @@ jobs:
         with:
           submodules: 'recursive'
           lfs: true
-      - run: apt-get install -y nasm
+      - run: sudo apt-get install -y nasm
       - run: mkdir build
       - run: cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
         working-directory: ./build
