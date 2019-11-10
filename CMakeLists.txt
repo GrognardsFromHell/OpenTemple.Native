@@ -58,8 +58,18 @@ add_dependencies(libjpeg-turbo libjpeg-turbo-ep)
 
 set(SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/libjpeg_turbo_wrapper.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/stb_image_wrapper.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/vector_wrapper.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/string_wrapper.cpp
 )
+if (WIN32)
+    set(SOURCES ${SOURCES}
+     ${CMAKE_CURRENT_LIST_DIR}/src/windows_wrapper.cpp
+     ${CMAKE_CURRENT_LIST_DIR}/src/game_folders_windows.cpp
+    )
+endif()
 
 add_library(spicytemple SHARED ${SOURCES})
 set_target_properties(spicytemple PROPERTIES OUTPUT_NAME "SpicyTemple.Native")
+target_include_directories(spicytemple PRIVATE ${CMAKE_CURRENT_LIST_DIR}/thirdparty/stb)
 target_link_libraries(spicytemple libjpeg-turbo)

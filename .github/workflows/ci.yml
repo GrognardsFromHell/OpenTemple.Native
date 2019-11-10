@@ -1,0 +1,19 @@
+
+name: CI
+on: [push]
+
+jobs:
+  build-linux:
+    name: Build Linux 64-bit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          submodules: 'recursive'
+          lfs: true
+      - run: apt-get install -y nasm
+      - run: mkdir build
+      - run: cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+        working-directory: ./build
+      - run: make
+        working-directory: ./build
