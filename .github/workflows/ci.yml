@@ -12,11 +12,8 @@ jobs:
           submodules: 'recursive'
           lfs: true
       - run: sudo apt-get install -y nasm
-      - run: mkdir build
-      - run: cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
-        working-directory: ./build
-      - run: make
-        working-directory: ./build
+      - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+      - run: cmake --build build --config RelWithDebInfo
       - uses: actions/upload-artifact@master
         with:
           name: native_lib_linux
@@ -31,7 +28,9 @@ jobs:
         submodules: 'recursive'
         lfs: true
     - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+      shell: bash
     - run: cmake --build build --config RelWithDebInfo
+      shell: bash
     - uses: actions/upload-artifact@master
       with:
           name: native_lib_windows
