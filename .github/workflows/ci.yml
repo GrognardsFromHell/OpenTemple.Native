@@ -87,11 +87,7 @@ jobs:
           name: native_lib_macos
       - name: Setup Nuget.exe
         uses: warrenbuckley/Setup-Nuget@v1
-      - run: nuget pack -NonInteractive
-      - uses: actions/upload-artifact@master
-        with:
-          name: nuget_package
-          path: '*.nupkg'
       - run: |
+          nuget pack -NonInteractive
           nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/shartte/index.json" -UserName shartte -Password ${{ secrets.GITHUB_TOKEN }}
           nuget push "*.nupkg" -Source "GitHub"
