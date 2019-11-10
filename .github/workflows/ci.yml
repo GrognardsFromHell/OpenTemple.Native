@@ -86,9 +86,9 @@ jobs:
         with:
           name: native_lib_macos
       - run: |
-        nuget pack -NonInteractive |
-        nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/shartte/index.json" -UserName shartte -Password GH_TOKEN
-        nuget push "*.nupkg" -Source "GitHub"
+          nuget pack -NonInteractive
+          nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/shartte/index.json" -UserName shartte -Password GH_TOKEN
+          nuget push "*.nupkg" -Source "GitHub"
       - uses: actions/upload-artifact@master
         with:
           name: nuget_package
