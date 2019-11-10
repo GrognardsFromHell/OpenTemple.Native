@@ -17,3 +17,26 @@ jobs:
         working-directory: ./build
       - run: make
         working-directory: ./build
+      - uses: actions/upload-artifact@master
+        with:
+          name: native_lib_linux
+          path: 'build/libSpicyTemple.Native.so'
+  
+  build-windows:
+    name: Build Windows 64-bit
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: 'recursive'
+        lfs: true
+    - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+    - run: cmake --build build --config RelWithDebInfo
+    - uses: actions/upload-artifact@master
+      with:
+          name: native_lib_windows
+          path: 'build/SpicyTemple.Native.dll'
+    - uses: actions/upload-artifact@master
+      with:
+          name: native_lib_windows_pdb
+          path: 'build/SpicyTemple.Native.pdb'
