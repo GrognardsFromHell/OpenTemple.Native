@@ -38,6 +38,7 @@ elseif(APPLE)
 else()
     # For whatever reason soloud uses lib64 on linux :-(
     set(soloud_libfile "${CMAKE_CURRENT_BINARY_DIR}/soloud/lib64/${CMAKE_STATIC_LIBRARY_PREFIX}soloud${CMAKE_STATIC_LIBRARY_SUFFIX}")
+    set_target_properties(soloud PROPERTIES IMPORTED_LOCATION ${soloud_libfile})
 endif()
 
 ExternalProject_Add(soloud-ep
