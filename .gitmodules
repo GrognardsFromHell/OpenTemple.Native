@@ -3,4 +3,4 @@
 	url = https://github.com/libjpeg-turbo/libjpeg-turbo.git
 [submodule "thirdparty/soloud"]
 	path = thirdparty/soloud
-	url = https://github.com/jarikomppa/soloud.git
+	url = https://github.com/shartte/soloud.git
