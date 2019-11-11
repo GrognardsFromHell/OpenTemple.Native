@@ -35,7 +35,7 @@ elseif(APPLE)
     set_target_properties(soloud PROPERTIES 
         IMPORTED_LINK_INTERFACE_LIBRARIES "-framework CoreAudio -framework AudioToolbox"
     )
-lse()
+else()
     # For whatever reason soloud uses lib64 on linux :-(
     set(soloud_libfile "${CMAKE_CURRENT_BINARY_DIR}/soloud/lib64/${CMAKE_STATIC_LIBRARY_PREFIX}soloud${CMAKE_STATIC_LIBRARY_SUFFIX}")
 endif()
