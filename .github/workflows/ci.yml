@@ -11,7 +11,7 @@ jobs:
         with:
           submodules: 'recursive'
           lfs: true
-      - run: sudo apt-get update && apt-get install -y nasm libsdl2-dev
+      - run: sudo apt-get update && sudo apt-get install -y nasm libsdl2-dev
       - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
       - run: cmake --build build --config RelWithDebInfo
       - run: mkdir build-stripped && strip --strip-unneeded -o build-stripped/libSpicyTemple.Native.so build/libSpicyTemple.Native.so
