@@ -12,8 +12,11 @@
 // Normally this would not be an issue, but JetBrains Rider does not use the generated
 // executable for debugging, which means our app manifest in .NET will not be picked up.
 NATIVE_API ApiBool SelectInstallationDirectory(
-        const wchar_t *title,
-        const wchar_t *prompt,
+        bool errorIcon,
+        const wchar_t *promptTitle,
+        const wchar_t *promptEmphasized,
+        const wchar_t *promptDetailed,
+        const wchar_t *folderPickerTitle,
         const wchar_t *currentDirectory,
         wchar_t **newDirectory
 ) {
@@ -23,12 +26,11 @@ NATIVE_API ApiBool SelectInstallationDirectory(
     TaskDialog(
             NULL,
             NULL,
-            L"Temple of Elemental Evil Files",
-            L"Choose Temple of Elemental Evil Installation",
-            L"The Temple of Elemental Evil data files are required to run OpenTemple.\n\n"
-            L"Please selected the Folder where you have installed Temple of Elemental Evil to continue.",
+            promptTitle,
+            promptEmphasized,
+            promptDetailed,
             TDCBF_OK_BUTTON | TDCBF_CLOSE_BUTTON,
-            TD_INFORMATION_ICON,
+            errorIcon ? TD_ERROR_ICON : TD_INFORMATION_ICON,
             &button
     );
 
@@ -42,7 +44,7 @@ NATIVE_API ApiBool SelectInstallationDirectory(
         return false;
     }
 
-    dialog->SetTitle(L"Choose Temple of Elemental Evil Folder");
+    dialog->SetTitle(folderPickerTitle);
 
     // Try setting the default folder
     if (currentDirectory) {

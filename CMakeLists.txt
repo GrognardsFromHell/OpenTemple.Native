@@ -107,10 +107,14 @@ set(SOURCES
 )
 if (WIN32)
     set(SOURCES ${SOURCES}
+     ${CMAKE_CURRENT_LIST_DIR}/src/install_dir_finder_win.cpp
      ${CMAKE_CURRENT_LIST_DIR}/src/install_dir_selector_win.cpp
      ${CMAKE_CURRENT_LIST_DIR}/src/windows_wrapper.cpp
      ${CMAKE_CURRENT_LIST_DIR}/src/game_folders_windows.cpp
     )
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    add_definitions(-DUNICODE)
+    add_definitions(-D_UNICODE)
 endif()
 
 add_library(spicytemple SHARED ${SOURCES})
