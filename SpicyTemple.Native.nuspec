@@ -2,7 +2,7 @@
 <package >
     <metadata>
         <id>SpicyTemple.Native</id>
-        <version>1.1.0</version>
+        <version>1.2.0</version>
         <authors>Various</authors>
         <description>SpicyTemplate Native Libraries for Windows, Mac OS, and Linux (x64)</description>
         <title>SpicyTemple Native Libraries</title>

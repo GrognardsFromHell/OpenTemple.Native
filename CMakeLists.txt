@@ -107,6 +107,7 @@ set(SOURCES
 )
 if (WIN32)
     set(SOURCES ${SOURCES}
+     ${CMAKE_CURRENT_LIST_DIR}/src/install_dir_selector_win.cpp
      ${CMAKE_CURRENT_LIST_DIR}/src/windows_wrapper.cpp
      ${CMAKE_CURRENT_LIST_DIR}/src/game_folders_windows.cpp
     )
