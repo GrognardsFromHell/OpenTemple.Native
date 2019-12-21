@@ -18,7 +18,9 @@ NATIVE_API bool FindInstallDirectory(wchar_t **directoryOut) {
         auto path = regKey.GetStringValue(L"path");
 
         *directoryOut = (wchar_t *) CoTaskMemAlloc((path.size() + 1) * sizeof(wchar_t));
+        // Keep in mind that path is NOT null-terminated
         wcsncpy(*directoryOut, path.data(), path.size());
+        (*directoryOut)[path.size()] = 0;
         return true;
     } catch (const RegException &) {
         return false;
