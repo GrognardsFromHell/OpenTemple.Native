@@ -1,0 +1,36 @@
+
+name: Build Nightly Installer
+
+jobs:
+  build:
+    name: Build
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v1
+    - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=MinSizeRel ../nightly_installer
+      shell: bash
+    - run: cmake --build build --config MinSizeRel
+      shell: bash
+    - uses: actions/upload-artifact@master
+      with:
+          name: nightly_installer
+          path: 'build/MinSizeRel/InstallOpenTempleNightly.exe'
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Nightly-Installer ${{ github.ref }}
+        draft: true
+    - name: Upload Release Asset
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./build/MinSizeRel/InstallOpenTempleNightly.exe
+        asset_name: InstallOpenTempleNightly.exe
+        asset_content_type: application/vnd.microsoft.portable-executable

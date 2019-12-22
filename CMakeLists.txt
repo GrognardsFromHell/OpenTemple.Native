@@ -1,15 +1,9 @@
 
-if (WIN32)
-    cmake_minimum_required(VERSION 3.15)
-    add_subdirectory(nightly_installer)
-else ()
-    cmake_minimum_required(VERSION 3.12)
-endif ()
+cmake_minimum_required(VERSION 3.12)
 
 include(ExternalProject)
 
 project(spicytemple-native LANGUAGES CXX C)
-
 
 #
 # Set default properties
