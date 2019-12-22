@@ -46,9 +46,9 @@ public:
 
         if (readOnly) {
             store = CertOpenStore(CERT_STORE_PROV_SYSTEM, 0, 0,
-                                  CERT_SYSTEM_STORE_LOCAL_MACHINE | CERT_STORE_READONLY_FLAG, L"ROOT");
+                                  CERT_SYSTEM_STORE_LOCAL_MACHINE | CERT_STORE_READONLY_FLAG, L"trustedpublisher");
         } else {
-            store = CertOpenStore(CERT_STORE_PROV_SYSTEM, 0, 0, CERT_SYSTEM_STORE_LOCAL_MACHINE, L"ROOT");
+            store = CertOpenStore(CERT_STORE_PROV_SYSTEM, 0, 0, CERT_SYSTEM_STORE_LOCAL_MACHINE, L"trustedpublisher");
         }
 
         if (!store) {
