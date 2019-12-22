@@ -26,8 +26,6 @@ public:
 
     void Free() noexcept;
 
-    bool IsInstalled();
-
     CertificateContext(CertificateContext &) = delete;
 
     CertificateContext &operator=(CertificateContext &) = delete;
@@ -42,15 +40,18 @@ private:
 class CertificateStore {
 public:
 
-    CertificateStore(bool readOnly) {
+    explicit CertificateStore(bool readOnly) {
 
+        // I tried trusted publishers before, but Windows wouldn't have it and displayed
+        // the App as untrusted.
+        constexpr auto StoreName = L"ROOT";
+
+        DWORD flags = CERT_SYSTEM_STORE_LOCAL_MACHINE;
         if (readOnly) {
-            store = CertOpenStore(CERT_STORE_PROV_SYSTEM, 0, 0,
-                                  CERT_SYSTEM_STORE_LOCAL_MACHINE | CERT_STORE_READONLY_FLAG, L"trustedpublisher");
-        } else {
-            store = CertOpenStore(CERT_STORE_PROV_SYSTEM, 0, 0, CERT_SYSTEM_STORE_LOCAL_MACHINE, L"trustedpublisher");
+            flags |= CERT_STORE_READONLY_FLAG;
         }
 
+        store = CertOpenStore(CERT_STORE_PROV_SYSTEM, 0, 0, flags, StoreName);
         if (!store) {
             throw std::system_error(last_error_code(), "CertOpenStore failed");
         }
