@@ -1,2 +1,5 @@
 *.nupkg
 build
+.vs
+.idea
+cmake-build-*

@@ -1,0 +1,13 @@
+
+#include "resource.h"
+
+1 ICON "app.ico"
+
+// Include the public certificate used to sign the MSIX packages
+RES_CERT RCDATA "OpenTemplePrerelease.cer"
+
+// Limited to 1024 characters
+STRINGTABLE
+BEGIN
+IDS_INSTALLER_URL "ms-appinstaller:?source=https://github.com/shartte/SpicyTemple/releases/download/refs%2Fheads%2Fmaster/OpenTemple.msixbundle"
+END

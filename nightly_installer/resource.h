@@ -1,0 +1,4 @@
+
+#define RES_CERT 101
+
+#define IDS_INSTALLER_URL 201
