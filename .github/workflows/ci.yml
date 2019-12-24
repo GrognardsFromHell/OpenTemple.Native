@@ -29,15 +29,13 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        arch: [x64, x86, arm]
+        arch: [x64, x86]
         # The MSBuild configuration for 32-bit is not called x86, but Win32
         include:
           - arch: x64
             platform: x64
           - arch: x86
             platform: Win32
-          - arch: arm
-            platform: ARM
     steps:
     - uses: actions/checkout@v1
       with:
