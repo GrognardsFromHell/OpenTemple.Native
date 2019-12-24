@@ -61,7 +61,7 @@ NATIVE_API ApiBool GameFolders_GetUserDataFolder(WideStringResult *result) {
       return false;
   }
 
-  if (wcscat_s(path, L"\\SpicyTemple") != 0) {
+  if (wcscat_s(path, L"\\OpenTemple") != 0) {
       return false;
   }
 

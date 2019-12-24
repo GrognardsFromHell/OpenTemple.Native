@@ -14,36 +14,47 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y nasm libsdl2-dev
       - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
       - run: cmake --build build --config RelWithDebInfo
-      - run: mkdir build-stripped && strip --strip-unneeded -o build-stripped/libSpicyTemple.Native.so build/libSpicyTemple.Native.so
+      - run: mkdir build-stripped && strip --strip-unneeded -o build-stripped/libOpenTemple.Native.so build/libOpenTemple.Native.so
       - uses: actions/upload-artifact@master
         with:
           name: native_lib_linux
-          path: 'build/libSpicyTemple.Native.so'
+          path: 'build/libOpenTemple.Native.so'
       - uses: actions/upload-artifact@master
         with:
           name: native_lib_linux_stripped
-          path: 'build-stripped/libSpicyTemple.Native.so'
+          path: 'build-stripped/libOpenTemple.Native.so'
 
   build-windows:
-    name: Build Windows 64-bit
+    name: Build Windows (${{ matrix.arch }})
     runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [x64, x86]
+        # The MSBuild configuration for 32-bit is not called x86, but Win32
+        include:
+          - arch: x64
+            platform: x64
+          - arch: x86
+            platform: Win32
     steps:
     - uses: actions/checkout@v1
       with:
-        submodules: 'recursive'
+        submodules: recursive
         lfs: true
-    - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+    - name: Build
+      run: |
+        cmake -B build -A $PLATFORM -DCMAKE_BUILD_TYPE=RelWithDebInfo .
+        cmake --build build --config RelWithDebInfo
+        mkdir dist
+        cp build/RelWithDebInfo/OpenTemple.Native.dll dist
+        cp build/RelWithDebInfo/OpenTemple.Native.pdb dist
       shell: bash
-    - run: cmake --build build --config RelWithDebInfo
-      shell: bash
+      env:
+        PLATFORM: ${{ matrix.platform }}
     - uses: actions/upload-artifact@master
       with:
           name: native_lib_windows
-          path: 'build/RelWithDebInfo/SpicyTemple.Native.dll'
-    - uses: actions/upload-artifact@master
-      with:
-          name: native_lib_windows_pdb
-          path: 'build/RelWithDebInfo/SpicyTemple.Native.pdb'
+          path: dist
 
   build-macosx:
     name: Build MacOSX 64-bit
@@ -56,15 +67,15 @@ jobs:
       - run: brew install ninja nasm          
       - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
       - run: cmake --build build --config RelWithDebInfo
-      - run: mkdir build-stripped && strip -x -o build-stripped/libSpicyTemple.Native.dylib build/libSpicyTemple.Native.dylib
+      - run: mkdir build-stripped && strip -x -o build-stripped/libOpenTemple.Native.dylib build/libOpenTemple.Native.dylib
       - uses: actions/upload-artifact@master
         with:
           name: native_lib_macos
-          path: 'build/libSpicyTemple.Native.dylib'
+          path: 'build/libOpenTemple.Native.dylib'
       - uses: actions/upload-artifact@master
         with:
           name: native_lib_macos_stripped
-          path: 'build-stripped/libSpicyTemple.Native.dylib'
+          path: 'build-stripped/libOpenTemple.Native.dylib'
 
   build-nuget-package:
     name: Build NuGet Package

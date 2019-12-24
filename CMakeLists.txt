@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.12)
 
 include(ExternalProject)
 
-project(spicytemple-native LANGUAGES CXX C)
+project(opentemple-native LANGUAGES CXX C)
 
 #
 # Set default properties
