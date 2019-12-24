@@ -11,9 +11,9 @@
 
     <files>
         <file src="native_lib_windows_x64\OpenTemple.Native.dll" target="runtimes\win-x64\native"/>
-        <file src="native_lib_windows_x64_pdb\OpenTemple.Native.pdb" target="runtimes\win-x64\native"/>
-        <file src="native_lib_windows_x86\OpenTemple.Native.dll" target="runtimes\win-x86   \native"/>
-        <file src="native_lib_windows_x86_pdb\OpenTemple.Native.pdb" target="runtimes\win-x86\native"/>
+        <file src="native_lib_windows_x64\OpenTemple.Native.pdb" target="runtimes\win-x64\native"/>
+        <file src="native_lib_windows_x86\OpenTemple.Native.dll" target="runtimes\win-x86\native"/>
+        <file src="native_lib_windows_x86\OpenTemple.Native.pdb" target="runtimes\win-x86\native"/>
         <file src="native_lib_linux\libOpenTemple.Native.so" target="runtimes\linux-x64\native"/>
         <file src="native_lib_macos\libOpenTemple.Native.dylib" target="runtimes\osx-x64\native"/>
     </files>

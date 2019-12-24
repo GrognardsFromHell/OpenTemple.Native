@@ -29,13 +29,15 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        arch: [x64, x86]
+        arch: [x64, x86, arm]
         # The MSBuild configuration for 32-bit is not called x86, but Win32
         include:
           - arch: x64
             platform: x64
           - arch: x86
             platform: Win32
+          - arch: arm
+            platform: ARM
     steps:
     - uses: actions/checkout@v1
       with:
@@ -53,7 +55,7 @@ jobs:
         PLATFORM: ${{ matrix.platform }}
     - uses: actions/upload-artifact@master
       with:
-          name: native_lib_windows
+          name: native_lib_windows_${{ matrix.arch }}
           path: dist
 
   build-macosx:
@@ -89,10 +91,10 @@ jobs:
           name: native_lib_linux
       - uses: actions/download-artifact@master
         with:
-          name: native_lib_windows
+          name: native_lib_windows_x64
       - uses: actions/download-artifact@master
         with:
-          name: native_lib_windows_pdb
+          name: native_lib_windows_x86
       - uses: actions/download-artifact@master
         with:
           name: native_lib_macos
