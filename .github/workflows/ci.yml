@@ -98,7 +98,13 @@ jobs:
           name: native_lib_macos
       - name: Setup Nuget.exe
         uses: warrenbuckley/Setup-Nuget@v1
+      - name: Generate build number
+        id: buildnumber
+        uses: einaregilsson/build-number@v2
+        with:
+          token: ${{ secrets.github_token }}
+          prefix: nightly
       - run: |
-          nuget pack -NonInteractive
+          nuget pack -NonInteractive -Suffix ${{ steps.buildnumber.outputs.build_number }}
           nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/GrognardsFromHell/index.json" -UserName shartte -Password ${{ secrets.GITHUB_TOKEN }}
-          nuget push "*.nupkg" -Source "GitHub"
+          nuget push -NonInteractive "*.nupkg" -Source "GitHub"
