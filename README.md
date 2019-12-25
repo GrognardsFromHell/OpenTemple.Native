@@ -30,3 +30,8 @@ Visual Studio 2019 is required to build this project. We recommend the free Comm
 Since the background art for all maps in ToEE is stored in JPEG images, this has great performance benefits for us. 
 *License: BSD*
 
+[Modern C++ Wrappers Around Windows Registry C API](https://github.com/GiovanniDicanio/WinReg) is used to lessen the burden of accessing the Windows Registry.
+*License: MIT*
+
+[stb_image](https://github.com/nothings/stb) is used for certain image decoding tasks (primarily TGA). 
+*License: public domain*
