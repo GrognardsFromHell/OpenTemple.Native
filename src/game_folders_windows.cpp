@@ -65,7 +65,7 @@ NATIVE_API ApiBool GameFolders_GetUserDataFolder(WideStringResult *result) {
       return false;
   }
 
- *result = new std::wstring(path);
+  *result = new std::wstring(path);
   return true;
 
 }
