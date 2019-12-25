@@ -36,7 +36,7 @@ struct JumpListBuilder {
 
     int Commit() {
         CComPtr<IObjectArray> poa;
-        if (!SUCCEEDED(customList->QueryInterface(IID_PPV_ARGS(&poa)))) {
+        if (!SUCCEEDED(tasks->QueryInterface(IID_PPV_ARGS(&poa)))) {
             return -1;
         }
 
