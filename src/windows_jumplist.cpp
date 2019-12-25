@@ -27,7 +27,7 @@ struct JumpListBuilder {
             return -2;
         }
 
-        if (SUCCEEDED(tasks.CoCreateInstance(CLSID_EnumerableObjectCollection))) {
+        if (!SUCCEEDED(tasks.CoCreateInstance(CLSID_EnumerableObjectCollection))) {
             return -3;
         }
 
