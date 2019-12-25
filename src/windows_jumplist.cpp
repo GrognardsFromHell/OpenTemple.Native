@@ -51,7 +51,8 @@ struct JumpListBuilder {
         return 0;
     }
 
-    int AddTask(wchar_t *executable, wchar_t *arguments, wchar_t *title, wchar_t *description) {
+    int AddTask(wchar_t *executable, wchar_t *arguments, wchar_t *title, wchar_t *iconPath, int iconIndex,
+                wchar_t *description) {
         CComPtr<IShellLink> link;
         if (!SUCCEEDED(link.CoCreateInstance(CLSID_ShellLink))) {
             return -1;
@@ -76,16 +77,20 @@ struct JumpListBuilder {
             return -5;
         }
 
-        if (description && !SetStringProp(pps, PKEY_Link_Description, description)) {
+        if (!SUCCEEDED(pps->Commit())) {
             return -6;
         }
 
-        if (!SUCCEEDED(pps->Commit())) {
+        if (!SUCCEEDED(link->SetIconLocation(iconPath, iconIndex))) {
             return -7;
         }
 
-        if (!SUCCEEDED(tasks->AddObject(pps))) {
+        if (description && !SUCCEEDED(link->SetDescription(description))) {
             return -8;
+        }
+
+        if (!SUCCEEDED(tasks->AddObject(pps))) {
+            return -9;
         }
 
         return 0;
@@ -110,12 +115,16 @@ NATIVE_API int JumpListBuilder_Commit(JumpListBuilder *builder) {
 }
 
 NATIVE_API int JumpListBuilder_AddTask(JumpListBuilder *builder,
-                                       wchar_t *executable,
                                        wchar_t *arguments,
                                        wchar_t *title,
+                                       wchar_t *iconPath,
+                                       int iconIndex,
                                        wchar_t *description
 ) {
-    return builder->AddTask(executable, arguments, title, description);
+    wchar_t moduleName[MAX_PATH];
+    GetModuleFileName(nullptr, moduleName, ARRAYSIZE(moduleName));
+
+    return builder->AddTask(moduleName, arguments, title, iconPath, iconIndex, description);
 }
 
 NATIVE_API void JumpListBuilder_Free(JumpListBuilder *builder) {
