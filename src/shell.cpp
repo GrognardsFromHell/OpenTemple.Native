@@ -137,9 +137,10 @@ NATIVE_API void Shell_ShowMessage(
 }
 
 // Copies the text to the clipboard
+// See https://docs.microsoft.com/en-us/windows/win32/dataxchg/using-the-clipboard
 NATIVE_API int Shell_CopyToClipboard(HWND windowHandle, wchar_t *text) {
 
-    if (OpenClipboard(windowHandle) != 0) {
+    if (!OpenClipboard(windowHandle)) {
         return -1;
     }
 
