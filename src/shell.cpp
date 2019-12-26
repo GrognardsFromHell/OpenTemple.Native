@@ -135,3 +135,33 @@ NATIVE_API void Shell_ShowMessage(
             &button
     );
 }
+
+// Copies the text to the clipboard
+NATIVE_API int Shell_CopyToClipboard(HWND windowHandle, wchar_t *text) {
+
+    if (OpenClipboard(windowHandle) != 0) {
+        return -1;
+    }
+
+    if (!EmptyClipboard()) {
+        CloseClipboard();
+        return -2;
+    }
+
+    auto charCount = wcslen(text);
+    auto hglbCopy = GlobalAlloc(GMEM_MOVEABLE, (charCount + 1) * sizeof(TCHAR));
+    if (!hglbCopy) {
+        CloseClipboard();
+        return -3;
+    }
+
+    auto lptstrCopy = GlobalLock(hglbCopy);
+    memcpy(lptstrCopy, text, charCount * sizeof(TCHAR));
+    ((wchar_t *) lptstrCopy)[charCount] = 0;
+    GlobalUnlock(hglbCopy);
+
+    SetClipboardData(CF_UNICODETEXT, hglbCopy);
+
+    CloseClipboard();
+    return 0;
+}
