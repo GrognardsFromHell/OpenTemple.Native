@@ -2,8 +2,8 @@
 name: Build Nightly Installer
 on:
   push:
-    paths:
-    - 'nightly_installer/**'
+    tags:
+      - nightly_installer/v*
 
 jobs:
   build:
