@@ -3,7 +3,7 @@ name: Build Nightly Installer
 on:
   push:
     paths:
-    - 'nightly_installer/**/*'
+    - 'nightly_installer/**'
 
 jobs:
   build:
