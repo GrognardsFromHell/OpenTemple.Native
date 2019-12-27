@@ -9,5 +9,5 @@ RES_CERT RCDATA "OpenTemplePrerelease.cer"
 // Limited to 1024 characters
 STRINGTABLE
 BEGIN
-IDS_INSTALLER_URL "ms-appinstaller:?source=https://nightlies.opentemple.de/OpenTemple.appinstaller"
+IDS_INSTALLER_URL "ms-appinstaller:?source=https://nightlies.opentemple.de/windows/OpenTemple.appinstaller"
 END
