@@ -3,17 +3,25 @@
 
 #include <QQuickItem>
 
-class RegisteredGameView;
+class GameView;
 
-class GameView : public QQuickItem
-{
-    Q_OBJECT
+class GameViewItemTextureProvider;
+
+class GameViewItem : public QQuickItem {
+Q_OBJECT
 public:
-    explicit GameView(QQuickItem *parent = 0);
-    ~GameView();
+    explicit GameViewItem(QQuickItem *parent = nullptr);
+
+    ~GameViewItem();
+
+    bool isTextureProvider() const override;
+
+    QSGTextureProvider *textureProvider() const override;
 
 protected:
     QSGNode *updatePaintNode(QSGNode *node, UpdatePaintNodeData *data) override;
 
-    std::unique_ptr<RegisteredGameView> _gameView;
+    std::unique_ptr<GameViewItemTextureProvider> _textureProvider;
+
+    std::unique_ptr<GameView> _gameView;
 };

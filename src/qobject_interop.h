@@ -3,4 +3,4 @@
 
 class QObject;
 
-void *wrap_qobject(QObject *qobject);
+void *wrap_qobject(QObject *qobject, bool ownsObject = false);

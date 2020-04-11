@@ -5,15 +5,36 @@
 #include <QQmlEngine>
 #include <QQmlContext>
 #include <QQuickWindow>
+#include <QSGTextureProvider>
 
-#include "GameView.h"
+#include "GameViewItem.h"
 #include "GameViews.h"
 
-GameView::GameView(QQuickItem *parent) : QQuickItem(parent) {
+class GameViewItemTextureProvider : public QSGTextureProvider {
+Q_OBJECT
+public:
+    void setTexture(QSGTexture *texture) {
+        _texture = texture;
+    }
+
+    QSGTexture *texture() const override {
+        return _texture;
+    }
+
+    void fireTextureChanged() {
+        emit textureChanged();
+    }
+
+private:
+    QSGTexture *_texture = nullptr;
+};
+
+GameViewItem::GameViewItem(QQuickItem *parent) : QQuickItem(parent) {
     setFlag(ItemHasContents, true);
+    _textureProvider = std::make_unique<GameViewItemTextureProvider>();
 }
 
-QSGNode *GameView::updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNodeData *data) {
+QSGNode *GameViewItem::updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNodeData *data) {
 
     if (!_gameView) {
         auto context = QQmlEngine::contextForObject(this);
@@ -28,16 +49,36 @@ QSGNode *GameView::updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNode
         _gameView = gameViews->create();
     }
 
-    _gameView->setDimensions(width(), height());
+    QSize desiredSize((int) width(), (int) height());
+    _gameView->setSize(desiredSize);
 
     auto *node = static_cast<QSGImageNode *>(oldNode);
     if (!node) {
-        node = window()->createImageNode();
         auto texture = _gameView->createTexture(window());
-        node->setTexture(texture);        
+        _textureProvider->setTexture(texture);
+        if (!texture) {
+            return nullptr;
+        }
+        node = window()->createImageNode();
+        node->setTexture(texture);
         node->setSourceRect(0, 0, texture->textureSize().width(), texture->textureSize().height());
         node->setOwnsTexture(true);
+    } else {
+        if (node->texture()->textureSize() != desiredSize) {
+            // Update size and texture
+            auto texture = _gameView->createTexture(window());
+            _textureProvider->setTexture(texture);
+            if (!texture) {
+                delete node;
+                return nullptr;
+            }
+            node->setTexture(texture);
+            node->setSourceRect(0, 0, texture->textureSize().width(), texture->textureSize().height());
+        }
     }
+
+    // We assume that the texture changes every frame
+    _textureProvider->fireTextureChanged();
 
     node->setRect(0, 0, width(), height());
 
@@ -45,4 +86,14 @@ QSGNode *GameView::updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNode
     return node;
 }
 
-GameView::~GameView() = default;
+bool GameViewItem::isTextureProvider() const {
+    return true;
+}
+
+QSGTextureProvider *GameViewItem::textureProvider() const {
+    return _textureProvider.get();
+}
+
+GameViewItem::~GameViewItem() = default;
+
+#include "GameViewItem.moc"
