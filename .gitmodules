@@ -4,3 +4,7 @@
 [submodule "thirdparty/soloud"]
 	path = thirdparty/soloud
 	url = https://github.com/shartte/soloud.git
+[submodule "thirdparty/qmlnet"]
+	path = thirdparty/qmlnet
+	url = https://github.com/shartte/qmlnet.git
+	branch = opentemple
