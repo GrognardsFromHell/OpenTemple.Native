@@ -21,7 +21,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: src
-          key: qt-${{ env.qtVersion }}-sources
+          key: qt-${{ env.qtVersion }}-sources2
 
       - name: Downloat Qt Sources
         if: steps.cache-qt-sources.outputs.cache-hit != 'true'
@@ -83,10 +83,23 @@ jobs:
           ARCH: ${{ matrix.arch }}
           QT_PREFIX: ${{ github.workspace }}\\qt
 
+      - name: Disk Info
+        run: |
+          powershell -Command "Get-WmiObject -Class Win32_logicaldisk"
+        shell: cmd
+
+      - name: Compress Qt
+        run: |
+          7z a qt-%ARCH%.7z %QT_PREFIX%
+        shell: cmd
+        env:
+          ARCH: ${{ matrix.arch }}
+          QT_PREFIX: ${{ github.workspace }}\\qt
+
       - uses: actions/upload-artifact@master
         with:
           name: qt
-          path: ${{ github.workspace }}\\qt
+          path: ${{ github.workspace }}\\qt-${{ matrix.arch }}.7z
 
 #  build-linux:
 #    name: Build Linux 64-bit
