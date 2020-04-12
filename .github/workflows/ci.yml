@@ -21,7 +21,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: downloads
-          key: qt-${{ qtDownloadUrl }}-sources
+          key: qt-${{ env.qtVersion }}-sources
 
       - name: Downloat Qt Sources
         if: steps.cache-qt-sources.outputs.cache-hit != 'true'
