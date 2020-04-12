@@ -40,18 +40,33 @@ jobs:
           DOWNLOAD_URL: ${{env.qtDownloadUrl}}
           VERSION: ${{env.qtVersion}}
 
+      - name: Download Extra Tools
+        run: |
+          rem We need flex/bison in PATH
+          mkdir ${GITHUB_WORKSPACE}/tools && cd ${GITHUB_WORKSPACE}/tools
+          curl -L -f http://sourceforge.net/projects/winflexbison/files/win_flex_bison-2.5.5.zip/download -o flex_bison.zip
+          unzip flex_bison.zip
+          mv win_flex.exe flex.exe
+          mv win_bison.exe bison.exe
+
+          curl -L -f http://download.qt.io/official_releases/jom/jom.zip -O
+          unzip jom.zip
+        shell: bash
+
       - name: Build
         run: |
           @echo on
           IF "%ARCH%"=="x64" (CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat" || goto :error)
           IF "%ARCH%"=="x86" (CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars32.bat" || goto :error)
 
+          set PATH=%PATH%;%GITHUB_WORKSPACE%\tools
+
           rem Configure Static QT
           mkdir build\qtbase
           cd build\qtbase
-          call ..\..\src\qtbase\configure.bat -prefix C:\qt\5.14 -confirm-license -opensource -nomake examples -nomake tests -release ^
+          call ..\..\src\qtbase\configure.bat -prefix %QT_PREFIX% -confirm-license -opensource -nomake examples -nomake tests -release ^
             -no-widgets -static -c++std 2a -opengl es2 -angle -schannel -no-sql-odbc -no-sql-sqlite || goto :error
-          nmake install || goto :error
+          jom install || goto :error
           goto :EOF
 
           :error
@@ -60,6 +75,12 @@ jobs:
         shell: cmd
         env:
           ARCH: ${{ matrix.arch }}
+          QT_PREFIX: ${{ env.GITHUB_WORKSPACE }}/qt
+
+      - uses: actions/upload-artifact@master
+        with:
+          name: qt
+          path: ${{ env.GITHUB_WORKSPACE }}/qt
 
 #  build-linux:
 #    name: Build Linux 64-bit
