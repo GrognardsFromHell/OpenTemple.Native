@@ -49,9 +49,9 @@ jobs:
           rem Configure Static QT
           mkdir build\qtbase
           cd build\qtbase
-          ..\..\src\qtbase\configure -prefix C:\qt\5.14 -confirm-license -opensource -nomake examples -nomake tests -release ^
+          call ..\..\src\qtbase\configure.bat -prefix C:\qt\5.14 -confirm-license -opensource -nomake examples -nomake tests -release ^
             -no-widgets -static -c++std 2a -opengl es2 -angle -schannel -no-sql-odbc -no-sql-sqlite || goto :error
-          nmake || goto :error
+          nmake install || goto :error
           goto :EOF
 
           :error
