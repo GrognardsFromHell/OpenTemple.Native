@@ -10,16 +10,11 @@ jobs:
     strategy:
       matrix:
         arch: [x64, x86]
-        # The MSBuild configuration for 32-bit is not called x86, but Win32
-        include:
-          - arch: x64
-            vcvars: "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          - arch: x86
-            vcvars: "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars32.bat"
     steps:
       - name: Build
         run: |
-          call %VCVARS%
+          IF "%ARCH%"=="x64" (CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat")
+          IF "%ARCH%"=="x86" (CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars32.bat")
 
           rem Configure Static QT
           configure -prefix C:\qt\5.14 -confirm-license -opensource -nomake examples -nomake tests -debug-and-release ^
@@ -29,7 +24,7 @@ jobs:
 
         shell: cmd
         env:
-          VCVARS: ${{ matrix.vcvars }}
+          ARCH: ${{ matrix.arch }}
 
 #  build-linux:
 #    name: Build Linux 64-bit
