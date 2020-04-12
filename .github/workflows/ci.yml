@@ -34,6 +34,7 @@ jobs:
           curl -O ${DOWNLOAD_URL}/qtlottie-everywhere-src-${VERSION}.tar.xz
           curl -O ${DOWNLOAD_URL}/qtquickcontrols2-everywhere-src-${VERSION}.tar.xz
           curl -O ${DOWNLOAD_URL}/qtsvg-everywhere-src-${VERSION}.tar.xz
+        shell: bash
         env:
           DOWNLOAD_URL: ${{env.qtDownloadUrl}}
           VERSION: ${{env.qtVersion}}
