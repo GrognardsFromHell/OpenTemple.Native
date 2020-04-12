@@ -13,15 +13,19 @@ jobs:
     steps:
       - name: Build
         run: |
-          IF "%ARCH%"=="x64" (CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat")
-          IF "%ARCH%"=="x86" (CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars32.bat")
+          IF "%ARCH%"=="x64" (CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat" || goto :error)
+          IF "%ARCH%"=="x86" (CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars32.bat" || goto :error)
 
           rem Configure Static QT
           configure -prefix C:\qt\5.14 -confirm-license -opensource -nomake examples -nomake tests -debug-and-release ^
-            -optimized-tools -no-widgets -static -c++std 2a -opengl es2 -angle -schannel -no-sql-odbc -no-sql-sqlite
+            -optimized-tools -no-widgets -static -c++std 2a -opengl es2 -angle -schannel -no-sql-odbc -no-sql-sqlite || goto :error
 
-          nmake
+          nmake || goto :error
+          goto :EOF
 
+          :error
+          echo Failed with error #%errorlevel%.
+          exit /b %errorlevel%
         shell: cmd
         env:
           ARCH: ${{ matrix.arch }}
