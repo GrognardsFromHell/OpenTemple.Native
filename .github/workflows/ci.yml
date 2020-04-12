@@ -27,6 +27,7 @@ jobs:
         if: steps.cache-qt-sources.outputs.cache-hit != 'true'
         run: |
           mkdir src && cd src
+          mkdir qtbase qtdeclarative qtgraphicaleffects qtimageformats qtlottie qtquickcontrols2 qtsvg
           curl -L -f ${DOWNLOAD_URL}/qtbase-everywhere-src-${VERSION}.tar.xz | tar xJ -C qtbase --strip-components 1
           curl -L -f ${DOWNLOAD_URL}/qtdeclarative-everywhere-src-${VERSION}.tar.xz | tar xJ -C qtdeclarative --strip-components 1
           curl -L -f ${DOWNLOAD_URL}/qtgraphicaleffects-everywhere-src-${VERSION}.tar.xz | tar xJ -C qtgraphicaleffects --strip-components 1
