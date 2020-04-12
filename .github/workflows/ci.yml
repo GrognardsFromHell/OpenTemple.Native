@@ -13,7 +13,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        arch: [x64, x86]
+        arch: [x64] # , x86
     steps:
       # We try to cache the downloaded Qt versions
       - name: Qt Sources Cache
@@ -53,10 +53,14 @@ jobs:
           unzip jom.zip
         shell: bash
 
+      - name: Disk Info
+        run: |
+          powershell -Command "Get-WmiObject -Class Win32_logicaldisk"
+        shell: cmd
+
       - name: Build
         run: |
           @echo on
-          powershell -Command "Get-WmiObject -Class Win32_logicaldisk"
 
           IF "%ARCH%"=="x64" (CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat" || goto :error)
           IF "%ARCH%"=="x86" (CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars32.bat" || goto :error)
