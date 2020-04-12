@@ -53,6 +53,9 @@ jobs:
           unzip jom.zip
         shell: bash
 
+      - name: Disk Info
+        run: Get-WmiObject -Class Win32_logicaldisk
+
       - name: Build
         run: |
           @echo on
