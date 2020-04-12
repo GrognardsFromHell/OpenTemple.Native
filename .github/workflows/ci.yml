@@ -29,12 +29,12 @@ jobs:
           mkdir src && cd src
           mkdir qtbase qtdeclarative qtgraphicaleffects qtimageformats qtlottie qtquickcontrols2 qtsvg
           curl -L -f ${DOWNLOAD_URL}/qtbase-everywhere-src-${VERSION}.tar.xz | tar xJ -C qtbase --strip-components 1
-          #curl -L -f ${DOWNLOAD_URL}/qtdeclarative-everywhere-src-${VERSION}.tar.xz | tar xJ -C qtdeclarative --strip-components 1
-          #curl -L -f ${DOWNLOAD_URL}/qtgraphicaleffects-everywhere-src-${VERSION}.tar.xz | tar xJ -C qtgraphicaleffects --strip-components 1
-          #curl -L -f ${DOWNLOAD_URL}/qtimageformats-everywhere-src-${VERSION}.tar.xz | tar xJ -C qtimageformats --strip-components 1
-          #curl -L -f ${DOWNLOAD_URL}/qtlottie-everywhere-src-${VERSION}.tar.xz | tar xJ -C qtlottie --strip-components 1
-          #curl -L -f ${DOWNLOAD_URL}/qtquickcontrols2-everywhere-src-${VERSION}.tar.xz | tar xJ -C qtquickcontrols2 --strip-components 1
-          #curl -L -f ${DOWNLOAD_URL}/qtsvg-everywhere-src-${VERSION}.tar.xz | tar xJ -C qtsvg --strip-components 1
+          curl -L -f ${DOWNLOAD_URL}/qtdeclarative-everywhere-src-${VERSION}.tar.xz | tar xJ -C qtdeclarative --strip-components 1
+          curl -L -f ${DOWNLOAD_URL}/qtgraphicaleffects-everywhere-src-${VERSION}.tar.xz | tar xJ -C qtgraphicaleffects --strip-components 1
+          curl -L -f ${DOWNLOAD_URL}/qtimageformats-everywhere-src-${VERSION}.tar.xz | tar xJ -C qtimageformats --strip-components 1
+          curl -L -f ${DOWNLOAD_URL}/qtlottie-everywhere-src-${VERSION}.tar.xz | tar xJ -C qtlottie --strip-components 1
+          curl -L -f ${DOWNLOAD_URL}/qtquickcontrols2-everywhere-src-${VERSION}.tar.xz | tar xJ -C qtquickcontrols2 --strip-components 1
+          curl -L -f ${DOWNLOAD_URL}/qtsvg-everywhere-src-${VERSION}.tar.xz | tar xJ -C qtsvg --strip-components 1
         shell: bash
         env:
           DOWNLOAD_URL: ${{env.qtDownloadUrl}}
@@ -86,7 +86,7 @@ jobs:
       - uses: actions/upload-artifact@master
         with:
           name: qt
-          path: ${{ github.workspace }}/qt
+          path: ${{ github.workspace }}\\qt
 
 #  build-linux:
 #    name: Build Linux 64-bit
