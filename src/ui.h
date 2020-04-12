@@ -22,7 +22,7 @@
 #include "completion_source.h"
 #include "qobject_interop.h"
 
-#include <QtGui/6.0.0/QtGui/qpa/qplatformnativeinterface.h>
+#include <qpa/qplatformnativeinterface.h>
 
 struct NativeWindowConfig {
     int minWidth;
@@ -171,6 +171,5 @@ private:
         if (_beforeRenderingCallback) {
             _beforeRenderingCallback();
         }
-        view->resetOpenGLState();
     }
 };

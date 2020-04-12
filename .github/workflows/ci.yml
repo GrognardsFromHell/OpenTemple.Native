@@ -3,29 +3,9 @@ name: CI
 on: [push]
 
 jobs:
-  build-linux:
-    name: Build Linux 64-bit
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-        with:
-          submodules: 'recursive'
-          lfs: true
-      - run: sudo apt-get update && sudo apt-get install -y nasm libsdl2-dev
-      - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
-      - run: cmake --build build --config RelWithDebInfo
-      - run: mkdir build-stripped && strip --strip-unneeded -o build-stripped/libOpenTemple.Native.so build/libOpenTemple.Native.so
-      - uses: actions/upload-artifact@master
-        with:
-          name: native_lib_linux
-          path: 'build/libOpenTemple.Native.so'
-      - uses: actions/upload-artifact@master
-        with:
-          name: native_lib_linux_stripped
-          path: 'build-stripped/libOpenTemple.Native.so'
 
-  build-windows:
-    name: Build Windows (${{ matrix.arch }})
+  build-qt:
+    name: Build Qt Windows
     runs-on: windows-latest
     strategy:
       matrix:
@@ -33,78 +13,126 @@ jobs:
         # The MSBuild configuration for 32-bit is not called x86, but Win32
         include:
           - arch: x64
-            platform: x64
+            vcvars: "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           - arch: x86
-            platform: Win32
+            vcvars: "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars32.bat"
     steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: recursive
-        lfs: true
-    - name: Build
-      run: |
-        cmake -B build -A $PLATFORM -DCMAKE_BUILD_TYPE=RelWithDebInfo .
-        cmake --build build --config RelWithDebInfo
-        mkdir dist
-        cp build/RelWithDebInfo/OpenTemple.Native.dll dist
-        cp build/RelWithDebInfo/OpenTemple.Native.pdb dist
-      shell: bash
-      env:
-        PLATFORM: ${{ matrix.platform }}
-    - uses: actions/upload-artifact@master
-      with:
-          name: native_lib_windows_${{ matrix.arch }}
-          path: dist
+      - name: Build
+        run: |
+          call %VCVARS%
 
-  build-macosx:
-    name: Build MacOSX 64-bit
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v1
-        with:
-          submodules: 'recursive'
-          lfs: true
-      - run: brew install ninja nasm          
-      - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
-      - run: cmake --build build --config RelWithDebInfo
-      - run: mkdir build-stripped && strip -x -o build-stripped/libOpenTemple.Native.dylib build/libOpenTemple.Native.dylib
-      - uses: actions/upload-artifact@master
-        with:
-          name: native_lib_macos
-          path: 'build/libOpenTemple.Native.dylib'
-      - uses: actions/upload-artifact@master
-        with:
-          name: native_lib_macos_stripped
-          path: 'build-stripped/libOpenTemple.Native.dylib'
+          rem Configure Static QT
+          configure -prefix C:\qt\5.14 -confirm-license -opensource -nomake examples -nomake tests -debug-and-release ^
+            -optimized-tools -no-widgets -static -c++std 2a -opengl es2 -angle -schannel -no-sql-odbc -no-sql-sqlite
 
-  build-nuget-package:
-    name: Build NuGet Package
-    needs: [build-linux, build-windows, build-macosx]
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v1
-      # Download all the dependents
-      - uses: actions/download-artifact@master
-        with:
-          name: native_lib_linux
-      - uses: actions/download-artifact@master
-        with:
-          name: native_lib_windows_x64
-      - uses: actions/download-artifact@master
-        with:
-          name: native_lib_windows_x86
-      - uses: actions/download-artifact@master
-        with:
-          name: native_lib_macos
-      - name: Setup Nuget.exe
-        uses: warrenbuckley/Setup-Nuget@v1
-      - name: Generate build number
-        id: buildnumber
-        uses: einaregilsson/build-number@v2
-        with:
-          token: ${{ secrets.github_token }}
-          prefix: nightly
-      - run: |
-          nuget pack -NonInteractive -Suffix ${{ steps.buildnumber.outputs.build_number }}
-          nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/GrognardsFromHell/index.json" -UserName shartte -Password ${{ secrets.GITHUB_TOKEN }}
-          nuget push -NonInteractive "*.nupkg" -Source "GitHub"
+          nmake
+
+        shell: cmd
+        env:
+          VCVARS: ${{ matrix.vcvars }}
+
+#  build-linux:
+#    name: Build Linux 64-bit
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v1
+#        with:
+#          submodules: 'recursive'
+#          lfs: true
+#      - run: sudo apt-get update && sudo apt-get install -y nasm libsdl2-dev
+#      - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+#      - run: cmake --build build --config RelWithDebInfo
+#      - run: mkdir build-stripped && strip --strip-unneeded -o build-stripped/libOpenTemple.Native.so build/libOpenTemple.Native.so
+#      - uses: actions/upload-artifact@master
+#        with:
+#          name: native_lib_linux
+#          path: 'build/libOpenTemple.Native.so'
+#      - uses: actions/upload-artifact@master
+#        with:
+#          name: native_lib_linux_stripped
+#          path: 'build-stripped/libOpenTemple.Native.so'
+#
+#  build-windows:
+#    name: Build Windows (${{ matrix.arch }})
+#    runs-on: windows-latest
+#    strategy:
+#      matrix:
+#        arch: [x64, x86]
+#        # The MSBuild configuration for 32-bit is not called x86, but Win32
+#        include:
+#          - arch: x64
+#            platform: x64
+#          - arch: x86
+#            platform: Win32
+#    steps:
+#    - uses: actions/checkout@v1
+#      with:
+#        submodules: recursive
+#        lfs: true
+#    - name: Build
+#      run: |
+#        cmake -B build -A $PLATFORM -DCMAKE_BUILD_TYPE=RelWithDebInfo .
+#        cmake --build build --config RelWithDebInfo
+#        mkdir dist
+#        cp build/RelWithDebInfo/OpenTemple.Native.dll dist
+#        cp build/RelWithDebInfo/OpenTemple.Native.pdb dist
+#      shell: bash
+#      env:
+#        PLATFORM: ${{ matrix.platform }}
+#    - uses: actions/upload-artifact@master
+#      with:
+#          name: native_lib_windows_${{ matrix.arch }}
+#          path: dist
+#
+#  build-macosx:
+#    name: Build MacOSX 64-bit
+#    runs-on: macos-latest
+#    steps:
+#      - uses: actions/checkout@v1
+#        with:
+#          submodules: 'recursive'
+#          lfs: true
+#      - run: brew install ninja nasm
+#      - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
+#      - run: cmake --build build --config RelWithDebInfo
+#      - run: mkdir build-stripped && strip -x -o build-stripped/libOpenTemple.Native.dylib build/libOpenTemple.Native.dylib
+#      - uses: actions/upload-artifact@master
+#        with:
+#          name: native_lib_macos
+#          path: 'build/libOpenTemple.Native.dylib'
+#      - uses: actions/upload-artifact@master
+#        with:
+#          name: native_lib_macos_stripped
+#          path: 'build-stripped/libOpenTemple.Native.dylib'
+#
+#  build-nuget-package:
+#    name: Build NuGet Package
+#    needs: [build-linux, build-windows, build-macosx]
+#    runs-on: windows-latest
+#    steps:
+#      - uses: actions/checkout@v1
+#      # Download all the dependents
+#      - uses: actions/download-artifact@master
+#        with:
+#          name: native_lib_linux
+#      - uses: actions/download-artifact@master
+#        with:
+#          name: native_lib_windows_x64
+#      - uses: actions/download-artifact@master
+#        with:
+#          name: native_lib_windows_x86
+#      - uses: actions/download-artifact@master
+#        with:
+#          name: native_lib_macos
+#      - name: Setup Nuget.exe
+#        uses: warrenbuckley/Setup-Nuget@v1
+#      - name: Generate build number
+#        id: buildnumber
+#        uses: einaregilsson/build-number@v2
+#        with:
+#          token: ${{ secrets.github_token }}
+#          prefix: nightly
+#      - run: |
+#          nuget pack -NonInteractive -Suffix ${{ steps.buildnumber.outputs.build_number }}
+#          nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/GrognardsFromHell/index.json" -UserName shartte -Password ${{ secrets.GITHUB_TOKEN }}
+#          nuget push -NonInteractive "*.nupkg" -Source "GitHub"

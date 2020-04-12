@@ -5,7 +5,7 @@
 
 #include <QQuickView>
 #include <QGuiApplication>
-#include <QtGui/6.0.0/QtGui/qpa/qplatformnativeinterface.h>
+#include <qpa/qplatformnativeinterface.h>
 
 #include "GameViews.h"
 

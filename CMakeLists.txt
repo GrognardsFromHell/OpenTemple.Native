@@ -13,16 +13,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
-find_package(Qt5Quick 6 REQUIRED)
-find_package(Qt5QuickControls2 6 REQUIRED)
-find_package(Qt5QmlWorkerScript 6 REQUIRED)
+find_package(Qt5Quick 5.14 REQUIRED)
+find_package(Qt5QuickControls2 5.14 REQUIRED)
+find_package(Qt5QmlWorkerScript 5.14 REQUIRED)
 
 ########### BEGIN FIXING MISSING QUICK PLUGINS
 add_library(Qt5QuickPlugin STATIC IMPORTED)
 set_target_properties(Qt5QuickPlugin PROPERTIES
         IMPORTED_CONFIGURATIONS "Debug;Release"
-        IMPORTED_LOCATION_DEBUG "${_qt5Quick_install_prefix}/qml/QtQuick/qtquick2plugind.lib"
-        IMPORTED_LOCATION "${_qt5Quick_install_prefix}/qml/QtQuick/qtquick2plugin.lib"
+        IMPORTED_LOCATION_DEBUG "${_qt5Quick_install_prefix}/qml/QtQuick.2/qtquick2plugind.lib"
+        IMPORTED_LOCATION "${_qt5Quick_install_prefix}/qml/QtQuick.2/qtquick2plugin.lib"
         )
 
 add_library(Qt5QmlPlugin STATIC IMPORTED)
@@ -35,15 +35,15 @@ set_target_properties(Qt5QmlPlugin PROPERTIES
 add_library(QtQmlModelsPlugin STATIC IMPORTED)
 set_target_properties(QtQmlModelsPlugin PROPERTIES
         IMPORTED_CONFIGURATIONS "Debug;Release"
-        IMPORTED_LOCATION_DEBUG "${_qt5Quick_install_prefix}/qml/QtQml/Models/modelsplugind.lib"
-        IMPORTED_LOCATION "${_qt5Quick_install_prefix}/qml/QtQml/Models/modelsplugin.lib"
+        IMPORTED_LOCATION_DEBUG "${_qt5Quick_install_prefix}/qml/QtQml/Models.2/modelsplugind.lib"
+        IMPORTED_LOCATION "${_qt5Quick_install_prefix}/qml/QtQml/Models.2/modelsplugin.lib"
         )
 
 add_library(QtQmlWorkerScriptPlugin STATIC IMPORTED)
 set_target_properties(QtQmlWorkerScriptPlugin PROPERTIES
         IMPORTED_CONFIGURATIONS "Debug;Release"
-        IMPORTED_LOCATION_DEBUG "${_qt5Quick_install_prefix}/qml/QtQml/WorkerScript/workerscriptplugind.lib"
-        IMPORTED_LOCATION "${_qt5Quick_install_prefix}/qml/QtQml/WorkerScript/workerscriptplugin.lib"
+        IMPORTED_LOCATION_DEBUG "${_qt5Quick_install_prefix}/qml/QtQml/WorkerScript.2/workerscriptplugind.lib"
+        IMPORTED_LOCATION "${_qt5Quick_install_prefix}/qml/QtQml/WorkerScript.2/workerscriptplugin.lib"
         )
 
 add_library(QtGraphicalEffectsPlugin STATIC IMPORTED)
@@ -63,8 +63,8 @@ set_target_properties(QtGraphicalEffectsPrivatePlugin PROPERTIES
 add_library(QtQuick2WindowPlugin STATIC IMPORTED)
 set_target_properties(QtQuick2WindowPlugin PROPERTIES
         IMPORTED_CONFIGURATIONS "Debug;Release"
-        IMPORTED_LOCATION_DEBUG "${_qt5Quick_install_prefix}/qml/QtQuick/Window/windowplugind.lib"
-        IMPORTED_LOCATION "${_qt5Quick_install_prefix}/qml/QtQuick/Window/windowplugin.lib"
+        IMPORTED_LOCATION_DEBUG "${_qt5Quick_install_prefix}/qml/QtQuick/Window.2/windowplugind.lib"
+        IMPORTED_LOCATION "${_qt5Quick_install_prefix}/qml/QtQuick/Window.2/windowplugin.lib"
         )
 
 target_link_libraries(Qt5::Quick INTERFACE Qt5QuickPlugin Qt5QmlPlugin QtQmlModelsPlugin QtQmlWorkerScriptPlugin QtGraphicalEffectsPlugin QtQuick2WindowPlugin QtGraphicalEffectsPrivatePlugin Qt5::QmlWorkerScript)
@@ -204,12 +204,11 @@ add_library(opentemple SHARED ${SOURCES})
 target_include_directories(opentemple PRIVATE ${QMLNET_DIR})
 target_compile_definitions(opentemple PRIVATE QMLNET_NO_WIDGETS)
 set_target_properties(opentemple PROPERTIES OUTPUT_NAME "OpenTemple.Native")
-set_target_properties(opentemple PROPERTIES AUTOMOC TRUE
-        AUTOMOC_EXECUTABLE "D:/qt/6/bin/moc.exe")
+set_target_properties(opentemple PROPERTIES AUTOMOC TRUE)
 target_include_directories(opentemple PRIVATE ${CMAKE_CURRENT_LIST_DIR}/thirdparty/stb)
 set_target_properties(opentemple PROPERTIES QT_PLUGINS_imageformats "Qt5::QICOPlugin")
 set_target_properties(opentemple PROPERTIES QT_PLUGINS_qmltooling "-")
 set_target_properties(opentemple PROPERTIES QT_PLUGINS_network "-")
-target_link_libraries(opentemple libjpeg-turbo soloud Qt5::CorePrivate Qt5::Quick Qt5::QuickControls2 Qt5::Gui)
+target_link_libraries(opentemple libjpeg-turbo soloud Qt5::CorePrivate Qt5::Quick Qt5::QuickControls2 Qt5::Gui Qt5::GuiPrivate)
 #set_property(TARGET opentemple APPEND PROPERTY QT_NO_PLUGINS Qt5::QICOPlugin)
-target_include_directories(opentemple PRIVATE "D:/qt/6/include/QtANGLE")
+#target_include_directories(opentemple PRIVATE "D:/qt/6/include/QtANGLE")
