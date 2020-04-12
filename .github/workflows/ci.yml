@@ -73,6 +73,37 @@ jobs:
           call ..\..\src\qtbase\configure.bat -prefix %QT_PREFIX% -confirm-license -opensource -nomake examples -nomake tests -release ^
             -no-widgets -static -c++std 2a -opengl es2 -angle -schannel -no-sql-odbc -no-sql-sqlite || goto :error
           jom || goto :error
+
+          rem Build QtDeclarative
+          cd ..\qtdeclarative
+          %QT_PREFIX%\bin\qmake -- -no-feature-qml-xml-http-request -no-feature-d3d12 || goto :error
+          jom || goto :error
+
+          rem Build qtgraphicaleffects
+          cd ..\qtgraphicaleffects
+          %QT_PREFIX%\bin\qmake || goto :error
+          jom || goto :error
+
+          rem Build qtimageformats
+          cd ..\qtimageformats
+          %QT_PREFIX%\bin\qmake || goto :error
+          jom || goto :error
+
+          rem Build qtlottie
+          cd ..\qtlottie
+          %QT_PREFIX%\bin\qmake || goto :error
+          jom || goto :error
+
+          rem Build qtquickcontrols2
+          cd ..\qtquickcontrols2
+          %QT_PREFIX%\bin\qmake || goto :error
+          jom || goto :error
+
+          rem Build qtsvg
+          cd ..\qtsvg
+          %QT_PREFIX%\bin\qmake || goto :error
+          jom || goto :error
+
           goto :EOF
 
           :error
