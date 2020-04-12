@@ -42,7 +42,7 @@ jobs:
 
       - name: Download Extra Tools
         run: |
-          rem We need flex/bison in PATH
+          # We need flex/bison in PATH
           mkdir ${GITHUB_WORKSPACE}/tools && cd ${GITHUB_WORKSPACE}/tools
           curl -L -f http://sourceforge.net/projects/winflexbison/files/win_flex_bison-2.5.5.zip/download -o flex_bison.zip
           unzip flex_bison.zip
