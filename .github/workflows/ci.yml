@@ -29,9 +29,6 @@ jobs:
           mkdir src && cd src
           mkdir qtbase qtdeclarative qtgraphicaleffects qtimageformats qtlottie qtquickcontrols2 qtsvg
           curl -L -f ${DOWNLOAD_URL}/qtbase-everywhere-src-${VERSION}.tar.xz | tar xJ -C qtbase --strip-components 1
-          cd ..
-          cd ..
-          find
           #curl -L -f ${DOWNLOAD_URL}/qtdeclarative-everywhere-src-${VERSION}.tar.xz | tar xJ -C qtdeclarative --strip-components 1
           #curl -L -f ${DOWNLOAD_URL}/qtgraphicaleffects-everywhere-src-${VERSION}.tar.xz | tar xJ -C qtgraphicaleffects --strip-components 1
           #curl -L -f ${DOWNLOAD_URL}/qtimageformats-everywhere-src-${VERSION}.tar.xz | tar xJ -C qtimageformats --strip-components 1
@@ -53,6 +50,7 @@ jobs:
           mkdir build
           mkdir build\qtbase
           cd build\qtbase
+          cd
           ..\src\qtbase\configure -prefix C:\qt\5.14 -confirm-license -opensource -nomake examples -nomake tests -release ^
             -no-widgets -static -c++std 2a -opengl es2 -angle -schannel -no-sql-odbc -no-sql-sqlite || goto :error
           nmake || goto :error
