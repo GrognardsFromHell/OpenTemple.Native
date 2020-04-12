@@ -47,13 +47,9 @@ jobs:
           IF "%ARCH%"=="x86" (CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars32.bat" || goto :error)
 
           rem Configure Static QT
-
-          dir
-
-          mkdir build
           mkdir build\qtbase
           cd build\qtbase
-          ..\src\qtbase\configure -prefix C:\qt\5.14 -confirm-license -opensource -nomake examples -nomake tests -release ^
+          ..\..\src\qtbase\configure -prefix C:\qt\5.14 -confirm-license -opensource -nomake examples -nomake tests -release ^
             -no-widgets -static -c++std 2a -opengl es2 -angle -schannel -no-sql-odbc -no-sql-sqlite || goto :error
           nmake || goto :error
           goto :EOF
