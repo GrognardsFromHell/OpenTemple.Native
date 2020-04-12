@@ -78,12 +78,12 @@ jobs:
         shell: cmd
         env:
           ARCH: ${{ matrix.arch }}
-          QT_PREFIX: ${{ env.GITHUB_WORKSPACE }}/qt
+          QT_PREFIX: ${{ github.workspace }}/qt
 
       - uses: actions/upload-artifact@master
         with:
           name: qt
-          path: ${{ env.GITHUB_WORKSPACE }}/qt
+          path: ${{ github.workspace }}/qt
 
 #  build-linux:
 #    name: Build Linux 64-bit
