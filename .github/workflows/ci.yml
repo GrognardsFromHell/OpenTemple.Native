@@ -27,13 +27,13 @@ jobs:
         if: steps.cache-qt-sources.outputs.cache-hit != 'true'
         run: |
           mkdir downloads && cd downloads
-          curl -O ${DOWNLOAD_URL}/qtbase-everywhere-src-${VERSION}.tar.xz
-          curl -O ${DOWNLOAD_URL}/qtdeclarative-everywhere-src-${VERSION}.tar.xz
-          curl -O ${DOWNLOAD_URL}/qtgraphicaleffects-everywhere-src-${VERSION}.tar.xz
-          curl -O ${DOWNLOAD_URL}/qtimageformats-everywhere-src-${VERSION}.tar.xz
-          curl -O ${DOWNLOAD_URL}/qtlottie-everywhere-src-${VERSION}.tar.xz
-          curl -O ${DOWNLOAD_URL}/qtquickcontrols2-everywhere-src-${VERSION}.tar.xz
-          curl -O ${DOWNLOAD_URL}/qtsvg-everywhere-src-${VERSION}.tar.xz
+          curl -f -O ${DOWNLOAD_URL}/qtbase-everywhere-src-${VERSION}.tar.xz
+          curl -f -O ${DOWNLOAD_URL}/qtdeclarative-everywhere-src-${VERSION}.tar.xz
+          curl -f -O ${DOWNLOAD_URL}/qtgraphicaleffects-everywhere-src-${VERSION}.tar.xz
+          curl -f -O ${DOWNLOAD_URL}/qtimageformats-everywhere-src-${VERSION}.tar.xz
+          curl -f -O ${DOWNLOAD_URL}/qtlottie-everywhere-src-${VERSION}.tar.xz
+          curl -f -O ${DOWNLOAD_URL}/qtquickcontrols2-everywhere-src-${VERSION}.tar.xz
+          curl -f -O ${DOWNLOAD_URL}/qtsvg-everywhere-src-${VERSION}.tar.xz
         shell: bash
         env:
           DOWNLOAD_URL: ${{env.qtDownloadUrl}}
