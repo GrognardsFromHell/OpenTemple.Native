@@ -1,4 +1,3 @@
-
 name: CI
 on: [push]
 
@@ -17,7 +16,7 @@ jobs:
         arch: [x64, x86]
     steps:
       # We try to cache the downloaded Qt versions
-      - name:
+      - name: Qt Sources Cache
         id: cache-qt-sources
         uses: actions/cache@v1
         with:
@@ -28,13 +27,16 @@ jobs:
         if: steps.cache-qt-sources.outputs.cache-hit != 'true'
         run: |
           mkdir downloads && cd downloads
-          curl -O ${{ qtDownloadUrl }}/qtbase-everywhere-src-${{ qtVersion }}.tar.xz
-          curl -O ${{ qtDownloadUrl }}/qtdeclarative-everywhere-src-${{ qtVersion }}.tar.xz
-          curl -O ${{ qtDownloadUrl }}/qtgraphicaleffects-everywhere-src-${{ qtVersion }}.tar.xz
-          curl -O ${{ qtDownloadUrl }}/qtimageformats-everywhere-src-${{ qtVersion }}.tar.xz
-          curl -O ${{ qtDownloadUrl }}/qtlottie-everywhere-src-${{ qtVersion }}.tar.xz
-          curl -O ${{ qtDownloadUrl }}/qtquickcontrols2-everywhere-src-${{ qtVersion }}.tar.xz
-          curl -O ${{ qtDownloadUrl }}/qtsvg-everywhere-src-${{ qtVersion }}.tar.xz
+          curl -O ${DOWNLOAD_URL}/qtbase-everywhere-src-${VERSION}.tar.xz
+          curl -O ${DOWNLOAD_URL}/qtdeclarative-everywhere-src-${VERSION}.tar.xz
+          curl -O ${DOWNLOAD_URL}/qtgraphicaleffects-everywhere-src-${VERSION}.tar.xz
+          curl -O ${DOWNLOAD_URL}/qtimageformats-everywhere-src-${VERSION}.tar.xz
+          curl -O ${DOWNLOAD_URL}/qtlottie-everywhere-src-${VERSION}.tar.xz
+          curl -O ${DOWNLOAD_URL}/qtquickcontrols2-everywhere-src-${VERSION}.tar.xz
+          curl -O ${DOWNLOAD_URL}/qtsvg-everywhere-src-${VERSION}.tar.xz
+        env:
+          DOWNLOAD_URL: ${{env.qtDownloadUrl}}
+          VERSION: ${{env.qtVersion}}
 
       - name: Build
         run: |
