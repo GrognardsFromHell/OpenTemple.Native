@@ -2,6 +2,11 @@
 name: CI
 on: [push]
 
+env:
+  qtRelease: 5.14
+  qtVersion: 5.14.2
+  qtDownloadUrl: http://download.qt-project.org/official_releases/qt/${{ qtRelease }}/${{ qtVersion }}/submodules/
+
 jobs:
 
   build-qt:
@@ -11,6 +16,26 @@ jobs:
       matrix:
         arch: [x64, x86]
     steps:
+      # We try to cache the downloaded Qt versions
+      - name:
+        id: cache-qt-sources
+        uses: actions/cache@v1
+        with:
+          path: downloads
+          key: qt-${{ qtDownloadUrl }}-sources
+
+      - name: Downloat Qt Sources
+        if: steps.cache-qt-sources.outputs.cache-hit != 'true'
+        run: |
+          mkdir downloads && cd downloads
+          curl -O ${{ qtDownloadUrl }}/qtbase-everywhere-src-${{ qtVersion }}.tar.xz
+          curl -O ${{ qtDownloadUrl }}/qtdeclarative-everywhere-src-${{ qtVersion }}.tar.xz
+          curl -O ${{ qtDownloadUrl }}/qtgraphicaleffects-everywhere-src-${{ qtVersion }}.tar.xz
+          curl -O ${{ qtDownloadUrl }}/qtimageformats-everywhere-src-${{ qtVersion }}.tar.xz
+          curl -O ${{ qtDownloadUrl }}/qtlottie-everywhere-src-${{ qtVersion }}.tar.xz
+          curl -O ${{ qtDownloadUrl }}/qtquickcontrols2-everywhere-src-${{ qtVersion }}.tar.xz
+          curl -O ${{ qtDownloadUrl }}/qtsvg-everywhere-src-${{ qtVersion }}.tar.xz
+
       - name: Build
         run: |
           IF "%ARCH%"=="x64" (CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat" || goto :error)
