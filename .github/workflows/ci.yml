@@ -66,9 +66,12 @@ jobs:
 
           set PATH=%PATH%;%GITHUB_WORKSPACE%\tools
 
+          mkdir build
+          cd build
+
           rem Configure Static QT
-          mkdir build\qtbase
-          cd build\qtbase
+          mkdir qtbase
+          cd qtbase
           call ..\..\src\qtbase\configure.bat -prefix %QT_PREFIX% -confirm-license -opensource -nomake examples -nomake tests -release ^
             -no-widgets -static -c++std 2a -opengl es2 -angle -schannel -no-sql-odbc -no-sql-sqlite || goto :error
           nmake || goto :error
@@ -77,8 +80,8 @@ jobs:
           rd /s /q qtbase
 
           rem Build QtDeclarative
-          mkdir build\qtdeclarative
-          cd build\qtdeclarative
+          mkdir qtdeclarative
+          cd qtdeclarative
           %QT_PREFIX%\bin\qmake ..\..\src\qtdeclarative -- -no-feature-qml-xml-http-request -no-feature-d3d12 || goto :error
           nmake || goto :error
           nmake install || goto :error
@@ -86,8 +89,8 @@ jobs:
           rd /s /q qtdeclarative
 
           rem Build qtgraphicaleffects
-          mkdir build\qtgraphicaleffects
-          cd build\qtgraphicaleffects
+          mkdir qtgraphicaleffects
+          cd qtgraphicaleffects
           %QT_PREFIX%\bin\qmake ..\src\qtgraphicaleffects || goto :error
           nmake || goto :error
           nmake install || goto :error
@@ -95,32 +98,32 @@ jobs:
           rd /s /q qtgraphicaleffects
 
           rem Build qtimageformats
-          mkdir build\qtimageformats
-          cd build\qtimageformats
+          mkdir qtimageformats
+          cd qtimageformats
           %QT_PREFIX%\bin\qmake ..\src\qtimageformats || goto :error
           nmake install || goto :error
           cd ..
           rd /s /q qtimageformats
 
           rem Build qtlottie
-          mkdir build\qtlottie
-          cd build\qtlottie
+          mkdir qtlottie
+          cd qtlottie
           %QT_PREFIX%\bin\qmake ..\src\qtlottie || goto :error
           nmake install || goto :error
           cd ..
           rd /s /q qtlottie
 
           rem Build qtquickcontrols2
-          mkdir build\qtquickcontrols2
-          cd build\qtquickcontrols2
+          mkdir qtquickcontrols2
+          cd qtquickcontrols2
           %QT_PREFIX%\bin\qmake ..\src\qtquickcontrols2 || goto :error
           nmake install || goto :error
           cd ..
           rd /s /q qtquickcontrols2
 
           rem Build qtsvg
-          mkdir build\qtsvg
-          cd build\qtsvg
+          mkdir qtsvg
+          cd qtsvg
           %QT_PREFIX%\bin\qmake ..\src\qtsvg || goto :error
           nmake install || goto :error
           cd ..
