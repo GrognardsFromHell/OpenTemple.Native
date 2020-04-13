@@ -91,7 +91,7 @@ jobs:
           rem Build qtgraphicaleffects
           mkdir qtgraphicaleffects
           cd qtgraphicaleffects
-          %QT_PREFIX%\bin\qmake ..\src\qtgraphicaleffects || goto :error
+          %QT_PREFIX%\bin\qmake ..\..\src\qtgraphicaleffects || goto :error
           nmake || goto :error
           nmake install || goto :error
           cd ..
@@ -100,7 +100,7 @@ jobs:
           rem Build qtimageformats
           mkdir qtimageformats
           cd qtimageformats
-          %QT_PREFIX%\bin\qmake ..\src\qtimageformats || goto :error
+          %QT_PREFIX%\bin\qmake ..\..\src\qtimageformats || goto :error
           nmake install || goto :error
           cd ..
           rd /s /q qtimageformats
@@ -108,7 +108,7 @@ jobs:
           rem Build qtlottie
           mkdir qtlottie
           cd qtlottie
-          %QT_PREFIX%\bin\qmake ..\src\qtlottie || goto :error
+          %QT_PREFIX%\bin\qmake ..\..\src\qtlottie || goto :error
           nmake install || goto :error
           cd ..
           rd /s /q qtlottie
@@ -116,7 +116,7 @@ jobs:
           rem Build qtquickcontrols2
           mkdir qtquickcontrols2
           cd qtquickcontrols2
-          %QT_PREFIX%\bin\qmake ..\src\qtquickcontrols2 || goto :error
+          %QT_PREFIX%\bin\qmake ..\..\src\qtquickcontrols2 || goto :error
           nmake install || goto :error
           cd ..
           rd /s /q qtquickcontrols2
@@ -124,7 +124,7 @@ jobs:
           rem Build qtsvg
           mkdir qtsvg
           cd qtsvg
-          %QT_PREFIX%\bin\qmake ..\src\qtsvg || goto :error
+          %QT_PREFIX%\bin\qmake ..\..\src\qtsvg || goto :error
           nmake install || goto :error
           cd ..
           rd /s /q qtsvg
