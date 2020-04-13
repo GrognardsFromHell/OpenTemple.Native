@@ -25,6 +25,27 @@ set_target_properties(Qt5QuickPlugin PROPERTIES
         IMPORTED_LOCATION "${_qt5Quick_install_prefix}/qml/QtQuick.2/qtquick2plugin.lib"
         )
 
+add_library(QtQuickControls2Plugin STATIC IMPORTED)
+set_target_properties(QtQuickControls2Plugin PROPERTIES
+        IMPORTED_CONFIGURATIONS "Debug;Release"
+        IMPORTED_LOCATION_DEBUG "${_qt5Quick_install_prefix}/qml/QtQuick/Controls.2/qtquickcontrols2plugind.lib"
+        IMPORTED_LOCATION "${_qt5Quick_install_prefix}/qml/QtQuick/Controls.2/qtquickcontrols2plugin.lib"
+        )
+
+add_library(QtQuickLayoutsPlugin STATIC IMPORTED)
+set_target_properties(QtQuickLayoutsPlugin PROPERTIES
+        IMPORTED_CONFIGURATIONS "Debug;Release"
+        IMPORTED_LOCATION_DEBUG "${_qt5Quick_install_prefix}/qml/QtQuick/Layouts/qquicklayoutsplugind.lib"
+        IMPORTED_LOCATION "${_qt5Quick_install_prefix}/qml/QtQuick/Layouts/qquicklayoutsplugin.lib"
+        )
+
+add_library(QtQuickTemplates2Plugin STATIC IMPORTED)
+set_target_properties(QtQuickTemplates2Plugin PROPERTIES
+        IMPORTED_CONFIGURATIONS "Debug;Release"
+        IMPORTED_LOCATION_DEBUG "${_qt5Quick_install_prefix}/qml/QtQuick/Templates.2/qtquicktemplates2plugind.lib"
+        IMPORTED_LOCATION "${_qt5Quick_install_prefix}/qml/QtQuick/Templates.2/qtquicktemplates2plugin.lib"
+        )
+
 add_library(Qt5QmlPlugin STATIC IMPORTED)
 set_target_properties(Qt5QmlPlugin PROPERTIES
         IMPORTED_CONFIGURATIONS "Debug;Release"
@@ -67,7 +88,7 @@ set_target_properties(QtQuick2WindowPlugin PROPERTIES
         IMPORTED_LOCATION "${_qt5Quick_install_prefix}/qml/QtQuick/Window.2/windowplugin.lib"
         )
 
-target_link_libraries(Qt5::Quick INTERFACE Qt5QuickPlugin Qt5QmlPlugin QtQmlModelsPlugin QtQmlWorkerScriptPlugin QtGraphicalEffectsPlugin QtQuick2WindowPlugin QtGraphicalEffectsPrivatePlugin Qt5::QmlWorkerScript)
+target_link_libraries(Qt5::Quick INTERFACE Qt5QuickPlugin Qt5QmlPlugin QtQmlModelsPlugin QtQmlWorkerScriptPlugin QtGraphicalEffectsPlugin QtQuick2WindowPlugin QtGraphicalEffectsPrivatePlugin Qt5::QmlWorkerScript QtQuickControls2Plugin QtQuickLayoutsPlugin QtQuickTemplates2Plugin)
 ########### END FIXING MISSING QUICK PLUGINS
 
 #

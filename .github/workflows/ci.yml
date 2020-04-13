@@ -71,7 +71,8 @@ jobs:
           cd build\qtbase
           call ..\..\src\qtbase\configure.bat -prefix %QT_PREFIX% -confirm-license -opensource -nomake examples -nomake tests -release ^
             -no-widgets -static -c++std 2a -opengl es2 -angle -schannel -no-sql-odbc -no-sql-sqlite || goto :error
-          jom -j2 install || goto :error
+          nmake || goto :error
+          nmake install || goto :error
           cd ..
           rd /s /q qtbase
 
@@ -79,7 +80,8 @@ jobs:
           mkdir build\qtdeclarative
           cd build\qtdeclarative
           %QT_PREFIX%\bin\qmake ..\..\src\qtdeclarative -- -no-feature-qml-xml-http-request -no-feature-d3d12 || goto :error
-          jom -j2 install || goto :error
+          nmake || goto :error
+          nmake install || goto :error
           cd ..
           rd /s /q qtdeclarative
 
@@ -87,7 +89,8 @@ jobs:
           mkdir build\qtgraphicaleffects
           cd build\qtgraphicaleffects
           %QT_PREFIX%\bin\qmake ..\src\qtgraphicaleffects || goto :error
-          jom -j2 install || goto :error
+          nmake || goto :error
+          nmake install || goto :error
           cd ..
           rd /s /q qtgraphicaleffects
 
@@ -95,7 +98,7 @@ jobs:
           mkdir build\qtimageformats
           cd build\qtimageformats
           %QT_PREFIX%\bin\qmake ..\src\qtimageformats || goto :error
-          jom -j2 install || goto :error
+          nmake install || goto :error
           cd ..
           rd /s /q qtimageformats
 
@@ -103,7 +106,7 @@ jobs:
           mkdir build\qtlottie
           cd build\qtlottie
           %QT_PREFIX%\bin\qmake ..\src\qtlottie || goto :error
-          jom -j2 install || goto :error
+          nmake install || goto :error
           cd ..
           rd /s /q qtlottie
 
@@ -111,7 +114,7 @@ jobs:
           mkdir build\qtquickcontrols2
           cd build\qtquickcontrols2
           %QT_PREFIX%\bin\qmake ..\src\qtquickcontrols2 || goto :error
-          jom -j2 install || goto :error
+          nmake install || goto :error
           cd ..
           rd /s /q qtquickcontrols2
 
@@ -119,7 +122,7 @@ jobs:
           mkdir build\qtsvg
           cd build\qtsvg
           %QT_PREFIX%\bin\qmake ..\src\qtsvg || goto :error
-          jom -j2 install || goto :error
+          nmake install || goto :error
           cd ..
           rd /s /q qtsvg
 
