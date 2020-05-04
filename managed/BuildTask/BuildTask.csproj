@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <!--
+        Based on example from https://github.com/natemcmaster/msbuild-tasks/
+    -->
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+
+        <AssemblyName>QmlBuildTasks</AssemblyName>
+        <RootNamespace>QmlBuildTasks</RootNamespace>
+        <LangVersion>8</LangVersion>
+
+        <OutputType>Exe</OutputType>
+        
+        <PackageId>OpenTemple.BuildTasks</PackageId>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
+        <DevelopmentDependency>true</DevelopmentDependency>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Content Include="build\*" Pack="true" PackagePath="build\" />
+        <None Include="$(OutputPath)\**\*" Pack="true" PackagePath="tools" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="CommandLineParser" Version="2.7.82" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.5.0" PrivateAssets="all" />
+        <PackageReference Include="OpenTemple.Interop" Version="1.0.0" PrivateAssets="all" />
+    
+    </ItemGroup>
+    
+    <Target Name="InstallLocal">
+        <RemoveDir Directories="$(NuGetPackageRoot)$(PackageId)\$(PackageVersion)" ContinueOnError="true" />
+        <Exec Command="&quot;$(MSBuildThisFileDirectory)\..\..\tools-win\nuget&quot; init $(OutputPath)..\ $(NuGetPackageRoot) -Expand" />
+    </Target>
+
+</Project>

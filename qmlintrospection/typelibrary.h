@@ -1,0 +1,44 @@
+
+#pragma once
+
+#include <map>
+
+#include <QDir>
+#include <QMap>
+#include <QQmlComponent>
+#include <unordered_set>
+
+#include "typeinfo.h"
+
+class QQmlPropertyData;
+
+class TypeLibrary {
+ public:
+  explicit TypeLibrary(QQmlEngine *engine, const QString &basePath)
+      : _engine(engine), _basePath(basePath) {}
+
+  bool addComponent(QQmlComponent *c);
+  TypeInfo *addQmlType(QV4::ExecutableCompilationUnit *compilationUnit);
+  TypeInfo *addCppType(const QMetaObject *metaObject);
+
+  void visitTypes(void (*visitor)(const TypeInfo *));
+
+ private:
+  QQmlEngine *_engine;
+
+  const TypeInfo *typeInfoForUserType(int typeId);
+
+  // Pre-constructed type references for all the objects we know about
+  std::map<int, TypeRef> _complexTypeRefs;
+
+  std::map<const QMetaObject *, std::unique_ptr<TypeInfo>> _complexTypes;
+  TypeRef resolveMetaTypeRef(QMetaType::Type type);
+
+  TypeRef resolveQmlPropTypeRef(QQmlPropertyData *qmlProp);
+
+  QDir _basePath;
+  void processMethodsAndSignals(const QMetaObject *metaObject, TypeInfo *result);
+  void processQmlComponent(const QV4::ExecutableCompilationUnit *compilationUnit, int objectIndex,
+                           TypeInfo *result);
+  bool convertParameters(const QMetaMethod &metaMethod, MethodInfo &method);
+};

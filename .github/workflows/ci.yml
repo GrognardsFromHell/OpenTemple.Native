@@ -73,7 +73,7 @@ jobs:
           mkdir qtbase
           cd qtbase
           call ..\..\src\qtbase\configure.bat -prefix %QT_PREFIX% -confirm-license -opensource -nomake examples -nomake tests -release ^
-            -no-widgets -static -c++std 2a -opengl es2 -angle -schannel -no-sql-odbc -no-sql-sqlite || goto :error
+            -force-debug-info -no-widgets -static -c++std 2a -opengl es2 -angle -schannel -no-sql-odbc -no-sql-sqlite || goto :error
           nmake || goto :error
           nmake install || goto :error
           cd ..
@@ -100,7 +100,7 @@ jobs:
           rem Build qtimageformats
           mkdir qtimageformats
           cd qtimageformats
-          %QT_PREFIX%\bin\qmake ..\..\src\qtimageformats || goto :error
+          %QT_PREFIX%\bin\qmake ..\..\src\qtimageformats -- -no-webp -no-tiff || goto :error
           nmake install || goto :error
           cd ..
           rd /s /q qtimageformats

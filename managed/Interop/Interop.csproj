@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+
+        <AssemblyName>OpenTemple.Interop</AssemblyName>
+        <RootNamespace>OpenTemple.Interop</RootNamespace>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        
+        <PackageId>OpenTemple.Interop</PackageId>
+        <PackageVersion>1.0.0</PackageVersion>
+    </PropertyGroup>
+    
+    <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+        <None Include="..\..\cmake-build-debug\OpenTemple.Native.dll" Pack="true" Link="runtimes\win-x64\native\%(Filename)%(Extension)" PackagePath="runtimes\win-x64\native" CopyToOutputDirectory="PreserveNewest" />
+        <None Include="..\..\cmake-build-debug\OpenTemple.Native.pdb" Pack="true" Link="runtimes\win-x64\native\%(Filename)%(Extension)" PackagePath="runtimes\win-x64\native" CopyToOutputDirectory="PreserveNewest" />
+        <None Include="..\..\cmake-build-debug\ffmpeg_bink\ffmpeg-bink.dll" Pack="true" Link="runtimes\win-x64\native\%(Filename)%(Extension)" PackagePath="runtimes\win-x64\native" CopyToOutputDirectory="PreserveNewest" />
+        <None Include="..\..\cmake-build-debug\ffmpeg_bink\ffmpeg-bink.pdb" Pack="true" Link="runtimes\win-x64\native\%(Filename)%(Extension)" PackagePath="runtimes\win-x64\native" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
+    <Target Name="InstallLocal">
+        <RemoveDir Directories="$(NuGetPackageRoot)$(PackageId)\$(PackageVersion)" ContinueOnError="true" />
+        <Exec Command="&quot;$(MSBuildThisFileDirectory)\..\..\tools-win\nuget&quot; init $(OutputPath)..\ $(NuGetPackageRoot) -Expand" />
+    </Target>
+
+</Project>

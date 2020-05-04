@@ -1,0 +1,31 @@
+<!--
+  This file is automatically imported by NuGet into a user's project
+  when it targets a single framework, or in classic (pre 2017) csproj projects.
+-->
+<Project TreatAsLocalProperty="TaskFolder;TaskAssembly;GenerateQmlBindingsOptions">
+    <PropertyGroup>
+        <ToolExecutable>$(MSBuildThisFileDirectory)..\tools\QmlBuildTasks.exe</ToolExecutable>
+        <GeneratedBindingsFile>$(BaseIntermediateOutputPath)QmlBindings.generated.cs</GeneratedBindingsFile>
+        <!-- Configure to append a suffix to all classes generated for .qml files -->
+        <GeneratedQmlClassSuffix/>
+        <GenerateQmlPascalCase>false</GenerateQmlPascalCase>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="$(GeneratedBindingsFile)"/>
+    </ItemGroup>
+
+    <Target Name="GenerateQmlBindings" BeforeTargets="CoreCompile" Condition="'$(UiAssetsFolder)' != ''">
+
+        <!-- Append the qml class suffix option if one is configured -->
+        <PropertyGroup Condition="'$(GeneratedQmlClassSuffix)' != ''">
+            <GenerateQmlBindingsOptions>$(GenerateQmlBindingsOptions) --qmlClassSuffix $(GeneratedQmlClassSuffix)</GenerateQmlBindingsOptions>
+        </PropertyGroup>
+
+        <PropertyGroup Condition="'$(GenerateQmlPascalCase)' == 'true'">
+            <GenerateQmlBindingsOptions>$(GenerateQmlBindingsOptions) --pascalCase</GenerateQmlBindingsOptions>
+        </PropertyGroup>
+
+        <Exec Command='"$(ToolExecutable)" --baseDir "$(UiAssetsFolder)" --output "$(GeneratedBindingsFile)" $(GenerateQmlBindingsOptions)'/>
+    </Target>
+</Project>
