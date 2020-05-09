@@ -16,7 +16,6 @@ class VideoPlayer;
 class BinkVideoItem : public QQuickItem {
   Q_OBJECT
   Q_PROPERTY(FillMode fillMode READ fillMode WRITE setFillMode NOTIFY fillModeChanged)
-  Q_ENUMS(FillMode)
   QML_ELEMENT
 
  public:
@@ -28,6 +27,7 @@ class BinkVideoItem : public QQuickItem {
     PreserveAspectFit = Qt::KeepAspectRatio,
     PreserveAspectCrop = Qt::KeepAspectRatioByExpanding
   };
+  Q_ENUM(FillMode)
 
   void setSoloud(SoLoud::Soloud *soloud) noexcept { _soloud = soloud; }
 

@@ -154,6 +154,8 @@ namespace QmlBuildTasks
                             return DerefPointerToPrimitive("double", expression);
                         case BuiltInType.Char:
                             return DerefPointerToPrimitive("char", expression);
+                        case BuiltInType.OpaquePointer:
+                            return DerefPointerToPrimitive("IntPtr", expression);
                         case BuiltInType.String:
                             // We need special deserialization for String, sadly
                             return InvocationExpression(ParseName("QtBuiltInTypeInterop.QString_read"))

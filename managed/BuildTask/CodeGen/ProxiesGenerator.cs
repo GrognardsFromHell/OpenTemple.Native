@@ -26,7 +26,7 @@ namespace QmlBuildTasks
             _options = options;
             _support = new GeneratorSupport(options);
             _properties = new PropertyGenerator(options, _support);
-            _events = new EventGenerator(options,_support);
+            _events = new EventGenerator(options, _support);
         }
 
         private static NameSyntax InteropNamespace => IdentifierName("OpenTemple.Interop");
@@ -499,6 +499,8 @@ namespace QmlBuildTasks
                             return PredefinedType(Token(SyntaxKind.DoubleKeyword));
                         case BuiltInType.Char:
                             return PredefinedType(Token(SyntaxKind.CharKeyword));
+                        case BuiltInType.OpaquePointer:
+                            return IdentifierName("System.IntPtr");
                         case BuiltInType.String:
                             // We are actually receiving a pointer to a QString...
                             return IdentifierName("System.IntPtr");
@@ -524,7 +526,10 @@ namespace QmlBuildTasks
             String,
 
             // Allocate new QObject proxy based on return value
-            QObject
+            QObject,
+
+            // Return the task of the completion source when method is being translated to an async method
+            CompletionSource
         }
 
         private ReturnValueHandling GetReturnValueHandling(TypeRef typeRef)
@@ -555,12 +560,26 @@ namespace QmlBuildTasks
             var indexFieldName = GetMethodIndexField(method);
             yield return _support.CreateMetaObjectIndexField(indexFieldName);
 
+            var parameters = method.Params.ToList();
+
+            var returnValueType = GetReturnValueHandling(method.ReturnType);
+            var managedParams = parameters.AsEnumerable();
+
+            // Check for special case:
+            // A method that returns void and has a CompletionSource as it's last parameter
+            // will be auto-translated to an asynchronous method.
+            if (returnValueType == ReturnValueHandling.None
+                && parameters.Count > 0
+                && parameters.Last().Type.Kind == TypeRefKind.BuiltIn
+                && parameters.Last().Type.BuiltIn == BuiltInType.CompletionSource)
+            {
+                returnValueType = ReturnValueHandling.CompletionSource;
+                // Do not append the completion source to the managed parameter list
+                managedParams = parameters.Take(parameters.Count - 1);
+            }
+
             IEnumerable<StatementSyntax> CreateBody()
             {
-                var returnValueType = GetReturnValueHandling(method.ReturnType);
-
-                var parameters = method.Params.ToList();
-
                 // Declare the array to hold the argv for the call, index 0 is the return value pointer
                 yield return ParseStatement($"void **argv = stackalloc void*[{parameters.Count + 1}];");
 
@@ -568,6 +587,11 @@ namespace QmlBuildTasks
                 {
                     yield return ParseStatement("using var result = new QStringArg(null);");
                     yield return ParseStatement("argv[0] = result.NativePointer;");
+                }
+                else if (returnValueType == ReturnValueHandling.CompletionSource)
+                {
+                    yield return ParseStatement(
+                        "var (nativeTask, completionSource) = OpenTemple.Interop.NativeCompletionSource.Create<IntPtr>();");
                 }
                 else if (returnValueType != ReturnValueHandling.None)
                 {
@@ -586,6 +610,18 @@ namespace QmlBuildTasks
                 {
                     var parameter = parameters[i];
                     var paramName = GetMethodParameterName(parameter, i);
+                    // Use the locally allocated completion source as the last parameter when transforming to async
+                    if (returnValueType == ReturnValueHandling.CompletionSource
+                        && i == parameters.Count - 1)
+                    {
+                        yield return ExpressionStatement(AssignmentExpression(
+                            SyntaxKind.SimpleAssignmentExpression,
+                            ParseExpression($"argv[{1 + i}]"),
+                            ParseExpression("&completionSource")
+                        ));
+                        continue;
+                    }
+
                     var unmanagedExpression = CreateUnmanagedParameterExpression(parameter, paramName, setup, cleanup);
                     foreach (var statement in setup)
                     {
@@ -620,6 +656,10 @@ namespace QmlBuildTasks
                 {
                     yield return ReturnStatement(IdentifierName("result"));
                 }
+                else if (returnValueType == ReturnValueHandling.CompletionSource)
+                {
+                    yield return ParseStatement("return nativeTask;");
+                }
                 else if (returnValueType == ReturnValueHandling.QObject)
                 {
                     // Result should be an IntPtr containing the native OQbject*
@@ -634,9 +674,15 @@ namespace QmlBuildTasks
 
             var methodName = _support.PascalifyName(method.Name);
 
-            yield return MethodDeclaration(_support.GetTypeName(method.ReturnType), methodName)
+            var returnTypeSyntax = _support.GetTypeName(method.ReturnType);
+            if (returnValueType == ReturnValueHandling.CompletionSource)
+            {
+                returnTypeSyntax = ParseTypeName("System.Threading.Tasks.Task<IntPtr>");
+            }
+
+            yield return MethodDeclaration(returnTypeSyntax, methodName)
                 .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.UnsafeKeyword)))
-                .WithParameterList(CreateParameterList(method))
+                .WithParameterList(CreateParameterList(managedParams))
                 .WithBody(Block(CreateBody()));
         }
 
@@ -689,7 +735,9 @@ namespace QmlBuildTasks
             }
             else if (parameterType.Kind == TypeRefKind.TypeInfo)
             {
-                return ParseExpression(paramName + ".NativePointer");
+                // Qt expects a pointer to the actual QObject pointer, so we need a temp
+                setup.Add(ParseStatement($"var {paramName}Temp = {paramName}.NativePointer;"));
+                return ParseExpression("&" + paramName + "Temp");
             }
             else
             {
@@ -738,10 +786,10 @@ namespace QmlBuildTasks
             };
         }
 
-        private ParameterListSyntax CreateParameterList(MethodInfo method)
+        private ParameterListSyntax CreateParameterList(IEnumerable<MethodParamInfo> @params)
         {
             return ParameterList(SeparatedList(
-                method.Params.Select((p, pIdx) => Parameter(Identifier(GetMethodParameterName(p, pIdx)))
+                @params.Select((p, pIdx) => Parameter(Identifier(GetMethodParameterName(p, pIdx)))
                     .WithType(_support.GetTypeName(p.Type)))
             ));
         }

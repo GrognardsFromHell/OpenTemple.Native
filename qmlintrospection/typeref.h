@@ -48,7 +48,9 @@ enum class BuiltInType : int {
   RectangleFloat,
   Point,
   PointFloat,
-  Url
+  Url,
+  OpaquePointer,
+  CompletionSource
 };
 
 /**

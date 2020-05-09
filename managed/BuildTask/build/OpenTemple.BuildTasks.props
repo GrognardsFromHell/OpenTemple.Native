@@ -27,7 +27,7 @@
             <GenerateQmlBindingsOptions>$(GenerateQmlBindingsOptions) --pascalCase</GenerateQmlBindingsOptions>
         </PropertyGroup>
 
-        <PropertyGroup Condition="'$(AdditionalMetaClasses)' == ''">
+        <PropertyGroup Condition="'$(AdditionalMetaClasses)' != ''">
             <GenerateQmlBindingsOptions>$(GenerateQmlBindingsOptions) --addMetaClass $(AdditionalMetaClasses.Replace(";", "--addMetaClass "))</GenerateQmlBindingsOptions>
         </PropertyGroup>
 

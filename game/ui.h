@@ -25,6 +25,7 @@
 #include <qpa/qplatformnativeinterface.h>
 
 #include <d3d11.h>
+#include <QMap>
 
 struct NativeWindowConfig {
   int minWidth;
@@ -36,8 +37,10 @@ struct NativeWindowConfig {
 
 class Ui : public QObject {
   Q_OBJECT
-  Q_PROPERTY(QQmlEngine *engine READ engine)
   Q_PROPERTY(QSize renderTargetSize READ renderTargetSize)
+  Q_PROPERTY(QString baseUrl READ baseUrl WRITE setBaseUrl)
+  Q_PROPERTY(QString windowTitle READ windowTitle WRITE setWindowTitle)
+  Q_PROPERTY(void *nativeHandle READ nativeHandle)
  private:
   std::unique_ptr<QGuiApplication> _app;
   std::unique_ptr<QQuickWindow> _window;
@@ -45,28 +48,42 @@ class Ui : public QObject {
   std::unique_ptr<QCursor> _transparentCursor;
 
  public:
+  Q_INVOKABLE Ui();
 
-  QQmlEngine *engine() const {
-    return _engine.get();
-  }
+  QQmlEngine *engine() const { return _engine.get(); }
 
-  QQuickWindow *window() const {
-    return _window.get();
-  }
+  QQuickWindow *window() const { return _window.get(); }
+
+  void *nativeHandle() const { return (void *)_window->winId(); }
+
+  Q_INVOKABLE void loadItemAsync(const QString &path, QObjectCompletionSource *completionSource);
+
+  Q_INVOKABLE QObject *loadItem(const QString &path);
 
   Q_INVOKABLE void queueUpdate();
 
+  Q_INVOKABLE void show() { _window->show(); }
+
+  Q_INVOKABLE void addToRoot(QQuickItem *item);
+  Q_INVOKABLE void removeFromRoot(QQuickItem *item);
+
   QSize renderTargetSize() const;
 
-  Ui();
+  QString baseUrl() const { return _engine->baseUrl().toString(); }
+
+  void setBaseUrl(const QString &baseUrl) const { return _engine->setBaseUrl(baseUrl); }
+
+  QString windowTitle() const { return _window->title(); }
+
+  void setWindowTitle(const QString &title) { _window->setTitle(title); }
+
+  Q_INVOKABLE void setWindowIcon(const QString &path);
 
   void setCursor(QCursor &cursor) { _window->setCursor(cursor); }
 
   void hideCursor() { _window->setCursor(*_transparentCursor); }
 
   void setTitle(const QString &title) { _window->setTitle(title); }
-
-  void setIcon(const QIcon &icon) { _window->setIcon(icon); }
 
   void setConfig(const NativeWindowConfig &config);
 
@@ -86,18 +103,15 @@ class Ui : public QObject {
     _afterRenderingCallback = std::move(callback);
   }
 
-  void setMouseEventFilter(
-      const std::function<bool(const MouseEvent &)> &mouseEventFilter) {
+  void setMouseEventFilter(const std::function<bool(const MouseEvent &)> &mouseEventFilter) {
     _mouseEventFilter = mouseEventFilter;
   }
 
-  void setWheelEventFilter(
-      const std::function<bool(const WheelEvent &)> &wheelEventFilter) {
+  void setWheelEventFilter(const std::function<bool(const WheelEvent &)> &wheelEventFilter) {
     _wheelEventFilter = wheelEventFilter;
   }
 
-  void setKeyEventFilter(
-      const std::function<bool(const KeyEvent &)> &keyEventFilter) {
+  void setKeyEventFilter(const std::function<bool(const KeyEvent &)> &keyEventFilter) {
     _keyEventFilter = keyEventFilter;
   }
 
@@ -105,8 +119,7 @@ class Ui : public QObject {
     _closeCallback = closeCallback;
   }
 
-  void setDeviceCreatedCallback(
-      const std::function<void(ID3D11Device *)> &deviceCreatedCallback) {
+  void setDeviceCreatedCallback(const std::function<void(ID3D11Device *)> &deviceCreatedCallback) {
     _deviceCreatedCallback = deviceCreatedCallback;
   }
 
@@ -127,8 +140,7 @@ class Ui : public QObject {
 
     auto type = event->type();
     if (_mouseEventFilter &&
-        (type == QEvent::MouseButtonDblClick ||
-         type == QEvent::MouseButtonPress ||
+        (type == QEvent::MouseButtonDblClick || type == QEvent::MouseButtonPress ||
          type == QEvent::MouseButtonRelease || type == QEvent::MouseMove ||
          type == QEvent::MouseTrackingChange)) {
       MouseEvent mouseEvent(*static_cast<QMouseEvent *>(event));
@@ -136,8 +148,7 @@ class Ui : public QObject {
     } else if (_wheelEventFilter && type == QEvent::Wheel) {
       WheelEvent wheelEvent(*static_cast<QWheelEvent *>(event));
       return _wheelEventFilter(wheelEvent);
-    } else if (_keyEventFilter &&
-               (type == QEvent::KeyPress || type == QEvent::KeyRelease)) {
+    } else if (_keyEventFilter && (type == QEvent::KeyPress || type == QEvent::KeyRelease)) {
       KeyEvent keyEvent(*static_cast<QKeyEvent *>(event));
       return _keyEventFilter(keyEvent);
     }
@@ -160,7 +171,10 @@ class Ui : public QObject {
   std::function<void(ID3D11Device *)> _deviceCreatedCallback;
   std::function<void(ID3D11Device *)> _deviceDestroyedCallback;
 
-  std::unique_ptr<QObjectCompletionSource> _loadViewCompletionSource;
+  // We must cache components so that the associated meta objects never get released
+  QMap<QString, QQmlComponent*> _components;
+
+  QQmlComponent *createComponent(const QString &path);
 };
 
-Q_DECLARE_METATYPE(Ui*);
+Q_DECLARE_METATYPE(Ui *);

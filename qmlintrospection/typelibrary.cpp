@@ -4,6 +4,7 @@
 #include <private/qqmlcomponent_p.h>
 #include <private/qqmlpropertycachemethodarguments_p.h>
 
+#include "../game/completion_source.h"
 #include "typelibrary.h"
 
 bool TypeLibrary::addComponent(QQmlComponent* component) {
@@ -97,7 +98,7 @@ TypeInfo* TypeLibrary::addCppType(const QMetaObject* metaObject) {
 
     int enumTypeId = QMetaType::type(enumTypeName);
     QMetaType enumMetaType(enumTypeId);
-    auto &enumInfo =  result->enums.emplace_back(metaEnum.enumName());
+    auto& enumInfo = result->enums.emplace_back(metaEnum.enumName());
     for (auto j = 0; j < metaEnum.keyCount(); j++) {
       enumInfo.values.emplace_back(metaEnum.key(j), metaEnum.value(j));
     }
@@ -365,6 +366,12 @@ void TypeLibrary::visitTypes(void (*visitor)(const TypeInfo*)) {
 }
 
 TypeRef TypeLibrary::resolveMetaTypeRef(QMetaType::Type type) {
+
+  // Special-case handling for automatic translation to async methods
+  if (qMetaTypeId<QObjectCompletionSource*>() == type) {
+    return TypeRef::fromBuiltIn(BuiltInType::CompletionSource);
+  }
+
   if (type >= QMetaType::User || type == QMetaType::QObjectStar) {
     int userType = (int)type;
     auto it = _complexTypeRefs.find(userType);
@@ -453,6 +460,8 @@ TypeRef TypeLibrary::resolveMetaTypeRef(QMetaType::Type type) {
       return TypeRef::fromBuiltIn(BuiltInType::PointFloat);
     case QMetaType::QUrl:
       return TypeRef::fromBuiltIn(BuiltInType::Url);
+    case QMetaType::VoidStar:
+      return TypeRef::fromBuiltIn(BuiltInType::OpaquePointer);
     default:
       break;
   }

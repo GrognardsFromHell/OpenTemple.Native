@@ -174,6 +174,8 @@ namespace QmlBuildTasks
                     BuiltInType.Point => ParseTypeName("System.Drawing.Point"),
                     BuiltInType.PointFloat => ParseTypeName("System.Drawing.PointF"),
                     BuiltInType.Url => ParseTypeName("string"),
+                    BuiltInType.OpaquePointer => ParseTypeName("System.IntPtr"),
+                    BuiltInType.CompletionSource => ParseTypeName("System.IntPtr"),
                     _ => throw new ArgumentOutOfRangeException(typeRef.BuiltIn.ToString())
                 },
                 _ => throw new ArgumentOutOfRangeException(typeRef.Kind.ToString())

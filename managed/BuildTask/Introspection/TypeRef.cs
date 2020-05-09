@@ -69,6 +69,7 @@ namespace QmlBuildTasks.Introspection
                         BuiltInType.UInt64 => true,
                         BuiltInType.Double => true,
                         BuiltInType.Char => true,
+                        BuiltInType.OpaquePointer => true,
                         _ => false
                     };
                 }
@@ -129,6 +130,8 @@ namespace QmlBuildTasks.Introspection
         RectangleFloat,
         Point,
         PointFloat,
-        Url
+        Url,
+        OpaquePointer,
+        CompletionSource
     }
 }

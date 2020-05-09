@@ -12,9 +12,7 @@
 struct ID3D11Device;
 
 static struct TypeRegistrar {
-  TypeRegistrar() noexcept {
-    qRegisterMetaType<Ui*>();
-  }
+  TypeRegistrar() noexcept { qRegisterMetaType<Ui *>(); }
 } registrar;
 
 Ui::Ui() {
@@ -155,6 +153,57 @@ QSize Ui::renderTargetSize() const {
   return _window->renderTargetSize();
 }
 
+void Ui::setWindowIcon(const QString &path) { _window->setIcon(QIcon(path)); }
+
+void Ui::loadItemAsync(const QString &path, QObjectCompletionSource *completionSource) {
+  auto component = createComponent(path);
+  if (!component->isReady()) {
+    completionSource->fail(component->errorString());
+  } else {
+    auto item = component->create();
+    if (item) {
+      completionSource->succeed(item);
+    } else {
+      completionSource->fail(component->errorString());
+    }
+  }
+}
+
+QObject *Ui::loadItem(const QString &path) {
+  auto component = createComponent(path);
+  if (!component->isReady()) {
+    return nullptr;
+  }
+  return component->create();
+}
+
+void Ui::addToRoot(QQuickItem *item) {
+  item->setParentItem(_window->contentItem());
+
+  // Make the item fill the root
+  qvariant_cast<QObject *>(item->property("anchors"))
+      ->setProperty("fill", QVariant::fromValue(_window->contentItem()));
+}
+
+void Ui::removeFromRoot(QQuickItem *item) {
+  if (item->parentItem() != _window->contentItem()) {
+    return;
+  }
+
+  item->setParentItem(nullptr);
+  qvariant_cast<QObject *>(item->property("anchors"))->setProperty("fill", QVariant());
+}
+
+QQmlComponent *Ui::createComponent(const QString &path) {
+  if (_components.contains(path)) {
+    return _components[path];
+  }
+
+  auto component = new QQmlComponent(_engine.get(), path, QQmlComponent::PreferSynchronous, this);
+  _components[path] = component;
+  return component;
+}
+
 struct UiCallbacks {
   NativeDelegate<void()> before_rendering;
   NativeDelegate<void()> before_renderpass_recording;
@@ -168,21 +217,17 @@ struct UiCallbacks {
   NativeDelegate<void(ID3D11Device *)> device_destroyed;
 };
 
-NATIVE_API Ui *ui_create(UiCallbacks callbacks) {
-  auto ui = std::make_unique<Ui>();
-
-  ui->setBeforeRenderingCallback(callbacks.before_rendering);
-  ui->setBeforeRenderPassRecordingCallback(callbacks.before_renderpass_recording);
-  ui->setAfterRenderPassRecordingCallback(callbacks.after_renderpass_recording);
-  ui->setAfterRenderingCallback(callbacks.after_rendering);
-  ui->setMouseEventFilter(callbacks.mouse_event_filter);
-  ui->setWheelEventFilter(callbacks.wheel_event_filter);
-  ui->setKeyEventFilter(callbacks.key_event_filter);
-  ui->setCloseCallback(callbacks.on_close);
-  ui->setDeviceCreatedCallback(callbacks.device_created);
-  ui->setDeviceDestroyedCallback(callbacks.device_destroyed);
-
-  return ui.release();
+NATIVE_API void ui_set_callbacks(Ui &ui, UiCallbacks callbacks) {
+  ui.setBeforeRenderingCallback(callbacks.before_rendering);
+  ui.setBeforeRenderPassRecordingCallback(callbacks.before_renderpass_recording);
+  ui.setAfterRenderPassRecordingCallback(callbacks.after_renderpass_recording);
+  ui.setAfterRenderingCallback(callbacks.after_rendering);
+  ui.setMouseEventFilter(callbacks.mouse_event_filter);
+  ui.setWheelEventFilter(callbacks.wheel_event_filter);
+  ui.setKeyEventFilter(callbacks.key_event_filter);
+  ui.setCloseCallback(callbacks.on_close);
+  ui.setDeviceCreatedCallback(callbacks.device_created);
+  ui.setDeviceDestroyedCallback(callbacks.device_destroyed);
 }
 
 NATIVE_API void ui_destroy(Ui *ui) { delete ui; }
@@ -196,16 +241,14 @@ NATIVE_API void ui_quit(Ui &ui) {
 
 NATIVE_API void ui_process_events() {
   QCoreApplication::sendPostedEvents();
+  // Otherwise, QObject::deleteLater is not processed
+  QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
   QCoreApplication::processEvents();
 }
 
 NATIVE_API void ui_hide_cursor(Ui &ui) { ui.hideCursor(); }
 
 NATIVE_API void ui_set_cursor(Ui &ui, QCursor &cursor) { ui.setCursor(cursor); }
-
-NATIVE_API void ui_set_icon(Ui &ui, const char16_t *icon_path) {
-  ui.setIcon(QIcon(QString::fromUtf16(icon_path)));
-}
 
 NATIVE_API void ui_set_title(Ui &ui, const char16_t *title) {
   ui.setTitle(QString::fromUtf16(title));
@@ -219,18 +262,6 @@ template <typename T>
 using AsyncSuccessCallback = void(T result);
 using AsyncErrorCallback = void(const char16_t *);
 
-NATIVE_API void ui_load_view(Ui &ui, const char16_t *path,
-                             QObjectCompletionSource *completionSource) {
-  //  ui.loadView(QString::fromUtf16(path),
-  //              std::unique_ptr<QObjectCompletionSource>(completionSource));
-}
-
-NATIVE_API void ui_get_rendertarget_size(Ui &ui, int *width, int *height) {}
-
 NATIVE_API void ui_begin_external_commands(Ui &ui) { ui.window()->beginExternalCommands(); }
 
 NATIVE_API void ui_end_external_commands(Ui &ui) { ui.window()->endExternalCommands(); }
-
-NATIVE_API QQuickItem *ui_get_root_item(Ui &ui) { return ui.window()->contentItem(); }
-
-NATIVE_API void ui_show(Ui &ui) { ui.window()->show(); }

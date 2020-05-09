@@ -53,3 +53,7 @@ private:
 };
 
 using QObjectCompletionSource = CompletionSource<void*>;
+
+#include <QMetaType>
+
+Q_DECLARE_METATYPE(QObjectCompletionSource*);

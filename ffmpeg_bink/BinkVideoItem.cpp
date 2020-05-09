@@ -66,6 +66,10 @@ BinkVideoItem::BinkVideoItem(QQuickItem *parent) : QQuickItem(parent) {
 QSGNode *BinkVideoItem::updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNodeData *data) {
   Q_UNUSED(data);
   auto videoNode = static_cast<QSGVideoNode *>(oldNode);
+  if (!_player) {
+    delete videoNode;
+    return nullptr;
+  }
 
   QMutexLocker lock(&m_frameMutex);
 
@@ -107,6 +111,10 @@ QSGNode *BinkVideoItem::updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePain
 }
 
 void BinkVideoItem::updateGeometry() {
+  if (!_player) {
+    return;
+  }
+
   const QSizeF frameSize(_player->width(), _player->height());
   const QRectF rect(0, 0, width(), height());
 
