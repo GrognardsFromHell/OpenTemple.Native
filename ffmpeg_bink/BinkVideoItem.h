@@ -32,6 +32,7 @@ class BinkVideoItem : public QQuickItem {
   void setSoloud(SoLoud::Soloud *soloud) noexcept { _soloud = soloud; }
 
   Q_INVOKABLE void open(const QString &path);
+  Q_INVOKABLE void stop();
 
   FillMode fillMode() const { return m_fillMode; }
   void setFillMode(FillMode mode) {

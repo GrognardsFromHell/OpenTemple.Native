@@ -4,6 +4,7 @@
 #include <type_traits>
 
 #include <QVariant>
+#include <utility>
 
 enum class TypeRefKind : int {
   Void = 0,
@@ -14,7 +15,15 @@ enum class TypeRefKind : int {
   /**
    * See BuiltInTypes
    */
-  BuiltIn
+  BuiltIn,
+  /**
+   * QQmlListProperty, where TypeInfo is filled.
+   */
+  QmlList,
+  /**
+   * Enumeration reference. Contained within TypeInfo.
+   */
+  TypeInfoEnum,
 };
 
 class TypeInfo;
@@ -27,7 +36,19 @@ enum class BuiltInType : int {
   UInt64,
   Double,
   Char,
-  String
+  String,
+  ByteArray,
+  DateTime,
+  Date,
+  Time,
+  Color,
+  Size,
+  SizeFloat,
+  Rectangle,
+  RectangleFloat,
+  Point,
+  PointFloat,
+  Url
 };
 
 /**
@@ -43,6 +64,22 @@ class TypeRef {
     result.typeInfo = typeInfo;
     return result;
   }
+
+  static TypeRef fromTypeInfoList(const TypeInfo *typeInfo) {
+    TypeRef result;
+    result.kind = TypeRefKind::QmlList;
+    result.typeInfo = typeInfo;
+    return result;
+  }
+
+  static TypeRef fromTypeInfoEnum(const TypeInfo *typeInfo, QByteArray enumName) {
+    TypeRef result;
+    result.kind = TypeRefKind::TypeInfoEnum;
+    result.typeInfo = typeInfo;
+    result.enumName = std::move(enumName);
+    return result;
+  }
+
   static TypeRef fromBuiltIn(BuiltInType builtInType) {
     TypeRef result;
     result.kind = TypeRefKind::BuiltIn;
@@ -53,4 +90,5 @@ class TypeRef {
   TypeRefKind kind = TypeRefKind::Void;
   const TypeInfo *typeInfo{};
   BuiltInType builtIn{};
+  QByteArray enumName{};
 };

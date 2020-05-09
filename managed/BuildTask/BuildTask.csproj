@@ -16,6 +16,7 @@
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
         <DevelopmentDependency>true</DevelopmentDependency>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>

@@ -31,7 +31,7 @@ class VideoAudioSourceInstance : public SoLoud::AudioSourceInstance {
     std::lock_guard<std::mutex> lg(source->_mutex);
     auto copyCount = consumeSamples(source->leftSampleQueue, aBuffer, aSamplesToRead);
     if (source->mChannels == 2) {
-      consumeSamples(source->rightSampleQueue, aBuffer, aSamplesToRead);
+      consumeSamples(source->rightSampleQueue, aBuffer + aBufferSize, aSamplesToRead);
     }
     return copyCount;
   }

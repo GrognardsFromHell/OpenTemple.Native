@@ -23,6 +23,7 @@ class QmlInfo {
 
   bool addFile(const QString& path);
   bool addNativeModule(const QString& uri, int majorVersion);
+  bool addMetaClass(const char *metaClass);
 
   bool visitTypeLibrary(void (*visitor)(const TypeLibrary&));
 

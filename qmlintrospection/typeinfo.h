@@ -10,7 +10,7 @@ class TypeLibrary;
 #include "methodinfo.h"
 #include "propinfo.h"
 
-enum class TypeInfoKind : int { CppQObject = 0, CppGadget = 1, QmlQObject = 2 };
+enum class TypeInfoKind : int { CppQObject = 0, CppGadget = 1, QmlQObject = 2, OpaqueValueType = 3 };
 
 /**
  * Describes a native type, which can either be dynamically created when
@@ -19,9 +19,7 @@ enum class TypeInfoKind : int { CppQObject = 0, CppGadget = 1, QmlQObject = 2 };
 class TypeInfo {
  public:
   TypeInfo(TypeInfoKind kind, QString metaClassName, QString name)
-      : kind(kind),
-        metaClassName(std::move(metaClassName)),
-        name(std::move(name)) {}
+      : kind(kind), metaClassName(std::move(metaClassName)), name(std::move(name)) {}
 
   const TypeInfoKind kind;
 
@@ -29,6 +27,9 @@ class TypeInfo {
   const QString metaClassName;
 
   const QString name;
+
+  // Relevant for OpaqueValueType
+  int size = 0;
 
   // In case the type is exposed to QML via a QML Module, this contains
   // the module's name (optional).

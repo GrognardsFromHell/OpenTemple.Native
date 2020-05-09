@@ -9,6 +9,7 @@
         <!-- Configure to append a suffix to all classes generated for .qml files -->
         <GeneratedQmlClassSuffix/>
         <GenerateQmlPascalCase>false</GenerateQmlPascalCase>
+        <AdditionalMetaClasses></AdditionalMetaClasses>
     </PropertyGroup>
 
     <ItemGroup>
@@ -24,6 +25,10 @@
 
         <PropertyGroup Condition="'$(GenerateQmlPascalCase)' == 'true'">
             <GenerateQmlBindingsOptions>$(GenerateQmlBindingsOptions) --pascalCase</GenerateQmlBindingsOptions>
+        </PropertyGroup>
+
+        <PropertyGroup Condition="'$(AdditionalMetaClasses)' == ''">
+            <GenerateQmlBindingsOptions>$(GenerateQmlBindingsOptions) --addMetaClass $(AdditionalMetaClasses.Replace(";", "--addMetaClass "))</GenerateQmlBindingsOptions>
         </PropertyGroup>
 
         <Exec Command='"$(ToolExecutable)" --baseDir "$(UiAssetsFolder)" --output "$(GeneratedBindingsFile)" $(GenerateQmlBindingsOptions)'/>

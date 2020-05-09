@@ -36,116 +36,39 @@ struct NativeWindowConfig {
 
 class Ui : public QObject {
   Q_OBJECT
+  Q_PROPERTY(QQmlEngine *engine READ engine)
+  Q_PROPERTY(QSize renderTargetSize READ renderTargetSize)
+ private:
+  std::unique_ptr<QGuiApplication> _app;
+  std::unique_ptr<QQuickWindow> _window;
+  std::unique_ptr<QQmlEngine> _engine;
+  std::unique_ptr<QCursor> _transparentCursor;
+
  public:
-  std::unique_ptr<QGuiApplication> app;
-  std::unique_ptr<QQuickView> view;
-  std::unique_ptr<QCursor> transparentCursor;
 
-  explicit Ui() {
-    static char *qtArgs[]{""};
-    int qtArgsSize = 1;
-    app = std::make_unique<QGuiApplication>(qtArgsSize, qtArgs);
-
-    view = std::make_unique<QQuickView>();
-
-    view->installEventFilter(this);
-
-    QObject::connect(view.get(), &QWindow::visibleChanged,
-                     [this](bool visible) {
-                       if (!visible && _closeCallback) {
-                         _closeCallback();
-                       }
-                     });
-
-    connect(view.get(), &QQuickWindow::sceneGraphInitialized, this,
-            &Ui::handleSceneGraphInitialized);
-    connect(view.get(), &QQuickWindow::sceneGraphInvalidated, this,
-            &Ui::handleSceneGraphInvalidated);
-
-    QObject::connect(view.get(), &QQuickView::statusChanged,
-                     [this](auto status) {
-                       if (status == QQuickView::Ready) {
-                         _loadViewCompletionSource->succeed(view->rootObject());
-                       } else if (status == QQuickView::Error) {
-                         QString errorMessage;
-                         for (auto &error : view->errors()) {
-                           if (!errorMessage.isEmpty()) {
-                             errorMessage.append("\n");
-                           }
-                           errorMessage.append(error.toString());
-                         }
-                         _loadViewCompletionSource->fail(errorMessage);
-                       }
-                     });
-
-    QObject::connect(view.get(), &QQuickWindow::beforeRendering, [this]() {
-      if (_beforeRenderingCallback) {
-        _beforeRenderingCallback();
-      }
-    });
-    QObject::connect(view.get(), &QQuickWindow::beforeRenderPassRecording,
-                     [this]() {
-                       if (_beforeRenderPassRecordingCallback) {
-                         _beforeRenderPassRecordingCallback();
-                       }
-                     });
-    QObject::connect(view.get(), &QQuickWindow::afterRenderPassRecording,
-                     [this]() {
-                       if (_afterRenderPassRecordingCallback) {
-                         _afterRenderPassRecordingCallback();
-                       }
-                     });
-    QObject::connect(view.get(), &QQuickWindow::afterRendering, [this]() {
-      if (_afterRenderingCallback) {
-        _afterRenderingCallback();
-      }
-    });
-    view->setResizeMode(QQuickView::SizeRootObjectToView);
-
-    transparentCursor = std::make_unique<QCursor>();
+  QQmlEngine *engine() const {
+    return _engine.get();
   }
 
-  QUrl baseUrl() const { return view->engine()->baseUrl(); }
-
-  void setBaseUrl(const QUrl &url) { view->engine()->setBaseUrl(url); }
-
-  void setCursor(QCursor &cursor) { view->setCursor(cursor); }
-
-  void hideCursor() { view->setCursor(*transparentCursor); }
-
-  void setTitle(const QString &title) { view->setTitle(title); }
-
-  void setIcon(const QIcon &icon) { view->setIcon(icon); }
-
-  void setConfig(const NativeWindowConfig &config) {
-    view->setMinimumWidth(config.minWidth);
-    view->setMinimumHeight(config.minHeight);
-    view->resize(config.width, config.height);
-    if (config.fullScreen) {
-      view->showFullScreen();
-    } else {
-      auto screen = view->screen();
-      if (screen) {
-        // Center on the view on screen
-        auto screenSize = screen->availableSize();
-        auto x = (screenSize.width() - view->width()) / 2;
-        auto y = (screenSize.height() - view->height()) / 2;
-        view->setPosition(x, y);
-      }
-
-      view->show();
-    }
+  QQuickWindow *window() const {
+    return _window.get();
   }
 
-  void loadView(const QString &path,
-                std::unique_ptr<QObjectCompletionSource> completionSource) {
-    if (_loadViewCompletionSource) {
-      _loadViewCompletionSource->cancel();
-    }
-    _loadViewCompletionSource = std::move(completionSource);
+  Q_INVOKABLE void queueUpdate();
 
-    view->setSource(QUrl(path));
-  }
+  QSize renderTargetSize() const;
+
+  Ui();
+
+  void setCursor(QCursor &cursor) { _window->setCursor(cursor); }
+
+  void hideCursor() { _window->setCursor(*_transparentCursor); }
+
+  void setTitle(const QString &title) { _window->setTitle(title); }
+
+  void setIcon(const QIcon &icon) { _window->setIcon(icon); }
+
+  void setConfig(const NativeWindowConfig &config);
 
   void setBeforeRenderingCallback(std::function<void()> callback) {
     _beforeRenderingCallback = std::move(callback);
@@ -198,7 +121,7 @@ class Ui : public QObject {
   Q_SLOT void handleSceneGraphInvalidated();
 
   bool eventFilter(QObject *object, QEvent *event) override {
-    if (object != view.get()) {
+    if (object != _window.get()) {
       return false;
     }
 
@@ -239,3 +162,5 @@ class Ui : public QObject {
 
   std::unique_ptr<QObjectCompletionSource> _loadViewCompletionSource;
 };
+
+Q_DECLARE_METATYPE(Ui*);

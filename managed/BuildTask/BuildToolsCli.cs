@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using CommandLine;
@@ -23,6 +25,12 @@ namespace QmlBuildTasks
 
         [Option("nativeLib", Required = false, HelpText = "Path to Native DLL to preload.")]
         public string NativeLibraryPath { get; set; }
+
+        [Option("addQmlModule", Required = false, HelpText = "Adds additional QML modules (Name:Version)")]
+        public IEnumerable<string> AdditionalQmlModules { get; set; }
+
+        [Option("addMetaClass", Required = false, HelpText = "Adds additional metaclasses")]
+        public IEnumerable<string> AdditionalMetaClasses { get; set; }
     }
 
     public static class BuildToolsCli
@@ -59,8 +67,22 @@ namespace QmlBuildTasks
                     }
 
                     using var qmlInfo = new QmlInfo(o);
-
                     qmlInfo.AddNativeModule("OpenTemple", 1);
+                    foreach (var qmlModuleSpec in o.AdditionalQmlModules)
+                    {
+                        var parts = qmlModuleSpec.Split(':');
+                        if (parts.Length != 2 || !int.TryParse(parts[1], out var majorVersion))
+                        {
+                            throw new ArgumentException("Invalid QML module spec: " + qmlModuleSpec);
+                        }
+
+                        qmlInfo.AddNativeModule(parts[0], majorVersion);
+                    }
+
+                    foreach (var metaClassName in o.AdditionalMetaClasses)
+                    {
+                        qmlInfo.AddMetaClass(metaClassName);
+                    }
 
                     foreach (var file in Directory.EnumerateFiles(o.BaseDirectory, "*.qml", SearchOption.AllDirectories)
                     )

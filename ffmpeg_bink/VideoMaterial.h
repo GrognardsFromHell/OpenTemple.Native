@@ -34,44 +34,8 @@ class QSGVideoNode : public QSGGeometryNode {
 
 class QSGVideoMaterialShader : public QSGMaterialShader {
  public:
-  const char *vertexShader() const override {
-    return "uniform highp mat4 qt_Matrix;\n"
-           "uniform highp float plane1Width;\n"
-           "uniform highp float plane2Width;\n"
-           "uniform highp float plane3Width;\n"
-           "attribute highp vec4 qt_VertexPosition;\n"
-           "attribute highp vec2 qt_VertexTexCoord;\n"
-           "varying highp vec2 plane1TexCoord;\n"
-           "varying highp vec2 plane2TexCoord;\n"
-           "varying highp vec2 plane3TexCoord;\n"
-           "\n"
-           "void main() {\n"
-           "    plane1TexCoord = qt_VertexTexCoord * vec2(plane1Width, 1);\n"
-           "    plane2TexCoord = qt_VertexTexCoord * vec2(plane2Width, 1);\n"
-           "    plane3TexCoord = qt_VertexTexCoord * vec2(plane3Width, 1);\n"
-           "    gl_Position = qt_Matrix * qt_VertexPosition;\n"
-           "}";
-  }
-  const char *fragmentShader() const override {
-    return "uniform sampler2D plane1Texture;\n"
-           "uniform sampler2D plane2Texture;\n"
-           "uniform sampler2D plane3Texture;\n"
-           "uniform mediump mat4 colorMatrix;\n"
-           "uniform lowp float opacity;\n"
-           "\n"
-           "varying highp vec2 plane1TexCoord;\n"
-           "varying highp vec2 plane2TexCoord;\n"
-           "varying highp vec2 plane3TexCoord;\n"
-           "\n"
-           "void main()\n"
-           "{\n"
-           "    mediump float Y = texture2D(plane1Texture, plane1TexCoord).r;\n"
-           "    mediump float U = texture2D(plane2Texture, plane2TexCoord).r;\n"
-           "    mediump float V = texture2D(plane3Texture, plane3TexCoord).r;\n"
-           "    mediump vec4 color = vec4(Y, U, V, 1.);\n"
-           "    gl_FragColor = colorMatrix * color * opacity;\n"
-           "}";
-  }
+  const char *vertexShader() const override;
+  const char *fragmentShader() const override;
 
   char const *const *attributeNames() const override {
     static const char *names[] = {"qt_VertexPosition", "qt_VertexTexCoord", 0};

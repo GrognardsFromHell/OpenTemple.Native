@@ -93,4 +93,20 @@ bool QmlInfo::addNativeModule(const QString& uri, int majorVersion) {
   return true;
 }
 
+bool QmlInfo::addMetaClass(const char *metaClass) {
+
+  auto type = QMetaType::type(metaClass);
+  if (type == 0) {
+    return false;
+  }
+
+  auto metaObject = QMetaType::metaObjectForType(type);
+  if (!metaObject) {
+    return false;
+  }
+
+  _cppTypes.insert(metaObject);
+  return true;
+}
+
 QmlInfo::~QmlInfo() = default;

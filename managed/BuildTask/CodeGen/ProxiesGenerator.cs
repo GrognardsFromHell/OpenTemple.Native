@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -14,12 +15,19 @@ namespace QmlBuildTasks
     {
         private readonly Options _options;
 
+        private readonly PropertyGenerator _properties;
+
+        private readonly EventGenerator _events;
+
+        private readonly GeneratorSupport _support;
+
         public ProxiesGenerator(Options options)
         {
             _options = options;
+            _support = new GeneratorSupport(options);
+            _properties = new PropertyGenerator(options, _support);
+            _events = new EventGenerator(options,_support);
         }
-
-        private static TypeSyntax InferredType => IdentifierName("var");
 
         private static NameSyntax InteropNamespace => IdentifierName("OpenTemple.Interop");
 
@@ -36,7 +44,7 @@ namespace QmlBuildTasks
                 ))
                 .WithMembers(
                     List<MemberDeclarationSyntax>(
-                        typeInfos.GroupBy(t => GetNamespace(t).ToFullString())
+                        typeInfos.GroupBy(t => _support.GetNamespace(t).ToFullString())
                             .Select(CreateNamespace).Concat(new[]
                                 {
                                     NamespaceDeclaration(InteropNamespace)
@@ -104,7 +112,7 @@ namespace QmlBuildTasks
                     // add the constructor callback
                     registrationArgs.Add(SimpleLambdaExpression(
                         Parameter(Identifier("handle")),
-                        ObjectCreationExpression(GetQualifiedName(typeInfo))
+                        ObjectCreationExpression(_support.GetQualifiedName(typeInfo))
                             .WithArgumentList(ArgumentList(
                                 SingletonSeparatedList(Argument(IdentifierName("handle")))
                             ))
@@ -159,13 +167,13 @@ namespace QmlBuildTasks
                 namespaceContent.RemoveAt(i);
             }
 
-            return NamespaceDeclaration(GetNamespace(typesList.First()))
+            return NamespaceDeclaration(_support.GetNamespace(typesList.First()))
                 .WithMembers(List(namespaceContent.Cast<MemberDeclarationSyntax>()));
         }
 
         private ClassDeclarationSyntax CreateProxyClass(TypeInfo type)
         {
-            return ClassDeclaration(GetTypeName(type).Identifier)
+            return ClassDeclaration(_support.GetTypeName(type).Identifier)
                     .WithBaseList(GetBaseList(type))
                     .WithPublicAccess()
                     .WithMembers(List(CreateProxyMembers(type)))
@@ -176,7 +184,7 @@ namespace QmlBuildTasks
         {
             // Emit a static constructor that ENSURES the type registry has been initialized
             yield return ParseMemberDeclaration(
-                $"static {GetTypeName(type).Identifier}() {{\nSystem.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(OpenTemple.Interop.GeneratedTypesRegistry).TypeHandle);\n}}");
+                $"static {_support.GetTypeName(type).Identifier}() {{\nSystem.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(OpenTemple.Interop.GeneratedTypesRegistry).TypeHandle);\n}}");
 
             // To get the MetaObject for a QML type, we need an example object
             var lazyMetaObjectInitCall = type.Kind == TypeInfoKind.QmlQObject
@@ -196,7 +204,7 @@ namespace QmlBuildTasks
             // Create constructor
             if (true || type.Kind == TypeInfoKind.CppQObject || type.Kind == TypeInfoKind.QmlQObject)
             {
-                yield return ConstructorDeclaration(GetTypeName(type).Identifier)
+                yield return ConstructorDeclaration(_support.GetTypeName(type).Identifier)
                     .WithPublicAccess()
                     .WithParameterList(
                         ParameterList(
@@ -219,12 +227,12 @@ namespace QmlBuildTasks
             if (type.Kind == TypeInfoKind.CppQObject)
             {
                 yield return ParseMemberDeclaration(
-                    $"public {GetTypeName(type).Identifier}() : base(QObjectBase.CreateInstance({lazyMetaObjectInitCall})\n) {{}}");
+                    $"public {_support.GetTypeName(type).Identifier}() : base(QObjectBase.CreateInstance({lazyMetaObjectInitCall})\n) {{}}");
             }
 
             foreach (var prop in type.Props)
             {
-                foreach (var syntax in CreateProperty(prop))
+                foreach (var syntax in _properties.CreateProperty(prop))
                 {
                     yield return syntax;
                 }
@@ -274,7 +282,7 @@ namespace QmlBuildTasks
 
             foreach (var signal in signals)
             {
-                foreach (var syntax in CreateEvent(signal))
+                foreach (var syntax in _events.CreateEvent(signal))
                 {
                     yield return syntax;
                 }
@@ -287,8 +295,8 @@ namespace QmlBuildTasks
             // annoying as hell, but if names are capitalized, we can introduce clashes with enums :|
             if (_options.PascalCase)
             {
-                var clash = type.Props.Select(prop => Capitalize(prop.Name))
-                    .Concat(type.Methods.Select(method => Capitalize(method.Name)))
+                var clash = type.Props.Select(prop => _support.Capitalize(prop.Name))
+                    .Concat(type.Methods.Select(method => _support.Capitalize(method.Name)))
                     .Contains(enumName);
                 Console.WriteLine($"In type {type.Name}, enum {enumInfo.Name} clashes with a method or property.");
                 // Prefer pluralization
@@ -302,35 +310,24 @@ namespace QmlBuildTasks
                 }
             }
 
-            return EnumDeclaration(enumName)
+            var result = EnumDeclaration(enumName)
                 .WithPublicAccess()
                 .WithMembers(SeparatedList(
                     enumInfo.Values.Select(value => EnumMemberDeclaration(value.Name)
                         .WithEqualsValue(EqualsValueClause(LiteralExpression(SyntaxKind.NumericLiteralExpression,
                             Literal(value.Value)))))
                 ));
-        }
 
-        private TypeSyntax GetTypeName(TypeRef typeRef)
-        {
-            return typeRef.Kind switch
+            if (enumInfo.IsFlags)
             {
-                TypeRefKind.Void => PredefinedType(Token(SyntaxKind.VoidKeyword)),
-                TypeRefKind.TypeInfo => GetQualifiedName(typeRef.TypeInfo),
-                TypeRefKind.BuiltIn => PredefinedType(Token(typeRef.BuiltIn switch
-                {
-                    BuiltInType.Bool => SyntaxKind.BoolKeyword,
-                    BuiltInType.Int32 => SyntaxKind.IntKeyword,
-                    BuiltInType.UInt32 => SyntaxKind.UIntKeyword,
-                    BuiltInType.Int64 => SyntaxKind.LongKeyword,
-                    BuiltInType.UInt64 => SyntaxKind.ULongKeyword,
-                    BuiltInType.Double => SyntaxKind.DoubleKeyword,
-                    BuiltInType.Char => SyntaxKind.CharKeyword,
-                    BuiltInType.String => SyntaxKind.StringKeyword,
-                    _ => throw new ArgumentOutOfRangeException(typeRef.BuiltIn.ToString())
-                })),
-                _ => throw new ArgumentOutOfRangeException(typeRef.Kind.ToString())
-            };
+                result = result.WithAttributeLists(SingletonList(
+                    AttributeList(SingletonSeparatedList<AttributeSyntax>(
+                        Attribute(IdentifierName("Flags"))
+                    )))
+                );
+            }
+
+            return result;
         }
 
         // Generates a private method InitializeMetaObject, which will be called exactly once
@@ -384,15 +381,16 @@ namespace QmlBuildTasks
             // in the discovered meta object for faster setting/getting
             foreach (var prop in type.Props)
             {
-                var propertyIndexField = GetPropertyIndexField(prop);
-                yield return ParseStatement(
-                    $"FindMetaObjectProperty(metaObject, \"{prop.Name}\", out {propertyIndexField});");
+                foreach (var stmt in _properties.CreateInitializer(prop, "metaObject"))
+                {
+                    yield return stmt;
+                }
             }
 
             // Same for signals & methods
             foreach (var signal in type.Signals)
             {
-                var indexField = GetSignalIndexField(signal);
+                var indexField = _events.GetSignalIndexField(signal);
                 yield return ParseStatement(
                     $"FindMetaObjectMethod(metaObject, \"{signal.Signature}\", out {indexField});");
             }
@@ -471,281 +469,6 @@ namespace QmlBuildTasks
                             SyntaxKind.StringLiteralExpression,
                             Literal(type.MetaClassName)))))
                 );
-        }
-
-        private IEnumerable<MemberDeclarationSyntax> CreateProperty(PropInfo prop)
-        {
-            var accessors = new List<AccessorDeclarationSyntax>();
-
-            var propertyIndexField = GetPropertyIndexField(prop);
-
-            yield return CreateMetaObjectIndexField(propertyIndexField);
-
-            if (prop.IsReadable)
-            {
-                if (prop.Type.Kind == TypeRefKind.BuiltIn)
-                {
-                    if (prop.Type.BuiltIn == BuiltInType.String)
-                    {
-                        accessors.Add(AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                            .WithExpressionBody(
-                                ArrowExpressionClause(
-                                    InvocationExpression(IdentifierName("GetPropertyQString"))
-                                        .WithArgumentList(ArgumentList(
-                                            SingletonSeparatedList(Argument(IdentifierName(propertyIndexField)))))))
-                            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
-                        );
-                    }
-                    else
-                    {
-                        accessors.Add(AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                            .WithExpressionBody(
-                                ArrowExpressionClause(
-                                    InvocationExpression(GenericName("GetPropertyPrimitive")
-                                            .WithTypeArgumentList(
-                                                TypeArgumentList(SingletonSeparatedList(GetTypeName(prop.Type)))))
-                                        .WithArgumentList(ArgumentList(
-                                            SingletonSeparatedList(Argument(IdentifierName(propertyIndexField)))))))
-                            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
-                        );
-                    }
-                }
-                else if (prop.Type.Kind == TypeRefKind.TypeInfo)
-                {
-                    var propType = prop.Type.TypeInfo;
-                    if (propType.Kind == TypeInfoKind.CppGadget)
-                    {
-                        accessors.Add(AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                            .WithExpressionBody(ArrowExpressionClause(ParseExpression(
-                                $"GetPropertyQGadget<{GetQualifiedName(propType).ToFullString()}>({propertyIndexField})"
-                            )))
-                            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
-                        );
-                    }
-                    else
-                    {
-                        accessors.Add(AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                            .WithExpressionBody(ArrowExpressionClause(ParseExpression(
-                                $"GetPropertyQObject<{GetQualifiedName(propType).ToFullString()}>({propertyIndexField})"
-                            )))
-                            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
-                        );
-                    }
-                }
-            }
-
-            if (prop.IsWritable)
-            {
-                if (prop.Type.Kind == TypeRefKind.BuiltIn)
-                {
-                    if (prop.Type.BuiltIn == BuiltInType.String)
-                    {
-                        accessors.Add(AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                            .WithExpressionBody(
-                                ArrowExpressionClause(
-                                    InvocationExpression(IdentifierName("SetPropertyQString"))
-                                        .WithArgumentList(ArgumentList(
-                                            SeparatedList(new[]
-                                            {
-                                                Argument(IdentifierName(propertyIndexField)),
-                                                Argument(IdentifierName("value"))
-                                            })))))
-                            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
-                        );
-                    }
-                    else
-                    {
-                        accessors.Add(AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                            .WithExpressionBody(
-                                ArrowExpressionClause(
-                                    InvocationExpression(GenericName("SetPropertyPrimitive")
-                                            .WithTypeArgumentList(
-                                                TypeArgumentList(SingletonSeparatedList(GetTypeName(prop.Type)))))
-                                        .WithArgumentList(ArgumentList(
-                                            SeparatedList(new[]
-                                            {
-                                                Argument(IdentifierName(propertyIndexField)),
-                                                Argument(IdentifierName("value"))
-                                            })))))
-                            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
-                        );
-                    }
-                }
-                else
-                {
-                    var propType = prop.Type.TypeInfo;
-                    if (propType.Kind == TypeInfoKind.CppGadget)
-                    {
-                        accessors.Add(AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                            .WithExpressionBody(ArrowExpressionClause(ParseExpression(
-                                $"SetPropertyQGadget<{GetQualifiedName(propType).ToFullString()}>({propertyIndexField}, value)"
-                            )))
-                            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
-                        );
-                    }
-                    else
-                    {
-                        accessors.Add(AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                            .WithExpressionBody(ArrowExpressionClause(ParseExpression(
-                                $"SetPropertyQObject({propertyIndexField}, value)"
-                            )))
-                            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
-                        );
-                    }
-                }
-            }
-
-            var propName = _options.PascalCase ? Capitalize(prop.Name) : prop.Name;
-            yield return PropertyDeclaration(GetTypeName(prop.Type), SanitizeIdentifier(propName))
-                .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
-                .WithAccessorList(AccessorList(List(accessors)));
-        }
-
-        private string Capitalize(string text)
-        {
-            if (text.Length == 0 || char.IsUpper(text[0]))
-            {
-                return text;
-            }
-
-            return text.Substring(0, 1).ToUpperInvariant() + text.Substring(1);
-        }
-
-        private IEnumerable<MemberDeclarationSyntax> CreateEvent(MethodInfo signal)
-        {
-            var eventName = SanitizeIdentifier("On" + Capitalize(signal.Name));
-
-            var signalParams = signal.Params.ToList();
-
-            // Declare a static field to save the index of the signal
-            var indexFieldName = GetSignalIndexField(signal);
-            yield return CreateMetaObjectIndexField(indexFieldName);
-
-            // Declare a static field that holds the delegate instance for marshalling the Qt signal parameters
-            // back to the parameters expected by the actual user-facing delegate type
-            var thunkDelegateName = eventName + "ThunkDelegate";
-            var thunkMethodName = eventName + "Thunk";
-            yield return ParseMemberDeclaration(
-                $"private static readonly unsafe DelegateSlotCallback {thunkDelegateName} = {thunkMethodName};"
-            );
-
-            // Determine the type of the user-facing delegate. We will not support return values. Hence 'Action'
-            TypeSyntax delegateType;
-            if (signalParams.Count > 0)
-            {
-                delegateType = GenericName(Identifier("System.Action")).WithTypeArgumentList(TypeArgumentList(
-                    SeparatedList(
-                        signalParams.Select(p => GetTypeName(p.Type))
-                    )));
-            }
-            else
-            {
-                delegateType = IdentifierName("System.Action");
-            }
-
-            // Generate a method that will serve as the thunk for native calls
-            yield return CreateSignalThunkMethod(thunkMethodName, signalParams, delegateType);
-
-            var accessors = new List<AccessorDeclarationSyntax>
-            {
-                AccessorDeclaration(SyntaxKind.AddAccessorDeclaration)
-                    .WithExpressionBody(
-                        ArrowExpressionClause(
-                            ParseExpression($"AddSignalHandler({indexFieldName}, value, {thunkDelegateName})")))
-                    .WithSemicolonToken(Token(SyntaxKind.SemicolonToken)),
-                AccessorDeclaration(SyntaxKind.RemoveAccessorDeclaration)
-                    .WithExpressionBody(
-                        ArrowExpressionClause(
-                            ParseExpression($"RemoveSignalHandler({indexFieldName}, value)")))
-                    .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
-            };
-
-            yield return EventDeclaration(delegateType, eventName)
-                .WithPublicAccess()
-                .WithAccessorList(AccessorList(List(accessors)));
-        }
-
-        private MemberDeclarationSyntax CreateSignalThunkMethod(string thunkMethodName,
-            List<MethodParamInfo> signalParams,
-            TypeSyntax delegateType)
-        {
-            var method = (MethodDeclarationSyntax)
-                ParseMemberDeclaration(
-                    $"private static unsafe void {thunkMethodName}(GCHandle delegateHandle, void** args) {{}}");
-
-            return method.WithBody(Block(CreateSignalThunkMethodBody(signalParams, delegateType)));
-        }
-
-        private IEnumerable<StatementSyntax> CreateSignalThunkMethodBody(
-            List<MethodParamInfo> signalParams,
-            TypeSyntax delegateType)
-        {
-            // Cast the GCHandle's target to our action
-            yield return LocalDeclarationStatement(
-                VariableDeclaration(InferredType, SingletonSeparatedList(
-                    VariableDeclarator("dlgt")
-                        .WithInitializer(EqualsValueClause(CastExpression(delegateType,
-                            ParseExpression("delegateHandle.Target"))))
-                ))
-            );
-
-            var methodParams = signalParams.Select((signalParam, index) =>
-            {
-                // index +1 because first array entry is the return value
-                var ptrValue = ParseExpression("args[" + (index + 1) + "]");
-                return TransformExpressionNativeToManaged(ptrValue, signalParam.Type);
-            }).Select(Argument).ToArray();
-
-            // Call the delegate
-            yield return ExpressionStatement(InvocationExpression(
-                IdentifierName("dlgt"), ArgumentList(SeparatedList(methodParams))
-            ));
-        }
-
-        private ExpressionSyntax CastVoidPtrToIntPtr(ExpressionSyntax voidPtr) =>
-            CastExpression(IdentifierName("System.IntPtr"), voidPtr);
-
-        private ExpressionSyntax DerefPointerToPrimitive(string name, ExpressionSyntax voidPtr) =>
-            PrefixUnaryExpression(SyntaxKind.PointerIndirectionExpression,
-                CastExpression(IdentifierName(name + "*"), voidPtr)
-            );
-
-        private ExpressionSyntax TransformExpressionNativeToManaged(ExpressionSyntax expression, TypeRef type)
-        {
-            // Transform ptrValue (a void*) to the target type
-            switch (type.Kind)
-            {
-                case TypeRefKind.TypeInfo:
-                    return ObjectCreationExpression(GetTypeName(type))
-                        .WithArgumentList(
-                            ArgumentList(SeparatedList(new[] {Argument(CastVoidPtrToIntPtr(expression))})));
-                case TypeRefKind.BuiltIn:
-                    switch (type.BuiltIn)
-                    {
-                        case BuiltInType.Bool:
-                            return DerefPointerToPrimitive("bool", expression);
-                        case BuiltInType.Int32:
-                            return DerefPointerToPrimitive("int", expression);
-                        case BuiltInType.UInt32:
-                            return DerefPointerToPrimitive("uint", expression);
-                        case BuiltInType.Int64:
-                            return DerefPointerToPrimitive("long", expression);
-                        case BuiltInType.UInt64:
-                            return DerefPointerToPrimitive("ulong", expression);
-                        case BuiltInType.Double:
-                            return DerefPointerToPrimitive("double", expression);
-                        case BuiltInType.Char:
-                            return DerefPointerToPrimitive("char", expression);
-                        case BuiltInType.String:
-                            // We need special deserialization for String, sadly
-                            return InvocationExpression(IdentifierName("QString_read"))
-                                .WithArgumentList(ArgumentList(SeparatedList(new[] {Argument(expression)})));
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
         }
 
         private TypeSyntax GetNativeRepresentation(TypeRef typeRef)
@@ -830,7 +553,7 @@ namespace QmlBuildTasks
         {
             // Declare a static field to save the index of the method
             var indexFieldName = GetMethodIndexField(method);
-            yield return CreateMetaObjectIndexField(indexFieldName);
+            yield return _support.CreateMetaObjectIndexField(indexFieldName);
 
             IEnumerable<StatementSyntax> CreateBody()
             {
@@ -840,7 +563,6 @@ namespace QmlBuildTasks
 
                 // Declare the array to hold the argv for the call, index 0 is the return value pointer
                 yield return ParseStatement($"void **argv = stackalloc void*[{parameters.Count + 1}];");
-
 
                 if (returnValueType == ReturnValueHandling.String)
                 {
@@ -857,44 +579,42 @@ namespace QmlBuildTasks
                     yield return ParseStatement("argv[0] = &result;");
                 }
 
+                var setup = new List<StatementSyntax>();
+                var cleanup = new List<StatementSyntax>();
+
                 for (var i = 0; i < parameters.Count; i++)
                 {
                     var parameter = parameters[i];
                     var paramName = GetMethodParameterName(parameter, i);
-                    string valueSource;
-                    var parameterType = parameter.Type;
-                    if (parameterType.Kind == TypeRefKind.BuiltIn)
+                    var unmanagedExpression = CreateUnmanagedParameterExpression(parameter, paramName, setup, cleanup);
+                    foreach (var statement in setup)
                     {
-                        if (parameterType.BuiltIn == BuiltInType.String)
-                        {
-                            // Introduce a temporary for the heap-allocated QString object
-                            valueSource = paramName + "Temp.NativePointer";
-                            yield return ParseStatement(
-                                $"using var {paramName}Temp = new QGadgetBase.QStringArg({paramName});"
-                            );
-                        }
-                        else
-                        {
-                            valueSource = "&" + paramName;
-                        }
+                        yield return statement;
                     }
-                    else if (parameterType.Kind == TypeRefKind.TypeInfo)
-                    {
-                        valueSource = paramName + ".NativePointer";
-                    }
-                    else
-                    {
-                        throw new ArgumentOutOfRangeException();
-                    }
+
+                    setup.Clear();
 
                     yield return ExpressionStatement(AssignmentExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         ParseExpression($"argv[{1 + i}]"),
-                        ParseExpression(valueSource)
+                        unmanagedExpression
                     ));
                 }
 
-                yield return ParseStatement($"QObject_callMethod(_handle, {indexFieldName}, argv);");
+                var callStatement = ParseStatement($"QObject_callMethod(_handle, {indexFieldName}, argv);");
+
+                if (cleanup.Count > 0)
+                {
+                    yield return TryStatement()
+                        .WithBlock(Block(callStatement))
+                        .WithFinally(FinallyClause(Block(
+                            cleanup
+                        )));
+                }
+                else
+                {
+                    yield return callStatement;
+                }
 
                 if (returnValueType == ReturnValueHandling.Primitive)
                 {
@@ -904,7 +624,7 @@ namespace QmlBuildTasks
                 {
                     // Result should be an IntPtr containing the native OQbject*
                     yield return ParseStatement(
-                        $"return QObjectBase.GetQObjectProxy<{GetQualifiedName(method.ReturnType.TypeInfo)}>(result);");
+                        $"return QObjectBase.GetQObjectProxy<{_support.GetQualifiedName(method.ReturnType.TypeInfo)}>(result);");
                 }
                 else if (returnValueType == ReturnValueHandling.String)
                 {
@@ -912,30 +632,123 @@ namespace QmlBuildTasks
                 }
             }
 
-            var methodName = _options.PascalCase ? Capitalize(method.Name) : method.Name;
+            var methodName = _support.PascalifyName(method.Name);
 
-            yield return MethodDeclaration(GetTypeName(method.ReturnType), methodName)
+            yield return MethodDeclaration(_support.GetTypeName(method.ReturnType), methodName)
                 .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.UnsafeKeyword)))
                 .WithParameterList(CreateParameterList(method))
                 .WithBody(Block(CreateBody()));
+        }
+
+        private static ExpressionSyntax CreateUnmanagedParameterExpression(MethodParamInfo parameter,
+            string paramName, List<StatementSyntax> setup, List<StatementSyntax> cleanup)
+        {
+            var parameterType = parameter.Type;
+            if (parameterType.IsUnmanaged)
+            {
+                return ParseExpression("&" + paramName);
+            }
+            else if (parameterType.Kind == TypeRefKind.BuiltIn)
+            {
+                if (parameterType.BuiltIn == BuiltInType.String)
+                {
+                    setup.Add(ParseStatement(
+                        $"using var {paramName}Temp = new QGadgetBase.QStringArg({paramName});"
+                    ));
+                    return ParseExpression(paramName + "Temp.NativePointer");
+                }
+
+                var interopPrefix = parameterType.BuiltIn switch
+                {
+                    BuiltInType.String => $"QString",
+                    BuiltInType.ByteArray => "QByteArray",
+                    BuiltInType.Color => "QColor",
+                    BuiltInType.Size => "QSize",
+                    BuiltInType.SizeFloat => "QSize",
+                    BuiltInType.Rectangle => "QRect",
+                    BuiltInType.RectangleFloat => "QRectF",
+                    BuiltInType.Point => "QPoint",
+                    BuiltInType.PointFloat => "QPointF",
+                    BuiltInType.Url => "QUrl",
+                    _ => throw new ArgumentOutOfRangeException(nameof(parameterType.BuiltIn), parameterType.BuiltIn,
+                        "Unknown built in parameter type.")
+                };
+
+                // Introduce a temporary for the stack-allocated QString object
+                setup.Add(ParseStatement(
+                    $"var {paramName}Temp = stackalloc byte[QtBuiltInTypeInterop.{interopPrefix}Size];"
+                ));
+                setup.Add(ParseStatement(
+                    $"QtBuiltInTypeInterop.{interopPrefix}_ctor({paramName}Temp, {GetManagedCtorArgs(parameterType.BuiltIn, paramName)});"));
+                if (HasUnmanagedDestructor(parameterType.BuiltIn))
+                {
+                    cleanup.Add(ParseStatement($"QtBuiltInTypeInterop.{interopPrefix}_dtor({paramName}Temp);"));
+                }
+
+                return ParseExpression(paramName + "Temp");
+            }
+            else if (parameterType.Kind == TypeRefKind.TypeInfo)
+            {
+                return ParseExpression(paramName + ".NativePointer");
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        // See static_assert(std::is_trivially_destructible<T>()) in native code
+        private static bool HasUnmanagedDestructor(BuiltInType type)
+        {
+            return type switch
+            {
+                BuiltInType.String => true,
+                BuiltInType.ByteArray => true,
+                BuiltInType.DateTime => true,
+                BuiltInType.Url => true,
+                _ => false
+            };
+        }
+
+        // Gets the arguments to the interop ctor that will construct an unamanged instance
+        // within managed stackspace
+        private static string GetManagedCtorArgs(BuiltInType type, string variableName)
+        {
+            return type switch
+            {
+                // Incoming: string (nullable!)
+                BuiltInType.String => $"{variableName}, {variableName}?.Length ?? 0",
+                // Incoming: byte[] (nullable!)
+                BuiltInType.ByteArray => $"{variableName}, {variableName}?.Length ?? 0",
+                // TODO DateTime
+                // TODO Date
+                // TODO Time
+                BuiltInType.Color => $"{variableName}.{nameof(Color.ToArgb)}()",
+                BuiltInType.Size => $"{variableName}.Width, {variableName}.Height",
+                BuiltInType.SizeFloat => $"{variableName}.Width, {variableName}.Height",
+                BuiltInType.Rectangle =>
+                $"{variableName}.X, {variableName}.Y, {variableName}.Width, {variableName}.Height",
+                BuiltInType.RectangleFloat =>
+                $"{variableName}.X, {variableName}.Y, {variableName}.Width, {variableName}.Height",
+                BuiltInType.Point => $"{variableName}.X, {variableName}.Y",
+                BuiltInType.PointFloat => $"{variableName}.X, {variableName}.Y",
+                // Incoming: string (nullable!)
+                BuiltInType.Url => $"{variableName}, {variableName}?.Length ?? 0",
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, "No managed ctor available.")
+            };
         }
 
         private ParameterListSyntax CreateParameterList(MethodInfo method)
         {
             return ParameterList(SeparatedList(
                 method.Params.Select((p, pIdx) => Parameter(Identifier(GetMethodParameterName(p, pIdx)))
-                    .WithType(GetTypeName(p.Type)))
+                    .WithType(_support.GetTypeName(p.Type)))
             ));
         }
 
         private string GetMethodParameterName(MethodParamInfo p, int index)
         {
-            return SanitizeIdentifier(p.Name ?? $"arg{index + 1}");
-        }
-
-        private string GetPropertyIndexField(PropInfo prop)
-        {
-            return "_" + prop.Name + "Index";
+            return _support.SanitizeIdentifier(p.Name ?? $"arg{index + 1}");
         }
 
         private string GetMethodIndexField(MethodInfo method)
@@ -947,40 +760,6 @@ namespace QmlBuildTasks
             }
 
             return fieldName;
-        }
-
-        private string GetSignalIndexField(MethodInfo signal)
-        {
-            return "_" + signal.Name + "SignalIndex";
-        }
-
-        // Creates a private field holding the actual index to somoe property/method/signal from a metaobject
-        // can only be determined safely at runtime...
-        private FieldDeclarationSyntax CreateMetaObjectIndexField(string propertyIndexField)
-        {
-            return FieldDeclaration(
-                    VariableDeclaration(
-                            PredefinedType(
-                                Token(SyntaxKind.IntKeyword)))
-                        .WithVariables(
-                            SingletonSeparatedList(
-                                VariableDeclarator(Identifier(propertyIndexField))
-                                    .WithInitializer(
-                                        EqualsValueClause(
-                                            PrefixUnaryExpression(
-                                                SyntaxKind.UnaryMinusExpression,
-                                                LiteralExpression(
-                                                    SyntaxKind.NumericLiteralExpression,
-                                                    Literal(1))))))))
-                .WithModifiers(TokenList(Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.StaticKeyword)));
-        }
-
-        private string SanitizeIdentifier(string name)
-        {
-            // Prefix with @ if it's a keyword
-            var isKeyword = SyntaxFacts.GetKeywordKind(name) != SyntaxKind.None
-                            || SyntaxFacts.GetContextualKeywordKind(name) != SyntaxKind.None;
-            return isKeyword ? "@" + name : name;
         }
 
         private BaseListSyntax GetBaseList(in TypeInfo type)
@@ -1001,55 +780,8 @@ namespace QmlBuildTasks
             }
 
             return BaseList(SingletonSeparatedList<BaseTypeSyntax>(
-                SimpleBaseType(GetQualifiedName(parent.Value))
+                SimpleBaseType(_support.GetQualifiedName(parent.Value))
             ));
-        }
-
-        private IdentifierNameSyntax GetTypeName(TypeInfo typeInfo)
-        {
-            if (typeInfo.IsInlineComponent)
-            {
-                return IdentifierName(typeInfo.InlineComponentName);
-            }
-
-            var className = typeInfo.Name;
-            // If the type refers to a .qml file, append a user-supplied suffix
-            if (_options.QmlClassSuffix != null && typeInfo.Kind == TypeInfoKind.QmlQObject)
-            {
-                className += _options.QmlClassSuffix;
-            }
-
-            return IdentifierName(className);
-        }
-
-        private NameSyntax GetQualifiedName(TypeInfo typeInfo)
-        {
-            var className = typeInfo.Name;
-            // If the type refers to a .qml file, append a user-supplied suffix
-            if (_options.QmlClassSuffix != null && typeInfo.Kind == TypeInfoKind.QmlQObject)
-            {
-                className += _options.QmlClassSuffix;
-            }
-
-            var name = QualifiedName(GetNamespace(typeInfo), IdentifierName(className));
-            if (typeInfo.IsInlineComponent)
-            {
-                name = QualifiedName(name, IdentifierName(typeInfo.InlineComponentName));
-            }
-
-            return name;
-        }
-
-        private NameSyntax GetNamespace(TypeInfo typeInfo)
-        {
-            var ns = typeInfo.QmlModule;
-            // Namespace for types that come from direct .QML files
-            if (ns == null)
-            {
-                ns = "QmlFiles";
-            }
-
-            return IdentifierName(ns);
         }
     }
 

@@ -30,23 +30,27 @@ namespace QmlBuildTasks.Introspection
 
     public class EnumInfo
     {
-        private readonly IntPtr _handle;
+        public readonly IntPtr Handle;
 
         public EnumInfo(IntPtr handle)
         {
-            _handle = handle;
+            Handle = handle;
         }
 
-        public string Name => EnumInfo_name(_handle);
+        public string Name => EnumInfo_name(Handle);
+
+        public bool IsFlags => EnumInfo_flags(Handle);
+
+        public BuiltInType BaseType => EnumInfo_baseType(Handle);
 
         public IEnumerable<EnumValueInfo> Values
         {
             get
             {
-                var count = EnumInfo_values_size(_handle);
+                var count = EnumInfo_values_size(Handle);
                 for (var i = 0; i < count; i++)
                 {
-                    var valueHandle = EnumInfo_values(_handle, i);
+                    var valueHandle = EnumInfo_values(Handle, i);
                     yield return new EnumValueInfo(valueHandle);
                 }
             }
@@ -55,6 +59,15 @@ namespace QmlBuildTasks.Introspection
         [SuppressUnmanagedCodeSecurity]
         [DllImport(OpenTempleLib.Path, CharSet = CharSet.Unicode)]
         private static extern string EnumInfo_name(IntPtr handle);
+
+        [SuppressUnmanagedCodeSecurity]
+        [DllImport(OpenTempleLib.Path)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool EnumInfo_flags(IntPtr handle);
+
+        [SuppressUnmanagedCodeSecurity]
+        [DllImport(OpenTempleLib.Path)]
+        private static extern BuiltInType EnumInfo_baseType(IntPtr handle);
 
         [SuppressUnmanagedCodeSecurity]
         [DllImport(OpenTempleLib.Path)]

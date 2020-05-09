@@ -85,13 +85,32 @@ TypeInfo* TypeLibrary::addCppType(const QMetaObject* metaObject) {
     prop.resettable = metaProp.isResettable();
   }
 
+  QByteArray enumTypeName;
+  for (auto i = metaObject->enumeratorOffset(); i < metaObject->enumeratorCount(); i++) {
+    auto metaEnum = metaObject->enumerator(i);
+
+    /* Try finding the QMetaType to figure out the size and the primitive type */
+    enumTypeName.clear();
+    enumTypeName.push_back(metaObject->className());
+    enumTypeName.push_back("::");
+    enumTypeName.push_back(metaEnum.name());
+
+    int enumTypeId = QMetaType::type(enumTypeName);
+    QMetaType enumMetaType(enumTypeId);
+    auto &enumInfo =  result->enums.emplace_back(metaEnum.enumName());
+    for (auto j = 0; j < metaEnum.keyCount(); j++) {
+      enumInfo.values.emplace_back(metaEnum.key(j), metaEnum.value(j));
+    }
+    enumInfo.flags = metaEnum.isFlag();
+  }
+
   processMethodsAndSignals(metaObject, result);
 
   return result;
 }
 
 void TypeLibrary::processMethodsAndSignals(const QMetaObject* metaObject, TypeInfo* result) {
-  auto &cons = result->constructors;
+  auto& cons = result->constructors;
   cons.reserve(metaObject->constructorCount());
   for (auto i = 0; i < metaObject->constructorCount(); i++) {
     auto metaMethod = metaObject->constructor(i);
@@ -247,7 +266,8 @@ TypeInfo* TypeLibrary::addQmlType(QV4::ExecutableCompilationUnit* compilationUni
 
   // We need to create and save the type info immediately, because props
   // can be self-referential
-  auto typeInfo = std::make_unique<TypeInfo>(TypeInfoKind::QmlQObject, metaObject->className(), typeName);
+  auto typeInfo =
+      std::make_unique<TypeInfo>(TypeInfoKind::QmlQObject, metaObject->className(), typeName);
   typeInfo->qmlSourceUrl = sourceUrl.toString();
   typeInfo->qmlModule = moduleName;
   auto result = typeInfo.get();
@@ -257,8 +277,8 @@ TypeInfo* TypeLibrary::addQmlType(QV4::ExecutableCompilationUnit* compilationUni
   // Pre-create all inline component types as well
   QHash<int, TypeInfo*> inlineComponentTypes;  // key is the objectIndex
   for (auto& it : compilationUnit->inlineComponentData) {
-    auto inlineTypeInfo = std::make_unique<TypeInfo>(TypeInfoKind::QmlQObject,
-                                                     metaObject->className(), typeName);
+    auto inlineTypeInfo =
+        std::make_unique<TypeInfo>(TypeInfoKind::QmlQObject, metaObject->className(), typeName);
     inlineTypeInfo->qmlModule = moduleName;
     inlineTypeInfo->qmlSourceUrl = sourceUrl.toString();
     inlineTypeInfo->inlineComponentName = compilationUnit->stringAt(it.nameIndex);
@@ -327,7 +347,7 @@ void TypeLibrary::processQmlComponent(const QV4::ExecutableCompilationUnit* comp
   for (auto i = 0; i < pc->qmlEnumCount(); i++) {
     auto qmlEnum = pc->qmlEnum(i);
     auto name = qmlEnum->name;
-    auto &enumInfo = result->enums.emplace_back(name);
+    auto& enumInfo = result->enums.emplace_back(name);
     enumInfo.values.reserve(qmlEnum->values.size());
     for (auto& qmlEnumValue : qmlEnum->values) {
       enumInfo.values.emplace_back(qmlEnumValue.namedValue, qmlEnumValue.value);
@@ -339,6 +359,9 @@ void TypeLibrary::visitTypes(void (*visitor)(const TypeInfo*)) {
   for (auto& [_, value] : _complexTypes) {
     visitor(value.get());
   }
+  for (auto& [_, value] : _valueTypes) {
+    visitor(value.get());
+  }
 }
 
 TypeRef TypeLibrary::resolveMetaTypeRef(QMetaType::Type type) {
@@ -347,6 +370,37 @@ TypeRef TypeLibrary::resolveMetaTypeRef(QMetaType::Type type) {
     auto it = _complexTypeRefs.find(userType);
     if (it != _complexTypeRefs.end()) {
       return it->second;
+    }
+
+    if (QQmlMetaType::isList(type)) {
+      auto itemTypeId = QQmlMetaType::listType(type);
+      auto itemTypeInfo = TypeLibrary::resolveMetaTypeRef((QMetaType::Type)itemTypeId);
+      if (itemTypeInfo.kind != TypeRefKind::TypeInfo) {
+        qDebug() << "Cannot handle lists of types other than complex types.";
+        return {};
+      }
+      _complexTypeRefs.emplace(userType, TypeRef::fromTypeInfoList(itemTypeInfo.typeInfo));
+      return TypeRef::fromTypeInfoList(itemTypeInfo.typeInfo);
+    }
+
+    auto flags = QMetaType::typeFlags(type);
+    if (flags.testFlag(QMetaType::IsEnumeration)) {
+      auto metaObject = QMetaType::metaObjectForType(type);
+      if (!metaObject) {
+        return {};
+      }
+
+      // Get the "local" enumeration name without the scoping
+      QByteArray enumTypeName = QMetaType::typeName(type);
+      auto lastNamespaceSep = enumTypeName.lastIndexOf("::");
+      if (lastNamespaceSep != -1) {
+        enumTypeName = enumTypeName.mid(lastNamespaceSep + 2);
+      }
+
+      auto enclosingTypeInfo = addCppType(metaObject);
+      auto ref = TypeRef::fromTypeInfoEnum(enclosingTypeInfo, enumTypeName);
+      _complexTypeRefs.emplace(userType, ref);
+      return ref;
     }
 
     auto typeInfo = typeInfoForUserType(userType);
@@ -375,6 +429,30 @@ TypeRef TypeLibrary::resolveMetaTypeRef(QMetaType::Type type) {
       return TypeRef::fromBuiltIn(BuiltInType::Char);
     case QMetaType::QString:
       return TypeRef::fromBuiltIn(BuiltInType::String);
+    case QMetaType::QByteArray:
+      return TypeRef::fromBuiltIn(BuiltInType::ByteArray);
+    case QMetaType::QDateTime:
+      return TypeRef::fromBuiltIn(BuiltInType::DateTime);
+    case QMetaType::QDate:
+      return TypeRef::fromBuiltIn(BuiltInType::Date);
+    case QMetaType::QTime:
+      return TypeRef::fromBuiltIn(BuiltInType::Time);
+    case QMetaType::QColor:
+      return TypeRef::fromBuiltIn(BuiltInType::Color);
+    case QMetaType::QSize:
+      return TypeRef::fromBuiltIn(BuiltInType::Size);
+    case QMetaType::QSizeF:
+      return TypeRef::fromBuiltIn(BuiltInType::SizeFloat);
+    case QMetaType::QRect:
+      return TypeRef::fromBuiltIn(BuiltInType::Rectangle);
+    case QMetaType::QRectF:
+      return TypeRef::fromBuiltIn(BuiltInType::RectangleFloat);
+    case QMetaType::QPoint:
+      return TypeRef::fromBuiltIn(BuiltInType::Point);
+    case QMetaType::QPointF:
+      return TypeRef::fromBuiltIn(BuiltInType::PointFloat);
+    case QMetaType::QUrl:
+      return TypeRef::fromBuiltIn(BuiltInType::Url);
     default:
       break;
   }
@@ -383,12 +461,38 @@ TypeRef TypeLibrary::resolveMetaTypeRef(QMetaType::Type type) {
 }
 
 const TypeInfo* TypeLibrary::typeInfoForUserType(int typeId) {
-  auto cu = QQmlEnginePrivate::get(_engine)->obtainExecutableCompilationUnit(typeId);
+  auto enginePrivate = QQmlEnginePrivate::get(_engine);
+  auto cu = enginePrivate->obtainExecutableCompilationUnit(typeId);
   if (cu) {
     return addQmlType(cu);
   }
 
+  if (!QMetaType::isRegistered(typeId)) {
+    return nullptr;
+  }
+
+  auto flags = QMetaType::typeFlags(typeId);
+  auto size = QMetaType::sizeOf(typeId);
   auto metaObject = QMetaType::metaObjectForType(typeId);
+  Q_ASSERT(!flags.testFlag(QMetaType::IsEnumeration));
+
+  if (flags.testFlag(QMetaType::PointerToQObject)) {
+    Q_ASSERT(metaObject);
+    Q_ASSERT(size == sizeof(void*));
+    return addCppType(metaObject);
+  } else if (!flags.testFlag(QMetaType::PointerToGadget) &&
+             !flags.testFlag(QMetaType::SharedPointerToQObject) &&
+             !flags.testFlag(QMetaType::TrackingPointerToQObject)) {
+    // Treat this as an opaque value type
+    QString typeName(QMetaType::typeName(typeId));
+    Q_ASSERT(!typeName.contains('*'));
+    Q_ASSERT(_valueTypes.find(typeId) == _valueTypes.end());
+
+    _valueTypes[typeId] =
+        std::make_unique<TypeInfo>(TypeInfoKind::OpaqueValueType, typeName, typeName);
+    return _valueTypes[typeId].get();
+  }
+
   if (!metaObject) {
     qDebug() << "Could not resolve type id " << typeId;
     return nullptr;

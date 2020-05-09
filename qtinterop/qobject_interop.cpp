@@ -6,6 +6,7 @@
 #include <private/qmetaobject_p.h>
 #include <private/qqmlengine_p.h>
 #include <private/qqmltypedata_p.h>
+#include <QtGui/QColor>
 
 #include "../game/utils.h"
 #include "string_interop.h"
@@ -135,14 +136,14 @@ NATIVE_API bool QObject_setPropertyQString(QObject *target, int idx, const char1
                                            int length) {
   QString string(reinterpret_cast<const QChar *>(value), length);
   void *stringPtr = &string;
-  return QMetaObject::metacall(target, QMetaObject::WriteProperty, idx, &stringPtr) == -1;
+  return QMetaObject::metacall(target, QMetaObject::WriteProperty, idx, &stringPtr) < 0;
 }
 
 NATIVE_API bool QObject_getPropertyQString(QObject *target, int idx, const char16_t **valueOut,
                                            int *lengthOut) {
   QString string;
   void *stringPtr = &string;
-  if (QMetaObject::metacall(target, QMetaObject::ReadProperty, idx, &stringPtr) != -1) {
+  if (QMetaObject::metacall(target, QMetaObject::ReadProperty, idx, &stringPtr) >= 0) {
     return false;
   }
 
@@ -159,6 +160,165 @@ NATIVE_API bool QObject_setProperty(QObject *target, int idx, void *value) {
 
 NATIVE_API bool QObject_getProperty(QObject *target, int idx, void *value) {
   return QMetaObject::metacall(target, QMetaObject::ReadProperty, idx, &value) < 0;
+}
+
+NATIVE_API bool QObject_setPropertyQSize(QObject *target, int idx, int width, int height) {
+  QSize size(width, height);
+  void *value = &size;
+  return QMetaObject::metacall(target, QMetaObject::WriteProperty, idx, &value) < 0;
+}
+
+NATIVE_API bool QObject_getPropertyQSize(QObject *target, int idx, int *width, int *height) {
+  QSize size;
+  void *value = &size;
+  auto result = QMetaObject::metacall(target, QMetaObject::ReadProperty, idx, &value) < 0;
+  *width = size.width();
+  *height = size.height();
+  return result;
+}
+
+NATIVE_API bool QObject_setPropertyQSizeF(QObject *target, int idx, double width, double height) {
+  QSizeF size(width, height);
+  void *value = &size;
+  return QMetaObject::metacall(target, QMetaObject::WriteProperty, idx, &value) < 0;
+}
+
+NATIVE_API bool QObject_getPropertyQSizeF(QObject *target, int idx, double *width, double *height) {
+  QSizeF size;
+  void *value = &size;
+  auto result = QMetaObject::metacall(target, QMetaObject::ReadProperty, idx, &value) < 0;
+  *width = size.width();
+  *height = size.height();
+  return result;
+}
+
+NATIVE_API bool QObject_setPropertyQRect(QObject *target, int idx, int x, int y, int width,
+                                         int height) {
+  QRect rect(x, y, width, height);
+  void *value = &rect;
+  return QMetaObject::metacall(target, QMetaObject::WriteProperty, idx, &value) < 0;
+}
+
+NATIVE_API bool QObject_getPropertyQRect(QObject *target, int idx, int *x, int *y, int *width,
+                                         int *height) {
+  QRect rect;
+  void *value = &rect;
+  auto result = QMetaObject::metacall(target, QMetaObject::ReadProperty, idx, &value) < 0;
+  *x = rect.x();
+  *y = rect.y();
+  *width = rect.width();
+  *height = rect.height();
+  return result;
+}
+
+NATIVE_API bool QObject_setPropertyQRectF(QObject *target, int idx, double x, double y,
+                                          double width, double height) {
+  QRectF rect(x, y, width, height);
+  void *value = &rect;
+  return QMetaObject::metacall(target, QMetaObject::WriteProperty, idx, &value) < 0;
+}
+
+NATIVE_API bool QObject_getPropertyQRectF(QObject *target, int idx, double *x, double *y,
+                                          double *width, double *height) {
+  QRectF rect;
+  void *value = &rect;
+  auto result = QMetaObject::metacall(target, QMetaObject::ReadProperty, idx, &value) < 0;
+  *x = rect.x();
+  *y = rect.y();
+  *width = rect.width();
+  *height = rect.height();
+  return result;
+}
+
+NATIVE_API bool QObject_setPropertyQPoint(QObject *target, int idx, int x, int y) {
+  QPoint point(x, y);
+  void *value = &point;
+  return QMetaObject::metacall(target, QMetaObject::WriteProperty, idx, &value) < 0;
+}
+
+NATIVE_API bool QObject_getPropertyQPoint(QObject *target, int idx, int *x, int *y) {
+  QPoint point;
+  void *value = &point;
+  auto result = QMetaObject::metacall(target, QMetaObject::ReadProperty, idx, &value) < 0;
+  *x = point.x();
+  *y = point.y();
+  return result;
+}
+
+NATIVE_API bool QObject_setPropertyQPointF(QObject *target, int idx, double x, double y) {
+  QPointF point(x, y);
+  void *value = &point;
+  return QMetaObject::metacall(target, QMetaObject::WriteProperty, idx, &value) < 0;
+}
+
+NATIVE_API bool QObject_getPropertyQPointF(QObject *target, int idx, double *x, double *y) {
+  QPointF point;
+  void *value = &point;
+  auto result = QMetaObject::metacall(target, QMetaObject::ReadProperty, idx, &value) < 0;
+  *x = point.x();
+  *y = point.y();
+  return result;
+}
+
+NATIVE_API bool QObject_setPropertyQUrl(QObject *target, int idx, const char16_t *urlString,
+                                        int urlStringLength) {
+  QUrl url(QString::fromRawData(reinterpret_cast<const QChar *>(urlString), urlStringLength));
+  void *value = &url;
+  return QMetaObject::metacall(target, QMetaObject::WriteProperty, idx, &value) < 0;
+}
+
+NATIVE_API bool QObject_getPropertyQUrl(QObject *target, int idx, char16_t **urlStringOut) {
+  QUrl url;
+  void *value = &url;
+  auto result = QMetaObject::metacall(target, QMetaObject::ReadProperty, idx, &value) < 0;
+  if (result) {
+    *urlStringOut = copyString(url.toString());
+  }
+  return result;
+}
+
+NATIVE_API bool QObject_setPropertyQColor(QObject *target, int idx, uint32_t argb) {
+  QColor color = QColor::fromRgba(argb);  // It says RGBA, but really it's ARGB
+  void *value = &color;
+  return QMetaObject::metacall(target, QMetaObject::WriteProperty, idx, &value) < 0;
+}
+
+NATIVE_API bool QObject_getPropertyQColor(QObject *target, int idx, uint32_t *argb) {
+  QColor color;
+  void *value = &color;
+  auto result = QMetaObject::metacall(target, QMetaObject::ReadProperty, idx, &value) < 0;
+  *argb = color.rgba();
+  return result;
+}
+
+NATIVE_API bool QObject_setPropertyQDateTime(QObject *target, int idx, int64_t msecsSinceEpoch,
+                                             bool localTime) {
+  QDateTime dateTime =
+      QDateTime::fromMSecsSinceEpoch(msecsSinceEpoch, localTime ? Qt::LocalTime : Qt::UTC);
+  void *value = &dateTime;
+  return QMetaObject::metacall(target, QMetaObject::WriteProperty, idx, &value) < 0;
+}
+
+NATIVE_API bool QObject_getPropertyQDateTime(QObject *target, int idx, int64_t *msecsSinceEpoch,
+                                             bool *localTime) {
+  QDateTime dateTime;
+  void *value = &dateTime;
+  auto result = QMetaObject::metacall(target, QMetaObject::ReadProperty, idx, &value) < 0;
+  if (dateTime.timeSpec() != Qt::LocalTime && dateTime.timeSpec() != Qt::UTC) {
+    dateTime = dateTime.toUTC();
+  }
+  *msecsSinceEpoch = dateTime.toMSecsSinceEpoch();
+  *localTime = dateTime.timeSpec() == Qt::LocalTime;
+  return result;
+}
+
+NATIVE_API void QDateTime_write(QDateTime *dateTime, int64_t msecsSinceEpoch, bool localTime) {
+  *dateTime = QDateTime::fromMSecsSinceEpoch(msecsSinceEpoch, localTime ? Qt::LocalTime : Qt::UTC);
+}
+
+NATIVE_API void QDateTime_read(QDateTime *dateTime, int64_t *msecsSinceEpoch, bool *localTime) {
+  *msecsSinceEpoch = dateTime->toMSecsSinceEpoch();
+  *localTime = dateTime->timeSpec() == Qt::LocalTime;
 }
 
 NATIVE_API bool QObject_callMethod(QObject *target, int idx, void **args) {
@@ -301,16 +461,3 @@ NATIVE_API bool QObject_connect(const QObject *obj, int signalIndex, void *gcHan
 
   return QObjectPrivate::connect(obj, signalIndex, slotObject, Qt::DirectConnection);
 }
-
-NATIVE_API char16_t *QString_read(const QString *str) { return copyString(*str); }
-
-NATIVE_API QString *QString_create_null() { return new QString(); }
-
-NATIVE_API QString *QString_create(const char16_t *charsPtr, int charCount) {
-  if (!charsPtr) {
-    return new QString();
-  }
-  return new QString(reinterpret_cast<const QChar *>(charsPtr), charCount);
-}
-
-NATIVE_API void QString_delete(QString *ptr) { delete ptr; }

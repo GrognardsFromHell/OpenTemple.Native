@@ -26,11 +26,20 @@ namespace QmlBuildTasks.Introspection
             }
         }
 
+        public string EnumName
+        {
+            get
+            {
+                Trace.Assert(Kind == TypeRefKind.TypeInfoEnum);
+                return TypeRef_enumName(_handle);
+            }
+        }
+
         public TypeInfo TypeInfo
         {
             get
             {
-                Trace.Assert(Kind == TypeRefKind.TypeInfo);
+                Trace.Assert(Kind == TypeRefKind.TypeInfo || Kind == TypeRefKind.QmlList || Kind == TypeRefKind.TypeInfoEnum);
                 var handle = TypeRef_typeInfo(_handle);
                 if (handle == IntPtr.Zero)
                 {
@@ -38,6 +47,37 @@ namespace QmlBuildTasks.Introspection
                 }
 
                 return new TypeInfo(handle);
+            }
+        }
+
+        /// <summary>
+        /// True if this refers to a type that has a 1:1 representation between the managed and unmanaged side.
+        /// That means the C# type satisfies the "unamanged" generic constraint in C#.
+        /// </summary>
+        public bool IsUnmanaged
+        {
+            get
+            {
+                if (Kind == TypeRefKind.BuiltIn)
+                {
+                    return BuiltIn switch
+                    {
+                        BuiltInType.Bool => true,
+                        BuiltInType.Int32 => true,
+                        BuiltInType.UInt32 => true,
+                        BuiltInType.Int64 => true,
+                        BuiltInType.UInt64 => true,
+                        BuiltInType.Double => true,
+                        BuiltInType.Char => true,
+                        _ => false
+                    };
+                }
+
+                if (Kind == TypeRefKind.TypeInfoEnum)
+                {
+                    return true;
+                }
+                return false;
             }
         }
 
@@ -51,6 +91,11 @@ namespace QmlBuildTasks.Introspection
 
         [SuppressUnmanagedCodeSecurity]
         [DllImport(OpenTempleLib.Path)]
+        [return:MarshalAs(UnmanagedType.LPStr)]
+        private static extern string TypeRef_enumName(IntPtr handle);
+
+        [SuppressUnmanagedCodeSecurity]
+        [DllImport(OpenTempleLib.Path)]
         private static extern IntPtr TypeRef_typeInfo(IntPtr handle);
     }
 
@@ -58,7 +103,9 @@ namespace QmlBuildTasks.Introspection
     {
         Void = 0,
         TypeInfo,
-        BuiltIn
+        BuiltIn,
+        QmlList,
+        TypeInfoEnum
     }
 
     public enum BuiltInType
@@ -70,6 +117,18 @@ namespace QmlBuildTasks.Introspection
         UInt64,
         Double,
         Char,
-        String
+        String,
+        ByteArray,
+        DateTime,
+        Date,
+        Time,
+        Color,
+        Size,
+        SizeFloat,
+        Rectangle,
+        RectangleFloat,
+        Point,
+        PointFloat,
+        Url
     }
 }

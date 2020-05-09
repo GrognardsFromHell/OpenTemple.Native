@@ -45,17 +45,17 @@ NATIVE_API void gameviews_set_callbacks(GameViewsCallbacks callbacks) {
 static const QString gameViewsObjectName{"gameViews"};
 
 NATIVE_API bool gameviews_install(Ui &ui, GameViewsHandle handle) {
-    if (ui.view->findChild<GameViews *>(gameViewsObjectName)) {
+    if (ui.window()->findChild<GameViews *>(gameViewsObjectName)) {
         return false;
     }
 
-    auto views = new GameViews(handle, ui.view.get());
+    auto views = new GameViews(handle, ui.window());
     views->setObjectName(gameViewsObjectName);
     return true;
 }
 
 NATIVE_API bool gameviews_uninstall(Ui &ui) {
-    auto views = ui.view->findChild<GameViews *>(gameViewsObjectName);
+    auto views = ui.window()->findChild<GameViews *>(gameViewsObjectName);
     if (views) {
         delete views;
         return true;

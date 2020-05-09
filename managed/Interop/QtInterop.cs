@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -145,10 +146,6 @@ namespace OpenTemple.Interop
             out string qmlInlineComponent
         );
 
-        // Reads the UTF-16 string from a pointer to a QString instance
-        [DllImport(OpenTempleLib.Path, CharSet = CharSet.Unicode)]
-        protected static extern unsafe string QString_read(void* instance);
-
         [DllImport(OpenTempleLib.Path, CharSet = CharSet.Unicode)]
         private static extern bool
             QMetaType_resolveQmlType(IntPtr exampleInstance, string sourceUrl, string inlineComponentName,
@@ -160,6 +157,7 @@ namespace OpenTemple.Interop
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void DelegateSlotFree(GCHandle delegateHandle);
+
     }
 
     /// <summary>
@@ -249,6 +247,237 @@ namespace OpenTemple.Interop
 
         public unsafe void* NativePointer => _handle.ToPointer();
 
+        protected bool Equals(QGadgetBase other)
+        {
+            return _handle.Equals(other._handle);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
+            return Equals((QGadgetBase) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return _handle.GetHashCode();
+        }
+
+        public static bool operator ==(QGadgetBase left, QGadgetBase right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(QGadgetBase left, QGadgetBase right)
+        {
+            return !Equals(left, right);
+        }
+
+        #region Native Structure Property Support
+
+        protected unsafe void SetPropertyQByteArray(int index, ReadOnlySpan<byte> value)
+        {
+            fixed (byte* valuePtr = value)
+            {
+                if (!QObject_setPropertyQByteArray(_handle, index, valuePtr, value.Length))
+                {
+                    throw new InvalidOperationException("Couldn't set property " + index);
+                }
+            }
+        }
+
+        protected byte[] GetPropertyQByteArray(int index)
+        {
+            if (!QObject_getPropertyQByteArray(_handle, index, out var data, out _))
+            {
+                throw new InvalidOperationException("Couldn't get property " + index);
+            }
+
+            return data;
+        }
+
+        protected void SetPropertyQColor(int index, System.Drawing.Color value)
+        {
+            if (!QObject_setPropertyQColor(_handle, index, value.ToArgb()))
+            {
+                throw new InvalidOperationException("Couldn't set property " + index);
+            }
+        }
+
+        protected System.Drawing.Color GetPropertyQColor(int index)
+        {
+            if (!QObject_getPropertyQColor(_handle, index, out var argb))
+            {
+                throw new InvalidOperationException("Couldn't get property " + index);
+            }
+
+            return Color.FromArgb(argb);
+        }
+
+        protected void SetPropertyQSize(int index, Size value)
+        {
+            if (!QObject_setPropertyQSize(_handle, index, value.Width, value.Height))
+            {
+                throw new InvalidOperationException("Couldn't set property " + index);
+            }
+        }
+
+        protected Size GetPropertyQSize(int index)
+        {
+            if (!QObject_getPropertyQSize(_handle, index, out var width, out var height))
+            {
+                throw new InvalidOperationException("Couldn't get property " + index);
+            }
+
+            return new Size(width, height);
+        }
+
+        protected void SetPropertyQSizeF(int index, SizeF value)
+        {
+            if (!QObject_setPropertyQSizeF(_handle, index, value.Width, value.Height))
+            {
+                throw new InvalidOperationException("Couldn't set property " + index);
+            }
+        }
+
+        protected SizeF GetPropertyQSizeF(int index)
+        {
+            if (!QObject_getPropertyQSizeF(_handle, index, out var width, out var height))
+            {
+                throw new InvalidOperationException("Couldn't get property " + index);
+            }
+
+            return new SizeF((float) width, (float) height);
+        }
+
+        protected void SetPropertyQRect(int index, Rectangle value)
+        {
+            if (!QObject_setPropertyQRect(_handle, index, value.X, value.Y, value.Width, value.Height))
+            {
+                throw new InvalidOperationException("Couldn't set property " + index);
+            }
+        }
+
+        protected Rectangle GetPropertyQRect(int index)
+        {
+            if (!QObject_getPropertyQRect(_handle, index, out var x, out var y, out var width, out var height))
+            {
+                throw new InvalidOperationException("Couldn't get property " + index);
+            }
+
+            return new Rectangle(x, y, width, height);
+        }
+
+        protected void SetPropertyQRectF(int index, RectangleF value)
+        {
+            if (!QObject_setPropertyQRectF(_handle, index, value.X, value.Y, value.Width, value.Height))
+            {
+                throw new InvalidOperationException("Couldn't set property " + index);
+            }
+        }
+
+        protected RectangleF GetPropertyQRectF(int index)
+        {
+            if (!QObject_getPropertyQRectF(_handle, index, out var x, out var y, out var width, out var height))
+            {
+                throw new InvalidOperationException("Couldn't get property " + index);
+            }
+
+            return new RectangleF((float) x, (float) y, (float) width, (float) height);
+        }
+
+        protected void SetPropertyQPoint(int index, Point value)
+        {
+            if (!QObject_setPropertyQPoint(_handle, index, value.X, value.Y))
+            {
+                throw new InvalidOperationException("Couldn't set property " + index);
+            }
+        }
+
+        protected Point GetPropertyQPoint(int index)
+        {
+            if (!QObject_getPropertyQPoint(_handle, index, out var x, out var y))
+            {
+                throw new InvalidOperationException("Couldn't get property " + index);
+            }
+
+            return new Point(x, y);
+        }
+
+        protected void SetPropertyQPointF(int index, PointF value)
+        {
+            if (!QObject_setPropertyQPointF(_handle, index, value.X, value.Y))
+            {
+                throw new InvalidOperationException("Couldn't set property " + index);
+            }
+        }
+
+        protected PointF GetPropertyQPointF(int index)
+        {
+            if (!QObject_getPropertyQPointF(_handle, index, out var x, out var y))
+            {
+                throw new InvalidOperationException("Couldn't get property " + index);
+            }
+
+            return new PointF((float) x, (float) y);
+        }
+
+        protected void SetPropertyQDateTime(int index, DateTime value)
+        {
+            var msecsSinceEpoch = new DateTimeOffset(value).ToUnixTimeMilliseconds();
+            var localTime = value.Kind == DateTimeKind.Local;
+
+            if (!QObject_setPropertyQDateTime(_handle, index, msecsSinceEpoch, localTime))
+            {
+                throw new InvalidOperationException("Couldn't set property " + index);
+            }
+        }
+
+        protected DateTime GetPropertyQDateTime(int index)
+        {
+            if (!QObject_getPropertyQDateTime(_handle, index, out var msecsSinceEpoch, out var localTime))
+            {
+                throw new InvalidOperationException("Couldn't get property " + index);
+            }
+
+            var dateTimeOffset = DateTimeOffset.FromUnixTimeMilliseconds(msecsSinceEpoch);
+            return localTime ? dateTimeOffset.LocalDateTime : dateTimeOffset.UtcDateTime;
+        }
+
+        protected void SetPropertyQUrl(int index, string url)
+        {
+            if (!QObject_setPropertyQUrl(_handle, index, url, url.Length))
+            {
+                throw new InvalidOperationException("Couldn't set property " + index);
+            }
+        }
+
+        protected string GetPropertyQUrl(int index)
+        {
+            if (!QObject_getPropertyQUrl(_handle, index, out var url))
+            {
+                throw new InvalidOperationException("Couldn't get property " + index);
+            }
+
+            return url;
+        }
+
+        #endregion
+
         protected unsafe void SetPropertyQString(int index, string value)
         {
             ReadOnlySpan<char> strval = value;
@@ -265,6 +494,11 @@ namespace OpenTemple.Interop
         {
             var handle = GetPropertyPrimitive<IntPtr>(index);
             return QObjectBase.GetQObjectProxy<T>(handle);
+        }
+
+        protected QmlList<T> GetPropertyQmlList<T>(int index) where T : QObjectBase
+        {
+            return GetPropertyPrimitive<QmlList<T>>(index);
         }
 
         protected unsafe void SetPropertyQObject(int index, QObjectBase value)
@@ -365,6 +599,17 @@ namespace OpenTemple.Interop
 
         [DllImport(OpenTempleLib.Path)]
         [return: MarshalAs(UnmanagedType.I1)]
+        private static extern unsafe bool QObject_setPropertyQByteArray(IntPtr target, int idx, [In]
+            byte* data, int dataLength);
+
+        [DllImport(OpenTempleLib.Path)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool QObject_getPropertyQByteArray(IntPtr target, int idx,
+            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)]
+            out byte[] data, out int dataLength);
+
+        [DllImport(OpenTempleLib.Path)]
+        [return: MarshalAs(UnmanagedType.I1)]
         private static extern unsafe bool QObject_setPropertyQString(IntPtr target, int idx, char* value, int len);
 
         [DllImport(OpenTempleLib.Path)]
@@ -379,6 +624,88 @@ namespace OpenTemple.Interop
         [DllImport(OpenTempleLib.Path)]
         [return: MarshalAs(UnmanagedType.I1)]
         private static extern unsafe bool QObject_getProperty(IntPtr target, int idx, void* value);
+
+        [DllImport(OpenTempleLib.Path)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool QObject_setPropertyQSize(IntPtr target, int idx, int width, int height);
+
+        [DllImport(OpenTempleLib.Path)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool QObject_getPropertyQSize(IntPtr target, int idx, out int width, out int height);
+
+        [DllImport(OpenTempleLib.Path)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool QObject_setPropertyQSizeF(IntPtr target, int idx, double width, double height);
+
+        [DllImport(OpenTempleLib.Path)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool QObject_getPropertyQSizeF(IntPtr target, int idx, out double width,
+            out double height);
+
+        [DllImport(OpenTempleLib.Path)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool
+            QObject_setPropertyQRect(IntPtr target, int idx, int x, int y, int width, int height);
+
+        [DllImport(OpenTempleLib.Path)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool QObject_getPropertyQRect(IntPtr target, int idx, out int x, out int y, out int width,
+            out int height);
+
+        [DllImport(OpenTempleLib.Path)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool QObject_setPropertyQRectF(IntPtr target, int idx, double x, double y, double width,
+            double height);
+
+        [DllImport(OpenTempleLib.Path)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool QObject_getPropertyQRectF(IntPtr target, int idx, out double x, out double y,
+            out double width, out double height);
+
+        [DllImport(OpenTempleLib.Path)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool QObject_setPropertyQPoint(IntPtr target, int idx, int x, int y);
+
+        [DllImport(OpenTempleLib.Path)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool QObject_getPropertyQPoint(IntPtr target, int idx, out int x, out int y);
+
+        [DllImport(OpenTempleLib.Path)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool QObject_setPropertyQPointF(IntPtr target, int idx, double x, double y);
+
+        [DllImport(OpenTempleLib.Path)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool QObject_getPropertyQPointF(IntPtr target, int idx, out double x,
+            out double y);
+
+        [DllImport(OpenTempleLib.Path, CharSet = CharSet.Unicode)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool QObject_setPropertyQUrl(IntPtr target, int idx, string urlString, int urlStringLen);
+
+        [DllImport(OpenTempleLib.Path, CharSet = CharSet.Unicode)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool QObject_getPropertyQUrl(IntPtr target, int idx, out string urlString);
+
+        [DllImport(OpenTempleLib.Path)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool QObject_setPropertyQColor(IntPtr target, int idx, int argb);
+
+        [DllImport(OpenTempleLib.Path)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool QObject_getPropertyQColor(IntPtr target, int idx, out int argb);
+
+        [DllImport(OpenTempleLib.Path)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool QObject_setPropertyQDateTime(IntPtr target, int idx, long msecsSinceEpoch,
+            [MarshalAs(UnmanagedType.I1)]
+            bool localTime);
+
+        [DllImport(OpenTempleLib.Path)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool QObject_getPropertyQDateTime(IntPtr target, int idx, out long msecsSinceEpoch,
+            [MarshalAs(UnmanagedType.I1)]
+            out bool localTime);
 
         [DllImport(OpenTempleLib.Path)]
         [return: MarshalAs(UnmanagedType.I1)]
@@ -451,5 +778,6 @@ namespace OpenTemple.Interop
             [DllImport(OpenTempleLib.Path)]
             private static extern void QString_delete(IntPtr handle);
         }
+
     }
 }

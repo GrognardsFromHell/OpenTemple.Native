@@ -44,13 +44,13 @@ void QSGVideoMaterial::bind() {
     functions->glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     const int y = 0;
-    const int u = 1; // m_frame->pixelFormat() == QVideoFrame::Format_YV12 ? 2 : 1;
-    const int v = 2; // m_frame->pixelFormat() == QVideoFrame::Format_YV12 ? 1 : 2;
+    const int u = 1;
+    const int v = 2;
 
     m_planeWidth[0] = qreal(fw) / m_frame->strides[y];
     m_planeWidth[1] = m_planeWidth[2] = qreal(fw) / (2 * m_frame->strides[u]);
 
-    const int uvHeight = fh / 2; // 420p
+    const int uvHeight = fh / 2;  // 420p
 
     functions->glActiveTexture(GL_TEXTURE1);
     bindTexture(m_textureIds[1], m_frame->strides[u], uvHeight, m_frame->planes[u].get(),
@@ -74,7 +74,7 @@ void QSGVideoMaterial::bind() {
 }
 
 void QSGVideoMaterial::bindTexture(int id, int w, int h, const uchar *bits, GLenum format) {
-  QOpenGLFunctions *functions = QOpenGLContext::currentContext()->functions();
+  auto functions = QOpenGLContext::currentContext()->functions();
   functions->glBindTexture(GL_TEXTURE_2D, id);
   functions->glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format, GL_UNSIGNED_BYTE, bits);
   functions->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -93,21 +93,18 @@ QSGVideoNode::QSGVideoNode() {
 QSGVideoNode::~QSGVideoNode() {}
 
 /* Helpers */
-static inline void qSetGeom(QSGGeometry::TexturedPoint2D *v, const QPointF &p)
-{
+static inline void qSetGeom(QSGGeometry::TexturedPoint2D *v, const QPointF &p) {
   v->x = p.x();
   v->y = p.y();
 }
 
-static inline void qSetTex(QSGGeometry::TexturedPoint2D *v, const QPointF &p)
-{
+static inline void qSetTex(QSGGeometry::TexturedPoint2D *v, const QPointF &p) {
   v->tx = p.x();
   v->ty = p.y();
 }
 
 /* Update the vertices and texture coordinates. */
-void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &textureRect)
-{
+void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &textureRect) {
   if (rect == m_rect && textureRect == m_textureRect)
     return;
 
@@ -145,14 +142,14 @@ void QSGVideoNode::setCurrentFrame(const SharedVideoFrame &frame) {
   markDirty(DirtyMaterial);
 }
 
-void QSGVideoMaterialShader::updateState(const RenderState &state,
-                                                      QSGMaterial *newMaterial,
-                                                      QSGMaterial *oldMaterial) {
+void QSGVideoMaterialShader::updateState(const RenderState &state, QSGMaterial *newMaterial,
+                                         QSGMaterial *oldMaterial) {
   Q_UNUSED(oldMaterial);
 
   QSGVideoMaterial *mat = static_cast<QSGVideoMaterial *>(newMaterial);
   program()->setUniformValue(m_id_plane1Texture, 0);
   program()->setUniformValue(m_id_plane2Texture, 1);
+  program()->setUniformValue(m_id_plane3Texture, 2);
 
   mat->bind();
 
@@ -166,6 +163,45 @@ void QSGVideoMaterialShader::updateState(const RenderState &state,
   if (state.isMatrixDirty())
     program()->setUniformValue(m_id_matrix, state.combinedMatrix());
 
-  program()->setUniformValue(m_id_plane3Texture, 2);
   program()->setUniformValue(m_id_plane3Width, mat->m_planeWidth[2]);
+}
+
+const char *QSGVideoMaterialShader::vertexShader() const {
+  return "uniform highp mat4 qt_Matrix;\n"
+         "uniform highp float plane1Width;\n"
+         "uniform highp float plane2Width;\n"
+         "uniform highp float plane3Width;\n"
+         "attribute highp vec4 qt_VertexPosition;\n"
+         "attribute highp vec2 qt_VertexTexCoord;\n"
+         "varying highp vec2 plane1TexCoord;\n"
+         "varying highp vec2 plane2TexCoord;\n"
+         "varying highp vec2 plane3TexCoord;\n"
+         "\n"
+         "void main() {\n"
+         "    plane1TexCoord = qt_VertexTexCoord * vec2(plane1Width, 1);\n"
+         "    plane2TexCoord = qt_VertexTexCoord * vec2(plane2Width, 1);\n"
+         "    plane3TexCoord = qt_VertexTexCoord * vec2(plane3Width, 1);\n"
+         "    gl_Position = qt_Matrix * qt_VertexPosition;\n"
+         "}";
+}
+
+const char *QSGVideoMaterialShader::fragmentShader() const {
+  return "uniform sampler2D plane1Texture;\n"
+         "uniform sampler2D plane2Texture;\n"
+         "uniform sampler2D plane3Texture;\n"
+         "uniform mediump mat4 colorMatrix;\n"
+         "uniform lowp float opacity;\n"
+         "\n"
+         "varying highp vec2 plane1TexCoord;\n"
+         "varying highp vec2 plane2TexCoord;\n"
+         "varying highp vec2 plane3TexCoord;\n"
+         "\n"
+         "void main()\n"
+         "{\n"
+         "    mediump float Y = texture2D(plane1Texture, plane1TexCoord).r;\n"
+         "    mediump float U = texture2D(plane2Texture, plane2TexCoord).r;\n"
+         "    mediump float V = texture2D(plane3Texture, plane3TexCoord).r;\n"
+         "    mediump vec4 color = vec4(Y, U, V, 1.);\n"
+         "    gl_FragColor = colorMatrix * color * opacity;\n"
+         "}";
 }

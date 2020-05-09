@@ -32,6 +32,7 @@ class TypeLibrary {
   std::map<int, TypeRef> _complexTypeRefs;
 
   std::map<const QMetaObject *, std::unique_ptr<TypeInfo>> _complexTypes;
+  std::map<int, std::unique_ptr<TypeInfo>> _valueTypes;
   TypeRef resolveMetaTypeRef(QMetaType::Type type);
 
   TypeRef resolveQmlPropTypeRef(QQmlPropertyData *qmlProp);

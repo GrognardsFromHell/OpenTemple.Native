@@ -10,12 +10,9 @@
 #include "VideoMaterial.h"
 
 void BinkVideoItem::open(const QString &path) {
-  QMutexLocker lock(&m_frameMutex);
+  stop();
 
-  if (_audioSource) {
-    _audioSource->stop();
-    _audioSource.reset();
-  }
+  QMutexLocker lock(&m_frameMutex);
 
   _player = std::make_unique<VideoPlayer>();
   if (!_player->open(path.toLocal8Bit())) {
@@ -48,10 +45,18 @@ void BinkVideoItem::open(const QString &path) {
           _audioSource->pushSamples(planes, sampleCount, interleaved);
         }
       },
-      [this]() {
-        QMutexLocker lock(&m_frameMutex);
-        QMetaObject::invokeMethod(this, &BinkVideoItem::ended, Qt::QueuedConnection);
-      });
+      [this]() { QMetaObject::invokeMethod(this, &BinkVideoItem::ended, Qt::QueuedConnection); });
+}
+
+void BinkVideoItem::stop() {
+  if (_audioSource) {
+    _audioSource->stop();
+    _audioSource.reset();
+  }
+
+  if (_player) {
+    _player.reset();
+  }
 }
 
 BinkVideoItem::BinkVideoItem(QQuickItem *parent) : QQuickItem(parent) {

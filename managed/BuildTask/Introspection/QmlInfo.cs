@@ -49,6 +49,14 @@ namespace QmlBuildTasks.Introspection
             }
         }
 
+        public void AddMetaClass(string metaClassName)
+        {
+            if (!QmlInfo_addMetaClass(_handle, metaClassName + "*"))
+            {
+                throw new ArgumentException(QmlInfo_error(_handle));
+            }
+        }
+
         public string Process()
         {
             var generatedCode = new StringWriter();
@@ -100,6 +108,12 @@ namespace QmlBuildTasks.Introspection
             string uri,
             int majorVersion);
 
+        [DllImport(OpenTempleLib.Path, CharSet = CharSet.Ansi)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        private static extern bool QmlInfo_addMetaClass(
+            IntPtr qmlInfo,
+            string metaClassName);
+
         private delegate void TypeInfoVisitor(IntPtr handle);
 
         [DllImport(OpenTempleLib.Path)]
@@ -115,5 +129,6 @@ namespace QmlBuildTasks.Introspection
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Unicode)]
         private delegate void LoggerDelegate(LogLevel level, string message);
+
     }
 }
