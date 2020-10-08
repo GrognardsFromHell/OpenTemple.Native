@@ -18,6 +18,12 @@ namespace OpenTemple.Interop
         private static readonly Dictionary<IntPtr, Func<IntPtr, QObjectBase>> MetaObjectCache =
             new Dictionary<IntPtr, Func<IntPtr, QObjectBase>>();
 
+        public bool IsJavaScriptOwned
+        {
+            get => QObject_getObjectOwnership(Handle);
+            set => QObject_setObjectOwnership(Handle, value);
+        }
+
         static QObjectBase()
         {
             ReleaseDelegate = HandleSlotRelease;
@@ -135,6 +141,7 @@ namespace OpenTemple.Interop
         private static extern IntPtr QObject_metaObject(IntPtr instance);
 
         [DllImport(OpenTempleLib.Path)]
+        [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool QObject_objectRuntimeType(
             IntPtr instance,
             out bool isQmlFile,
@@ -147,6 +154,7 @@ namespace OpenTemple.Interop
         );
 
         [DllImport(OpenTempleLib.Path, CharSet = CharSet.Unicode)]
+        [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool
             QMetaType_resolveQmlType(IntPtr exampleInstance, string sourceUrl, string inlineComponentName,
                 out int metaTypeId,
@@ -157,6 +165,14 @@ namespace OpenTemple.Interop
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void DelegateSlotFree(GCHandle delegateHandle);
+
+        [DllImport(OpenTempleLib.Path, CharSet = CharSet.Unicode)]
+        private static extern void QObject_setObjectOwnership(IntPtr obj, [MarshalAs(UnmanagedType.I1)]
+            bool jsOwnership);
+
+        [DllImport(OpenTempleLib.Path, CharSet = CharSet.Unicode)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool QObject_getObjectOwnership(IntPtr obj);
 
     }
 
@@ -778,6 +794,5 @@ namespace OpenTemple.Interop
             [DllImport(OpenTempleLib.Path)]
             private static extern void QString_delete(IntPtr handle);
         }
-
     }
 }

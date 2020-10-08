@@ -21,3 +21,4 @@ Q_IMPORT_PLUGIN(QtQuickLayoutsPlugin)
 
 Q_IMPORT_PLUGIN(QtQuickTemplates2Plugin)
 
+Q_IMPORT_PLUGIN(QmlShapesPlugin)

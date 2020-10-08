@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using CommandLine;
@@ -26,10 +25,16 @@ namespace QmlBuildTasks
         [Option("nativeLib", Required = false, HelpText = "Path to Native DLL to preload.")]
         public string NativeLibraryPath { get; set; }
 
+        [Option('I', Required = false, HelpText = "Extra import paths.")]
+        public IEnumerable<string> ImportPaths { get; set; }
+
+        [Option('x', Separator = ':', Required = false, HelpText = "Exclude path pattern from processed QML files.")]
+        public IEnumerable<string> ExcludePatterns { get; set; }
+
         [Option("addQmlModule", Required = false, HelpText = "Adds additional QML modules (Name:Version)")]
         public IEnumerable<string> AdditionalQmlModules { get; set; }
 
-        [Option("addMetaClass", Required = false, HelpText = "Adds additional metaclasses")]
+        [Option("addMetaClasses", Required = false, Separator = ';', HelpText = "Adds additional metaclasses")]
         public IEnumerable<string> AdditionalMetaClasses { get; set; }
     }
 

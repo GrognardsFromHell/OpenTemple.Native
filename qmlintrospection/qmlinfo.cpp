@@ -19,6 +19,7 @@ QmlInfo::QmlInfo(decltype(_logger) logger, QString basePath)
   }
 
   _engine = std::make_unique<QQmlEngine>();
+  _engine->addImportPath(_basePath);
 
   QObject::connect(_engine.get(), &QQmlEngine::warnings, [this](auto warnings) {
     for (auto warning : warnings) {
@@ -47,6 +48,10 @@ bool QmlInfo::addFile(const QString& path) {
 
 bool QmlInfo::visitTypeLibrary(void (*visitor)(const TypeLibrary&)) {
   TypeLibrary typeLibrary(_engine.get(), _basePath);
+
+  for (const auto& pattern : _excludePatterns) {
+    typeLibrary.addExcludePattern(pattern);
+  }
 
   for (auto metaObject : _cppTypes) {
     typeLibrary.addCppType(metaObject);
@@ -93,8 +98,7 @@ bool QmlInfo::addNativeModule(const QString& uri, int majorVersion) {
   return true;
 }
 
-bool QmlInfo::addMetaClass(const char *metaClass) {
-
+bool QmlInfo::addMetaClass(const char* metaClass) {
   auto type = QMetaType::type(metaClass);
   if (type == 0) {
     return false;
@@ -106,6 +110,19 @@ bool QmlInfo::addMetaClass(const char *metaClass) {
   }
 
   _cppTypes.insert(metaObject);
+  return true;
+}
+
+void QmlInfo::addImportPath(const QString& path) { _engine->addImportPath(path); }
+
+bool QmlInfo::addExcludePattern(const QString& pattern) {
+
+  QRegExp regExp(pattern);
+  if (!regExp.isValid()) {
+    return false;
+  }
+
+  _excludePatterns.append(regExp);
   return true;
 }
 

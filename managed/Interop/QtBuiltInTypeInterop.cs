@@ -32,6 +32,9 @@ namespace OpenTemple.Interop
         public static extern unsafe void QByteArray_ctor(void* memory, byte[] data, int dataLength);
 
         [DllImport(OpenTempleLib.Path)]
+        public static extern unsafe void QByteArray_ctor_default(void* memory);
+
+        [DllImport(OpenTempleLib.Path)]
         public static extern unsafe void QByteArray_dtor(void* memory);
 
         public static unsafe byte[] QByteArray_read(void* instance)
@@ -68,7 +71,10 @@ namespace OpenTemple.Interop
 
         [DllImport(OpenTempleLib.Path)]
         public static extern unsafe void QSize_ctor(void* instance, int width, int height);
-        
+
+        [DllImport(OpenTempleLib.Path)]
+        public static extern unsafe void QSize_ctor_default(void* instance);
+
         public static unsafe Size QSize_read(void* qSizePtr)
         {
             QSize_read(qSizePtr, out var x, out var y);
@@ -90,6 +96,9 @@ namespace OpenTemple.Interop
         [DllImport(OpenTempleLib.Path)]
         public static extern unsafe void QSizeF_ctor(void* instance, double width, double height);
 
+        [DllImport(OpenTempleLib.Path)]
+        public static extern unsafe void QSizeF_ctor_default(void* instance);
+
         public static unsafe SizeF QSizeF_read(void* qSizePtr)
         {
             QSizeF_read(qSizePtr, out var width, out var height);
@@ -110,6 +119,9 @@ namespace OpenTemple.Interop
 
         [DllImport(OpenTempleLib.Path)]
         public static extern unsafe void QRect_ctor(void* instance, int x, int y, int width, int height);
+
+        [DllImport(OpenTempleLib.Path)]
+        public static extern unsafe void QRect_ctor_default(void* instance);
 
         public static unsafe Rectangle QRect_read(void* qSizePtr)
         {
@@ -133,6 +145,9 @@ namespace OpenTemple.Interop
         [DllImport(OpenTempleLib.Path)]
         public static extern unsafe void QRectF_ctor(void* instance, double x, double y, double width, double height);
 
+        [DllImport(OpenTempleLib.Path)]
+        public static extern unsafe void QRectF_ctor_default(void* instance);
+
         public static unsafe RectangleF QRectF_read(void* qSizePtr)
         {
             QRectF_read(qSizePtr, out var x, out var y, out var width, out var height);
@@ -155,6 +170,9 @@ namespace OpenTemple.Interop
         [DllImport(OpenTempleLib.Path)]
         public static extern unsafe void QPoint_ctor(void* instance, int x, int y);
 
+        [DllImport(OpenTempleLib.Path)]
+        public static extern unsafe void QPoint_ctor_default(void* instance);
+
         public static unsafe Point QPoint_read(void* qPointPtr)
         {
             QPoint_read(qPointPtr, out var x, out var y);
@@ -175,6 +193,9 @@ namespace OpenTemple.Interop
 
         [DllImport(OpenTempleLib.Path)]
         public static extern unsafe void QPointF_ctor(void* instance, double x, double y);
+
+        [DllImport(OpenTempleLib.Path)]
+        public static extern unsafe void QPointF_ctor_default(void* instance);
 
         public static unsafe PointF QPointF_read(void* qPointPtr)
         {
@@ -197,6 +218,9 @@ namespace OpenTemple.Interop
         [DllImport(OpenTempleLib.Path)]
         public static extern unsafe void QColor_ctor(void* instance, int argb);
 
+        [DllImport(OpenTempleLib.Path)]
+        public static extern unsafe void QColor_ctor_default(void* instance);
+
         public static unsafe Color QColor_read(void* qColorPtr)
         {
             QColor_read(qColorPtr, out var argb);
@@ -217,6 +241,9 @@ namespace OpenTemple.Interop
 
         [DllImport(OpenTempleLib.Path, CharSet = CharSet.Unicode)]
         public static extern unsafe void QUrl_ctor(void* memory, string url, int urlLen);
+
+        [DllImport(OpenTempleLib.Path)]
+        public static extern unsafe void QUrl_ctor_default(void* memory);
 
         [DllImport(OpenTempleLib.Path)]
         public static extern unsafe void QUrl_dtor(void* memory);

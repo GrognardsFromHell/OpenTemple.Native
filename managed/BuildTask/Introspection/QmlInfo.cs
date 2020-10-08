@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security;
 using OpenTemple.Interop;
+using QmlBuildTasks.CodeGen;
 
 namespace QmlBuildTasks.Introspection
 {
@@ -21,6 +22,19 @@ namespace QmlBuildTasks.Introspection
                 NativeDelegate.Create<LoggerDelegate>(Log),
                 options.BaseDirectory
             );
+
+            foreach (var importPath in options.ImportPaths)
+            {
+                QmlInfo_addImportPath(_handle, importPath);
+            }
+
+            foreach (var pattern in options.ExcludePatterns)
+            {
+                if (!QmlInfo_addExcludePattern(_handle, pattern))
+                {
+                    throw new ArgumentException("Invalid RegExp pattern: " + pattern);
+                }
+            }
         }
 
         public void Dispose()
@@ -92,6 +106,13 @@ namespace QmlBuildTasks.Introspection
         [DllImport(OpenTempleLib.Path, CharSet = CharSet.Unicode)]
         private static extern string QmlInfo_error(IntPtr qmlInfo);
 
+        [DllImport(OpenTempleLib.Path, CharSet = CharSet.Unicode)]
+        private static extern void QmlInfo_addImportPath(IntPtr qmlInfo, string path);
+
+        [DllImport(OpenTempleLib.Path, CharSet = CharSet.Unicode)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool QmlInfo_addExcludePattern(IntPtr qmlInfo, string pattern);
+
         [DllImport(OpenTempleLib.Path)]
         private static extern void QmlInfo_delete(IntPtr qmlInfo);
 
@@ -129,6 +150,5 @@ namespace QmlBuildTasks.Introspection
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Unicode)]
         private delegate void LoggerDelegate(LogLevel level, string message);
-
     }
 }

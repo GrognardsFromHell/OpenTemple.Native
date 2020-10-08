@@ -69,6 +69,14 @@ NATIVE_API void QmlInfo_delete(QmlInfo *qmlInfo) { delete qmlInfo; }
 
 NATIVE_API char16_t *QmlInfo_error(QmlInfo &qmlInfo) { return copyString(qmlInfo.error()); }
 
+NATIVE_API void QmlInfo_addImportPath(QmlInfo &qmlInfo, const char16_t *path) {
+  qmlInfo.addImportPath(QString::fromUtf16(path));
+}
+
+NATIVE_API void QmlInfo_addExcludePattern(QmlInfo &qmlInfo, const char16_t *pattern) {
+  qmlInfo.addExcludePattern(QString::fromUtf16(pattern));
+}
+
 NATIVE_API bool QmlInfo_addFile(QmlInfo &qmlInfo, const char16_t *path) {
   return qmlInfo.addFile(QString::fromUtf16(path));
 }

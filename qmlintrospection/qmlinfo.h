@@ -6,6 +6,7 @@
 #include <QQmlEngine>
 #include <QQmlError>
 #include <QString>
+#include <QRegExp>
 #include <utility>
 
 #include "typeinfo.h"
@@ -24,6 +25,8 @@ class QmlInfo {
   bool addFile(const QString& path);
   bool addNativeModule(const QString& uri, int majorVersion);
   bool addMetaClass(const char *metaClass);
+  void addImportPath(const QString &path);
+  bool addExcludePattern(const QString &pattern);
 
   bool visitTypeLibrary(void (*visitor)(const TypeLibrary&));
 
@@ -40,4 +43,5 @@ class QmlInfo {
   std::vector<std::unique_ptr<QQmlComponent>> _components;
   QSet<const QMetaObject*> _cppTypes;
   QString _basePath;
+  QList<QRegExp> _excludePatterns;
 };

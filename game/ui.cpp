@@ -1,5 +1,6 @@
 
 #include <QDir>
+#include <QQuickStyle>
 #include <QThread>
 #include <QTimer>
 
@@ -19,6 +20,7 @@ Ui::Ui() {
   static char emptyString = 0;
   static char *qtArgs[]{&emptyString};
   int qtArgsSize = 1;
+  QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
   _app = std::make_unique<QGuiApplication>(qtArgsSize, qtArgs);
 
   _engine = std::make_unique<QQmlEngine>();
@@ -63,23 +65,6 @@ Ui::Ui() {
   // indirectly via OpenGL)
   auto rendererInterface = _window->rendererInterface();
   Q_ASSERT(rendererInterface->graphicsApi() == QSGRendererInterface::OpenGL);
-
-  //
-  //    QObject::connect(window.get(), &QQuickView::statusChanged,
-  //                     [this](auto status) {
-  //                       if (status == QQuickView::Ready) {
-  //                         _loadViewCompletionSource->succeed(window->rootObject());
-  //                       } else if (status == QQuickView::Error) {
-  //                         QString errorMessage;
-  //                         for (auto &error : window->errors()) {
-  //                           if (!errorMessage.isEmpty()) {
-  //                             errorMessage.append("\n");
-  //                           }
-  //                           errorMessage.append(error.toString());
-  //                         }
-  //                         _loadViewCompletionSource->fail(errorMessage);
-  //                       }
-  //                     });
 }
 
 void Ui::handleSceneGraphInitialized() {
@@ -202,6 +187,19 @@ QQmlComponent *Ui::createComponent(const QString &path) {
   auto component = new QQmlComponent(_engine.get(), path, QQmlComponent::PreferSynchronous, this);
   _components[path] = component;
   return component;
+}
+
+void Ui::setBaseUrl(const QString &baseUrl) const {
+  auto importPaths = _engine->importPathList();
+  importPaths.removeOne(_engine->baseUrl().toString());
+  importPaths.append(baseUrl);
+  _engine->setBaseUrl(baseUrl);
+  _engine->setImportPathList(importPaths);
+}
+
+void Ui::setStyle(const QString &style) {
+  QQuickStyle::addStylePath(_engine->baseUrl().toString());
+  QQuickStyle::setStyle(style);
 }
 
 struct UiCallbacks {

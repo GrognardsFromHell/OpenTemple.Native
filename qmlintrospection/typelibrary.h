@@ -5,6 +5,8 @@
 
 #include <QDir>
 #include <QMap>
+#include <QList>
+#include <QRegExp>
 #include <QQmlComponent>
 #include <unordered_set>
 
@@ -16,6 +18,10 @@ class TypeLibrary {
  public:
   explicit TypeLibrary(QQmlEngine *engine, const QString &basePath)
       : _engine(engine), _basePath(basePath) {}
+
+  void addExcludePattern(QRegExp excludePattern) {
+    _excludePatterns.append(std::move(excludePattern));
+  }
 
   bool addComponent(QQmlComponent *c);
   TypeInfo *addQmlType(QV4::ExecutableCompilationUnit *compilationUnit);
@@ -38,8 +44,11 @@ class TypeLibrary {
   TypeRef resolveQmlPropTypeRef(QQmlPropertyData *qmlProp);
 
   QDir _basePath;
-  void processMethodsAndSignals(const QMetaObject *metaObject, TypeInfo *result);
+  void processMethodsAndSignals(const QMetaObject *metaObject, TypeInfo *result, bool skipMethods = false);
   void processQmlComponent(const QV4::ExecutableCompilationUnit *compilationUnit, int objectIndex,
                            TypeInfo *result);
   bool convertParameters(const QMetaMethod &metaMethod, MethodInfo &method);
+  TypeInfo *resolveQmlBaseType(const QV4::ExecutableCompilationUnit *compilationUnit,
+                               int objectIndex);
+  QList<QRegExp> _excludePatterns;
 };

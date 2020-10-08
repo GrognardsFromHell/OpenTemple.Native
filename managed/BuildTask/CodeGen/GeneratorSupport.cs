@@ -7,7 +7,7 @@ using QmlBuildTasks.Introspection;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using TypeInfo = QmlBuildTasks.Introspection.TypeInfo;
 
-namespace QmlBuildTasks
+namespace QmlBuildTasks.CodeGen
 {
     public class GeneratorSupport
     {
@@ -97,12 +97,7 @@ namespace QmlBuildTasks
 
         public NameSyntax GetQualifiedName(TypeInfo typeInfo)
         {
-            var className = typeInfo.Name;
-            // If the type refers to a .qml file, append a user-supplied suffix
-            if (_options.QmlClassSuffix != null && typeInfo.Kind == TypeInfoKind.QmlQObject)
-            {
-                className += _options.QmlClassSuffix;
-            }
+            var className = GetTypeName(typeInfo).ToFullString();
 
             var name = QualifiedName(GetNamespace(typeInfo), IdentifierName(className));
             if (typeInfo.IsInlineComponent)
@@ -130,6 +125,11 @@ namespace QmlBuildTasks
             if (typeInfo.IsInlineComponent)
             {
                 return IdentifierName(typeInfo.InlineComponentName);
+            }
+
+            if (typeInfo.Kind == TypeInfoKind.CppGadget || typeInfo.Kind == TypeInfoKind.CppQObject)
+            {
+                return IdentifierName(typeInfo.MetaClassName);
             }
 
             var className = typeInfo.Name;
@@ -198,5 +198,81 @@ namespace QmlBuildTasks
 
             return QualifiedName(GetQualifiedName(enclosingType), IdentifierName(enumName));
         }
+
+        public ExpressionSyntax TransformExpressionNativeToManaged(ExpressionSyntax expression, TypeRef type)
+        {
+            // Transform expression (a void*) to the target type
+            switch (type.Kind)
+            {
+                case TypeRefKind.TypeInfo:
+                    return ObjectCreationExpression(GetTypeName(type))
+                        .WithArgumentList(
+                            ArgumentList(SeparatedList(new[] {Argument(CastVoidPtrToIntPtr(expression))})));
+                case TypeRefKind.TypeInfoEnum:
+                    // Storage representation should be the same
+                    return DerefPointerToPrimitive(GetTypeName(type).ToFullString(), expression);
+                case TypeRefKind.BuiltIn:
+                    switch (type.BuiltIn)
+                    {
+                        case BuiltInType.Bool:
+                            return DerefPointerToPrimitive("bool", expression);
+                        case BuiltInType.Int32:
+                            return DerefPointerToPrimitive("int", expression);
+                        case BuiltInType.UInt32:
+                            return DerefPointerToPrimitive("uint", expression);
+                        case BuiltInType.Int64:
+                            return DerefPointerToPrimitive("long", expression);
+                        case BuiltInType.UInt64:
+                            return DerefPointerToPrimitive("ulong", expression);
+                        case BuiltInType.Double:
+                            return DerefPointerToPrimitive("double", expression);
+                        case BuiltInType.Char:
+                            return DerefPointerToPrimitive("char", expression);
+                        case BuiltInType.OpaquePointer:
+                            return DerefPointerToPrimitive("IntPtr", expression);
+                        case BuiltInType.String:
+                            // We need special deserialization for String, sadly
+                            return InvocationExpression(ParseName("QtBuiltInTypeInterop.QString_read"))
+                                .WithArgumentList(ArgumentList(SeparatedList(new[] {Argument(expression)})));
+                        case BuiltInType.ByteArray:
+                            // We need special deserialization for String, sadly
+                            return InvocationExpression(ParseName("QtBuiltInTypeInterop.QByteArray_read"))
+                                .WithArgumentList(ArgumentList(SeparatedList(new[] {Argument(expression)})));
+                        case BuiltInType.Size:
+                            return InvocationExpression(ParseName("QtBuiltInTypeInterop.QSize_read"))
+                                .WithArgumentList(ArgumentList(SeparatedList(new[] {Argument(expression)})));
+                        case BuiltInType.SizeFloat:
+                            return InvocationExpression(ParseName("QtBuiltInTypeInterop.QSizeF_read"))
+                                .WithArgumentList(ArgumentList(SeparatedList(new[] {Argument(expression)})));
+                        case BuiltInType.Rectangle:
+                            return InvocationExpression(ParseName("QtBuiltInTypeInterop.QRect_read"))
+                                .WithArgumentList(ArgumentList(SeparatedList(new[] {Argument(expression)})));
+                        case BuiltInType.RectangleFloat:
+                            return InvocationExpression(ParseName("QtBuiltInTypeInterop.QRectF_read"))
+                                .WithArgumentList(ArgumentList(SeparatedList(new[] {Argument(expression)})));
+                        case BuiltInType.Url:
+                            return InvocationExpression(ParseName("QtBuiltInTypeInterop.QUrl_read"))
+                                .WithArgumentList(ArgumentList(SeparatedList(new[] {Argument(expression)})));
+                        case BuiltInType.Color:
+                            return InvocationExpression(ParseName("QtBuiltInTypeInterop.QColor_read"))
+                                .WithArgumentList(ArgumentList(SeparatedList(new[] {Argument(expression)})));
+                        default:
+                            throw new ArgumentOutOfRangeException("type.BuiltIn", type.BuiltIn,
+                                "unknown built in type");
+                    }
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        private ExpressionSyntax DerefPointerToPrimitive(string name, ExpressionSyntax voidPtr) =>
+            PrefixUnaryExpression(SyntaxKind.PointerIndirectionExpression,
+                CastExpression(IdentifierName(name + "*"), voidPtr)
+            );
+
+        private ExpressionSyntax CastVoidPtrToIntPtr(ExpressionSyntax voidPtr) =>
+            PrefixUnaryExpression(SyntaxKind.PointerIndirectionExpression,
+                CastExpression(IdentifierName("System.IntPtr*"), voidPtr)
+            );
     }
 }

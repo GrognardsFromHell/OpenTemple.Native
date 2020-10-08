@@ -110,7 +110,7 @@ TypeInfo* TypeLibrary::addCppType(const QMetaObject* metaObject) {
   return result;
 }
 
-void TypeLibrary::processMethodsAndSignals(const QMetaObject* metaObject, TypeInfo* result) {
+void TypeLibrary::processMethodsAndSignals(const QMetaObject* metaObject, TypeInfo* result, bool skipMethods) {
   auto& cons = result->constructors;
   cons.reserve(metaObject->constructorCount());
   for (auto i = 0; i < metaObject->constructorCount(); i++) {
@@ -204,12 +204,23 @@ bool TypeLibrary::convertParameters(const QMetaMethod& metaMethod, MethodInfo& m
 
 static bool getTypeNameAndModuleFromQmlFile(const QUrl& url, const QDir& basePath,
                                             QUrl* runtimeSourceUrl, QString* moduleName,
-                                            QString* typeName) {
+                                            QString* typeName,
+                                            const QList<QRegExp>& excludePatterns) {
   // Many components are not part of an actual _module_
   // so we'll instead check if they are relative to the base path
   // and build a path to the file ourselves
   if (url.isLocalFile()) {
     QString relativePath = basePath.relativeFilePath(url.toLocalFile());
+    if (relativePath.contains("../")) {
+      return false;
+    }
+
+    for (const auto& pattern : excludePatterns) {
+      if (pattern.exactMatch(relativePath)) {
+        return false;
+      }
+    }
+
     if (!relativePath.isNull()) {
       *runtimeSourceUrl = QUrl(relativePath);
       QFileInfo relativeFileInfo(relativePath);
@@ -254,13 +265,18 @@ TypeInfo* TypeLibrary::addQmlType(QV4::ExecutableCompilationUnit* compilationUni
     return _complexTypes[metaObject].get();
   }
 
-  qDebug() << "Parsing QML file" << compilationUnit->url();
+  auto url = compilationUnit->finalUrl();
+  qDebug() << "Parsing QML file" << url;
+
+  if (!url.isLocalFile()) {
+    return resolveQmlBaseType(compilationUnit, 0);
+  }
 
   QString typeName, moduleName;
   QUrl sourceUrl;
-  if (!getTypeNameAndModuleFromQmlFile(compilationUnit->finalUrl(), _basePath, &sourceUrl,
-                                       &moduleName, &typeName)) {
-    return nullptr;
+  if (!getTypeNameAndModuleFromQmlFile(url, _basePath, &sourceUrl, &moduleName, &typeName,
+                                       _excludePatterns)) {
+    return resolveQmlBaseType(compilationUnit, 0);
   }
 
   qDebug() << "Adding QML Type" << moduleName << typeName;
@@ -302,26 +318,7 @@ TypeInfo* TypeLibrary::addQmlType(QV4::ExecutableCompilationUnit* compilationUni
 void TypeLibrary::processQmlComponent(const QV4::ExecutableCompilationUnit* compilationUnit,
                                       int objectIndex, TypeInfo* result) {
   // Fully resolve the parent type first
-  // QML types can inherit from other QML types or C++
-  auto rootObject = compilationUnit->objectAt(objectIndex);
-  if (rootObject->inheritedTypeNameIndex != 0) {
-    auto parentTypeRef = compilationUnit->resolvedType(rootObject->inheritedTypeNameIndex);
-    if (!parentTypeRef) {
-      qDebug() << "Failed to resolve parent type of " << compilationUnit->url();
-    } else {
-      auto parentQmlType = parentTypeRef->type;
-      if (parentTypeRef->compilationUnit()) {
-        qDebug() << "Parent is QML type";
-        result->parent = addQmlType(parentTypeRef->compilationUnit().data());
-        // TODO: What if an inline component from another file is referenced???
-      } else if (parentQmlType.isValid() && parentQmlType.metaObject()) {
-        qDebug() << "Parent is C++ type";
-        result->parent = addCppType(parentQmlType.metaObject());
-      } else {
-        qDebug() << "Cannot handle parent type of " << compilationUnit->url();
-      }
-    }
-  }
+  result->parent = resolveQmlBaseType(compilationUnit, objectIndex);
 
   auto pc = compilationUnit->propertyCaches.at(objectIndex);
   auto metaObject = pc->createMetaObject();
@@ -356,6 +353,31 @@ void TypeLibrary::processQmlComponent(const QV4::ExecutableCompilationUnit* comp
   }
 }
 
+TypeInfo* TypeLibrary::resolveQmlBaseType(const QV4::ExecutableCompilationUnit* compilationUnit,
+                                          int objectIndex) {
+  // QML types can inherit from other QML types or C++
+  auto rootObject = compilationUnit->objectAt(objectIndex);
+  if (rootObject->inheritedTypeNameIndex != 0) {
+    auto parentTypeRef = compilationUnit->resolvedType(rootObject->inheritedTypeNameIndex);
+    if (!parentTypeRef) {
+      qDebug() << "Failed to resolve parent type of " << compilationUnit->url();
+    } else {
+      auto parentQmlType = parentTypeRef->type;
+      if (parentTypeRef->compilationUnit()) {
+        qDebug() << "Parent is QML type";
+        return addQmlType(parentTypeRef->compilationUnit().data());
+        // TODO: What if an inline component from another file is referenced???
+      } else if (parentQmlType.isValid() && parentQmlType.metaObject()) {
+        qDebug() << "Parent is C++ type";
+        return addCppType(parentQmlType.metaObject());
+      } else {
+        qDebug() << "Cannot handle parent type of " << compilationUnit->url();
+      }
+    }
+  }
+  return nullptr;
+}
+
 void TypeLibrary::visitTypes(void (*visitor)(const TypeInfo*)) {
   for (auto& [_, value] : _complexTypes) {
     visitor(value.get());
@@ -366,7 +388,6 @@ void TypeLibrary::visitTypes(void (*visitor)(const TypeInfo*)) {
 }
 
 TypeRef TypeLibrary::resolveMetaTypeRef(QMetaType::Type type) {
-
   // Special-case handling for automatic translation to async methods
   if (qMetaTypeId<QObjectCompletionSource*>() == type) {
     return TypeRef::fromBuiltIn(BuiltInType::CompletionSource);

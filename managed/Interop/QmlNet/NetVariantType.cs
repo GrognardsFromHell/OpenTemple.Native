@@ -1,0 +1,35 @@
+﻿namespace Qml.Net
+{
+    public enum NetVariantType
+    {
+        Invalid = 0,
+        Null,
+        Bool,
+        Char,
+        Int,
+        UInt,
+        Long,
+        ULong,
+        Float,
+        Double,
+        String,
+        DateTime,
+        Size,
+        SizeF,
+        Rect,
+        RectF,
+        Point,
+        PointF,
+        Vector2D,
+        Vector3D,
+        Vector4D,
+		Quaternion,
+        Matrix4x4,
+        Color,
+        Object,
+        JsValue,
+        QObject,
+        NetVariantList,
+        ByteArray,
+    }
+}

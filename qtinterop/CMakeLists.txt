@@ -1,7 +1,7 @@
 
 add_library(qtinterop_obj OBJECT qobject_interop.cpp string_interop.cpp string_interop.h
-        managed_delegate.cpp managed_delegate.h builtintype_interop.cpp)
-target_link_libraries(qtinterop_obj PRIVATE Qt::CorePrivate Qt::QmlPrivate Qt::Quick)
+        managed_delegate.cpp managed_delegate.h builtintype_interop.cpp ManagedObject.cpp ManagedObject.h)
+target_link_libraries(qtinterop_obj PRIVATE Qt::CorePrivate Qt::QmlPrivate Qt::Quick qmlnet)
 exclude_qt_plugins(qtinterop_obj)
 
 add_library(qtinterop INTERFACE)

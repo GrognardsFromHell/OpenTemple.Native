@@ -10,6 +10,8 @@
         <GeneratedQmlClassSuffix/>
         <GenerateQmlPascalCase>false</GenerateQmlPascalCase>
         <AdditionalMetaClasses></AdditionalMetaClasses>
+        <AdditionalQmlIncludeDirectories></AdditionalQmlIncludeDirectories>
+        <QmlExcludePatterns></QmlExcludePatterns>
     </PropertyGroup>
 
     <ItemGroup>
@@ -28,7 +30,15 @@
         </PropertyGroup>
 
         <PropertyGroup Condition="'$(AdditionalMetaClasses)' != ''">
-            <GenerateQmlBindingsOptions>$(GenerateQmlBindingsOptions) --addMetaClass $(AdditionalMetaClasses.Replace(";", "--addMetaClass "))</GenerateQmlBindingsOptions>
+            <GenerateQmlBindingsOptions>$(GenerateQmlBindingsOptions) --addMetaClasses $(AdditionalMetaClasses)</GenerateQmlBindingsOptions>
+        </PropertyGroup>
+
+        <PropertyGroup Condition="'$(QmlExcludePatterns)' != ''">
+            <GenerateQmlBindingsOptions>$(GenerateQmlBindingsOptions) -x $(QmlExcludePatterns)</GenerateQmlBindingsOptions>
+        </PropertyGroup>
+
+        <PropertyGroup Condition="'$(AdditionalQmlIncludeDirectories)' != ''">
+            <GenerateQmlBindingsOptions>$(GenerateQmlBindingsOptions) -I $(AdditionalQmlIncludeDirectories.Replace(";", "-I "))</GenerateQmlBindingsOptions>
         </PropertyGroup>
 
         <Exec Command='"$(ToolExecutable)" --baseDir "$(UiAssetsFolder)" --output "$(GeneratedBindingsFile)" $(GenerateQmlBindingsOptions)'/>

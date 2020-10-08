@@ -11,27 +11,30 @@
 #include "utils.h"
 
 std::unique_ptr<GameView> GameViews::create() {
-  auto handle = create_game_view(_handle);
-  return std::make_unique<GameView>(handle);
+  NetReferenceContainer self{_handle};
+  auto gameViewRef = create_game_view(&self);
+  if (!gameViewRef || !gameViewRef->instance) {
+    return nullptr;
+  }
+  auto result = std::make_unique<GameView>(std::move(gameViewRef->instance));
+  delete gameViewRef;
+  return result;
 }
 
-GameViews::GameViews(GameViewsHandle handle, QObject *parent) : QObject(parent), _handle(handle) {}
-
-GameViews::~GameViews() { destroy_game_views(_handle); }
+GameViews::GameViews(QSharedPointer<NetReference> handle, QObject *parent)
+    : QObject(parent), _handle(std::move(handle)) {}
 
 struct GameViewsCallbacks {
-  NativeDelegate<void(GameViewsHandle)> destroy_game_views;
-  NativeDelegate<GameViewHandle(GameViewsHandle)> create_game_view;
-  NativeDelegate<void(GameViewHandle)> destroy_game_view;
-  NativeDelegate<bool(GameViewHandle, ID3D11Texture2D **texture, int *width, int *height)>
+  NativeDelegate<NetReferenceContainer *(NetReferenceContainer *)> create_game_view;
+  NativeDelegate<void(NetReferenceContainer *)> dispose_game_view;
+  NativeDelegate<bool(NetReferenceContainer *, ID3D11Texture2D **texture, int *width, int *height)>
       get_texture;
-  NativeDelegate<void(GameViewHandle, int width, int height)> set_size;
+  NativeDelegate<void(NetReferenceContainer *, int width, int height)> set_size;
 
   void install() {
-    GameViews::destroy_game_views = destroy_game_views;
     GameViews::create_game_view = create_game_view;
 
-    GameView::destroy_game_view = destroy_game_view;
+    GameView::dispose = dispose_game_view;
     GameView::get_texture = get_texture;
     GameView::set_size = set_size;
   }
@@ -39,13 +42,13 @@ struct GameViewsCallbacks {
 
 NATIVE_API void gameviews_set_callbacks(GameViewsCallbacks callbacks) { callbacks.install(); }
 
-NATIVE_API bool gameviews_install(Ui &ui, GameViewsHandle handle) {
+NATIVE_API bool gameviews_install(Ui &ui, NetReferenceContainer *handle) {
   auto context = ui.engine()->rootContext();
   if (context->contextProperty(QStringLiteral("gameViews")).isValid()) {
     return false;
   }
 
-  auto views = new GameViews(handle);
+  auto views = new GameViews(std::move(handle->instance));
   context->setContextProperty(QStringLiteral("gameViews"), views);
   QQmlEngine::setObjectOwnership(views, QQmlEngine::JavaScriptOwnership);
   return true;
@@ -59,6 +62,11 @@ NATIVE_API bool gameviews_uninstall(Ui &ui) {
 }
 
 GameView::~GameView() {
+  if (_handle) {
+    NetReferenceContainer container{_handle};
+    dispose(&container);
+  }
+
   if (_textureId) {
     GLuint tid = _textureId.value();
     glDeleteTextures(1, &tid);
@@ -67,14 +75,13 @@ GameView::~GameView() {
       eglDestroySurface(*_display, *_surface);
     }
   }
-
-  destroy_game_view(_handle);
 }
 
 QSGTexture *GameView::createTexture(QQuickWindow *window) {
   ID3D11Texture2D *texture;
   int width, height;
-  if (!get_texture(_handle, &texture, &width, &height)) {
+  NetReferenceContainer container{_handle};
+  if (!get_texture(&container, &texture, &width, &height)) {
     return nullptr;
   }
 
@@ -122,7 +129,8 @@ QSGTexture *GameView::createTexture(QQuickWindow *window) {
 
 void GameView::setSize(QSize size) {
   _size = size;
-  set_size(_handle, _size.width(), _size.height());
+  NetReferenceContainer container{_handle};
+  set_size(&container, _size.width(), _size.height());
 }
 
 void GameView::setUpdateCallback(const std::function<void()> &updateCallback) {
@@ -131,9 +139,7 @@ void GameView::setUpdateCallback(const std::function<void()> &updateCallback) {
 
 const std::function<void()> &GameView::getUpdateCallback() const { return _updateCallback; }
 
-std::function<void(GameViewsHandle)> GameViews::destroy_game_views;
-std::function<GameViewHandle(GameViewsHandle)> GameViews::create_game_view;
-std::function<void(GameViewHandle)> GameView::destroy_game_view;
-std::function<bool(GameViewHandle, ID3D11Texture2D **texture, int *width, int *height)>
-    GameView::get_texture;
-std::function<void(GameViewHandle, int width, int height)> GameView::set_size;
+decltype(GameViews::create_game_view) GameViews::create_game_view;
+decltype(GameView::dispose) GameView::dispose;
+decltype(GameView::get_texture) GameView::get_texture;
+decltype(GameView::set_size) GameView::set_size;

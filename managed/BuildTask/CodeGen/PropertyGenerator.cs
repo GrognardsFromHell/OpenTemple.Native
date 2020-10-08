@@ -4,9 +4,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using QmlBuildTasks.Introspection;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-using TypeInfo = QmlBuildTasks.Introspection.TypeInfo;
 
-namespace QmlBuildTasks
+namespace QmlBuildTasks.CodeGen
 {
     public class PropertyGenerator
     {

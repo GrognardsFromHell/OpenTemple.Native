@@ -45,6 +45,7 @@ QSGNode *GameViewItem::updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaint
       // We assume that the texture changes every frame
       _textureProvider->fireTextureChanged();
     });
+    Q_EMIT gameViewHandleChanged(_gameView.get());
   }
 
   QSize desiredSize((int)width(), (int)height());
@@ -84,6 +85,20 @@ QSGNode *GameViewItem::updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaint
 bool GameViewItem::isTextureProvider() const { return true; }
 
 QSGTextureProvider *GameViewItem::textureProvider() const { return _textureProvider.get(); }
+
+NetValue *GameViewItem::gameViewHandle() const {
+  if (!_gameView) {
+    return nullptr;
+  }
+  return NetValue::forInstance(_gameView->handle());
+}
+
+void GameViewItem::releaseResources() {
+  if (_gameView) {
+    _gameView.reset();
+    Q_EMIT gameViewHandleChanged(nullptr);
+  }
+}
 
 GameViewItem::~GameViewItem() = default;
 

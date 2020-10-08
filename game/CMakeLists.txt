@@ -13,7 +13,7 @@ add_library(game_obj OBJECT
         utils.h
         dynamic_interop.cpp
         static_plugins.cpp
-        qml_registration.cpp)
+        qml_registration.cpp translator.cpp translator.h)
 if (WIN32)
     target_sources(game_obj PRIVATE
             install_dir_finder_win.cpp
@@ -24,10 +24,10 @@ if (WIN32)
     target_compile_definitions(game_obj PRIVATE -DUNICODE)
     target_compile_definitions(game_obj PRIVATE -D_UNICODE)
 endif ()
-target_link_libraries(game_obj PRIVATE Qt::Quick Qt::GuiPrivate Qt5::Gui_EGL Qt5::Gui_GLESv2 qtinterop bink-video-item)
+target_link_libraries(game_obj PRIVATE Qt::Quick Qt::GuiPrivate Qt::QuickControls2 Qt5::Gui_EGL Qt5::Gui_GLESv2 qtinterop bink-video-item qmlnet)
 exclude_qt_plugins(game_obj)
 set_target_properties(game_obj PROPERTIES AUTOMOC TRUE)
 
 add_library(game INTERFACE)
 target_sources(game INTERFACE $<TARGET_OBJECTS:game_obj>)
-target_link_libraries(game INTERFACE Qt::Quick Qt::GuiPrivate Qt5::Gui_EGL Qt5::Gui_GLESv2 qtinterop bink-video-item)
+target_link_libraries(game INTERFACE Qt::Quick Qt::GuiPrivate Qt::QuickControls2 Qt5::Gui_EGL Qt5::Gui_GLESv2 qtinterop bink-video-item qmlnet)

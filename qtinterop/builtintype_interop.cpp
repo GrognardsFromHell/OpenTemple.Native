@@ -54,6 +54,7 @@ NATIVE_API int QmlListInterop_indexOf(QQmlListProperty<QObject> *list, QObject *
 // QString
 /////////////////////////////////////////////////////////////////////////////////////////////
 
+static_assert(!std::is_trivially_default_constructible<QString>());
 static_assert(!std::is_trivially_destructible<QString>());
 
 NATIVE_API int QString_size() { return sizeof(QString); }
@@ -75,9 +76,14 @@ NATIVE_API void QString_delete(QString *ptr) { delete ptr; }
 // QByteArray
 /////////////////////////////////////////////////////////////////////////////////////////////
 
+static_assert(!std::is_trivially_default_constructible<QByteArray>());
 static_assert(!std::is_trivially_destructible<QByteArray>());
 
 NATIVE_API int QByteArray_size() { return sizeof(QByteArray); }
+
+NATIVE_API void QByteArray_ctor_default(QByteArray *byteArray) {
+  new (byteArray) QByteArray();
+}
 
 NATIVE_API void QByteArray_ctor(QByteArray *byteArray, const char *data, int size) {
   new (byteArray) QByteArray(data, size);
@@ -95,10 +101,13 @@ NATIVE_API void QByteArray_dtor(QByteArray *byteArray) { byteArray->~QByteArray(
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 static_assert(std::is_trivially_destructible<QPoint>());
+static_assert(std::is_trivially_copyable<QPoint>());
 
 NATIVE_API int QPoint_size() { return sizeof(QPoint); }
 
 NATIVE_API void QPoint_ctor(QPoint *point, int x, int y) { new (point) QPoint(x, y); }
+
+NATIVE_API void QPoint_ctor_default(QPoint *point) { new (point) QPoint(); }
 
 NATIVE_API void QPoint_read(QPoint *point, int *x, int *y) {
   *x = point->x();
@@ -110,10 +119,13 @@ NATIVE_API void QPoint_read(QPoint *point, int *x, int *y) {
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 static_assert(std::is_trivially_destructible<QPointF>());
+static_assert(std::is_trivially_copyable<QPointF>());
 
 NATIVE_API int QPointF_size() { return sizeof(QPointF); }
 
 NATIVE_API void QPointF_ctor(QPointF *point, double x, double y) { new (point) QPointF(x, y); }
+
+NATIVE_API void QPointF_ctor_default(QPointF *point) { new (point) QPointF(); }
 
 NATIVE_API void QPointF_read(QPointF *point, double *x, double *y) {
   *x = point->x();
@@ -125,10 +137,13 @@ NATIVE_API void QPointF_read(QPointF *point, double *x, double *y) {
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 static_assert(std::is_trivially_destructible<QSize>());
+static_assert(std::is_trivially_copyable<QSize>());
 
 NATIVE_API int QSize_size() { return sizeof(QSize); }
 
 NATIVE_API void QSize_ctor(QSize *size, int width, int height) { new (size) QSize(width, height); }
+
+NATIVE_API void QSize_ctor_default(QSize *size) { new (size) QSize(); }
 
 NATIVE_API void QSize_read(QSize *size, int *width, int *height) {
   *width = size->width();
@@ -140,12 +155,15 @@ NATIVE_API void QSize_read(QSize *size, int *width, int *height) {
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 static_assert(std::is_trivially_destructible<QSizeF>());
+static_assert(std::is_trivially_copyable<QSizeF>());
 
 NATIVE_API int QSizeF_size() { return sizeof(QSizeF); }
 
 NATIVE_API void QSizeF_ctor(QSizeF *size, double width, double height) {
   *size = QSizeF(width, height);
 }
+
+NATIVE_API void QSizeF_ctor_default(QSizeF *size) { new (size) QSizeF(); }
 
 NATIVE_API void QSizeF_read(QSizeF *size, double *width, double *height) {
   *width = size->width();
@@ -157,12 +175,15 @@ NATIVE_API void QSizeF_read(QSizeF *size, double *width, double *height) {
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 static_assert(std::is_trivially_destructible<QRect>());
+static_assert(std::is_trivially_copyable<QRect>());
 
 NATIVE_API int QRect_size() { return sizeof(QRect); }
 
 NATIVE_API void QRect_ctor(QRect *rect, int x, int y, int width, int height) {
   new (rect) QRect(x, y, width, height);
 }
+
+NATIVE_API void QRect_ctor_default(QRect *rect) { new (rect) QRect(); }
 
 NATIVE_API void QRect_read(QRect *rect, int *x, int *y, int *width, int *height) {
   *x = rect->x();
@@ -176,12 +197,15 @@ NATIVE_API void QRect_read(QRect *rect, int *x, int *y, int *width, int *height)
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 static_assert(std::is_trivially_destructible<QRectF>());
+static_assert(std::is_trivially_copyable<QRectF>());
 
 NATIVE_API int QRectF_size() { return sizeof(QRectF); }
 
 NATIVE_API void QRectF_ctor(QRectF *rect, double x, double y, double width, double height) {
   new (rect) QRectF(x, y, width, height);
 }
+
+NATIVE_API void QRectF_ctor_default(QRectF *rect) { new (rect) QRectF(); }
 
 NATIVE_API void QRectF_read(QRectF *rect, double *x, double *y, double *width, double *height) {
   *x = rect->x();
@@ -195,10 +219,13 @@ NATIVE_API void QRectF_read(QRectF *rect, double *x, double *y, double *width, d
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 static_assert(std::is_trivially_destructible<QColor>());
+static_assert(!std::is_trivially_copyable<QColor>());
 
 NATIVE_API int QColor_size() { return sizeof(QColor); }
 
 NATIVE_API void QColor_ctor(QColor *color, int argb) { new (color) QColor((QRgb)argb); }
+
+NATIVE_API void QColor_ctor_default(QColor *color) { new (color) QColor(); }
 
 NATIVE_API void QColor_read(QColor *color, int *argb) { *argb = color->rgba(); }
 
@@ -207,12 +234,15 @@ NATIVE_API void QColor_read(QColor *color, int *argb) { *argb = color->rgba(); }
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 static_assert(!std::is_trivially_destructible<QUrl>());
+static_assert(!std::is_trivially_copyable<QUrl>());
 
 NATIVE_API int QUrl_size() { return sizeof(QUrl); }
 
 NATIVE_API void QUrl_ctor(QUrl *url, const char16_t *str, int strLen) {
   new (url) QUrl(QString::fromRawData(reinterpret_cast<const QChar *>(str), strLen));
 }
+
+NATIVE_API void QUrl_ctor_default(QUrl *url) { new (url) QUrl(); }
 
 NATIVE_API void QUrl_dtor(QUrl *memory) { memory->~QUrl(); }
 

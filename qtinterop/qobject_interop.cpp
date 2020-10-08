@@ -132,6 +132,15 @@ NATIVE_API int QMetaObject_indexOfProperty(const QMetaObject *mo, const char *na
   return mo->indexOfProperty(name);
 }
 
+NATIVE_API void QObject_setObjectOwnership(QObject *target, bool jsOwned) {
+  QQmlEngine::setObjectOwnership(
+      target, jsOwned ? QQmlEngine::JavaScriptOwnership : QQmlEngine::CppOwnership);
+}
+
+NATIVE_API bool QObject_getObjectOwnership(QObject *target) {
+  return QQmlEngine::objectOwnership(target) == QQmlEngine::JavaScriptOwnership;
+}
+
 NATIVE_API bool QObject_setPropertyQString(QObject *target, int idx, const char16_t *value,
                                            int length) {
   QString string(reinterpret_cast<const QChar *>(value), length);

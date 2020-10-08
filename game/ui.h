@@ -40,6 +40,7 @@ class Ui : public QObject {
   Q_PROPERTY(QSize renderTargetSize READ renderTargetSize)
   Q_PROPERTY(QString baseUrl READ baseUrl WRITE setBaseUrl)
   Q_PROPERTY(QString windowTitle READ windowTitle WRITE setWindowTitle)
+  Q_PROPERTY(void *app READ app)
   Q_PROPERTY(void *nativeHandle READ nativeHandle)
  private:
   std::unique_ptr<QGuiApplication> _app;
@@ -54,6 +55,8 @@ class Ui : public QObject {
 
   QQuickWindow *window() const { return _window.get(); }
 
+  void *app() const { return _app.get(); }
+
   void *nativeHandle() const { return (void *)_window->winId(); }
 
   Q_INVOKABLE void loadItemAsync(const QString &path, QObjectCompletionSource *completionSource);
@@ -67,11 +70,13 @@ class Ui : public QObject {
   Q_INVOKABLE void addToRoot(QQuickItem *item);
   Q_INVOKABLE void removeFromRoot(QQuickItem *item);
 
+  Q_INVOKABLE void setStyle(const QString &style);
+
   QSize renderTargetSize() const;
 
   QString baseUrl() const { return _engine->baseUrl().toString(); }
 
-  void setBaseUrl(const QString &baseUrl) const { return _engine->setBaseUrl(baseUrl); }
+  void setBaseUrl(const QString &baseUrl) const;
 
   QString windowTitle() const { return _window->title(); }
 
@@ -172,7 +177,7 @@ class Ui : public QObject {
   std::function<void(ID3D11Device *)> _deviceDestroyedCallback;
 
   // We must cache components so that the associated meta objects never get released
-  QMap<QString, QQmlComponent*> _components;
+  QMap<QString, QQmlComponent *> _components;
 
   QQmlComponent *createComponent(const QString &path);
 };
