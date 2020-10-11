@@ -1,0 +1,14 @@
+
+file(GLOB GAME_SOURCES CONFIGURE_DEPENDS *.cpp *.h)
+
+add_library(game_obj OBJECT ${GAME_SOURCES})
+if (WIN32)
+    file(GLOB GAME_WIN32_SOURCES CONFIGURE_DEPENDS RELATIVE win32 *.cpp *.h)
+    target_sources(game_obj PRIVATE ${GAME_WIN32_SOURCES})
+    target_compile_definitions(game_obj PRIVATE -D_CRT_SECURE_NO_WARNINGS)
+    target_compile_definitions(game_obj PRIVATE -DUNICODE)
+    target_compile_definitions(game_obj PRIVATE -D_UNICODE)
+endif ()
+
+add_library(game INTERFACE)
+target_sources(game INTERFACE $<TARGET_OBJECTS:game_obj>)
