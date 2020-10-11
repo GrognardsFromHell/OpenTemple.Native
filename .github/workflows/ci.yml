@@ -30,7 +30,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        arch: x64 # [x64, x86] (Disable 32-bit for now)
+        arch: [x64] # [x64, x86] (Disable 32-bit for now)
         # The MSBuild configuration for 32-bit is not called x86, but Win32
         include:
           - arch: x64
