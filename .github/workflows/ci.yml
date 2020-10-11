@@ -42,14 +42,11 @@ jobs:
       with:
         submodules: recursive
         lfs: true
-    - uses: dsaltares/fetch-gh-release-asset@0.0.5
-      with:
-        repo: "GrognardsFromHell/ffmpeg-bink"
-        version: "latest"
-        file: "ffmpeg-win32-static.tar.xz"
     - name: Extract ffmpeg dependency
       run: |
-        cd thirdparty && tar xfJ ../ffmpeg-win32-static.tar.xz
+        cd thirdparty
+        curl -LJO https://github.com/GrognardsFromHell/ffmpeg-bink/releases/download/ffmpeg%2Fbuild%2F11/ffmpeg-win32-static.tar.xz
+        tar xfJ ffmpeg-win32-static.tar.xz
       shell: bash
     - name: Build
       run: |
