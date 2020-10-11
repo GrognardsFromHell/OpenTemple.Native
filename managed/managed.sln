@@ -3,11 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29920.165
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildTask", "BuildTask\BuildTask.csproj", "{B164E836-C39A-4DB8-BDAD-1121EF5CD0A5}"
-	ProjectSection(ProjectDependencies) = postProject
-		{4290C747-B4C4-4411-8A2D-3129733A7741} = {4290C747-B4C4-4411-8A2D-3129733A7741}
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Interop", "Interop\Interop.csproj", "{4290C747-B4C4-4411-8A2D-3129733A7741}"
 EndProject
 Global
@@ -16,10 +11,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B164E836-C39A-4DB8-BDAD-1121EF5CD0A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B164E836-C39A-4DB8-BDAD-1121EF5CD0A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B164E836-C39A-4DB8-BDAD-1121EF5CD0A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B164E836-C39A-4DB8-BDAD-1121EF5CD0A5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4290C747-B4C4-4411-8A2D-3129733A7741}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4290C747-B4C4-4411-8A2D-3129733A7741}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4290C747-B4C4-4411-8A2D-3129733A7741}.Release|Any CPU.ActiveCfg = Release|Any CPU
