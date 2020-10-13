@@ -116,7 +116,18 @@ jobs:
       - name: Restore
         run: dotnet restore managed
       - name: Build and Pack
-        run: dotnet msbuild -t:Clean,Build,Pack -p:Configuration=Release -p:Platform="Any CPU" -p:NuGetFiles=nuget_files -p:VersionSuffix=${{ steps.buildnumber.outputs.build_number }} managed
+        run: |
+          dotnet msbuild -t:Clean,Build,Pack \
+                         -p:Configuration=Release \
+                         -p:Platform="Any CPU" \
+                         -p:NuGetFiles=nuget_files \
+                         -p:RepositoryUrl=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git \
+                         -p:RepositoryType=git \
+                         -p:RepositoryBranch=${GITHUB_REF} \
+                         -p:RepositoryCommit=${GITHUB_SHA} \
+                         -p:VersionSuffix=${{ steps.buildnumber.outputs.build_number }} \
+                         managed
+        shell: bash
       - uses: actions/upload-artifact@v2
         with:
           name: nuget_package
