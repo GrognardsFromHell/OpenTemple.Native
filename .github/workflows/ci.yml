@@ -86,7 +86,7 @@ jobs:
 
   build-nuget-package:
     name: Build Managed NuGet Package
-    needs: [build-linux, build-windows, build-macosx]
+    needs: [build-windows] # build-linux, build-windows, build-macosx]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v1
