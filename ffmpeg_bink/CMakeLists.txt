@@ -12,7 +12,8 @@ endif()
 # Since we have to hack together a build with LTCG using /FORCE
 # since FFMPEG uses the assumption that code in unreachable branches
 # can safely reference undefined functions. In LTCG mode however,
-# MSVC will complain about this.
+# MSVC will not tolerate dead code elimination before resolving
+# referenced symbols.
 add_library(
         ffmpeg-bink
         SHARED
@@ -23,7 +24,7 @@ target_link_libraries(ffmpeg-bink PUBLIC libavcodec libavformat libavutil)
 target_include_directories(ffmpeg-bink PRIVATE ${FFMPEG_DIR}include)
 target_link_libraries(ffmpeg-bink PRIVATE bcrypt.lib)
 target_compile_definitions(ffmpeg-bink PRIVATE -DBUILDING_VIDEOPLAYER)
-target_link_options(ffmpeg-bink PRIVATE /force)
+target_link_options(ffmpeg-bink PRIVATE /FORCE:UNRESOLVED)
 set_target_properties(ffmpeg-bink PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
 
 install(FILES $<TARGET_PDB_FILE:ffmpeg-bink> DESTINATION runtimes/${RUNTIME_ID}/natives)

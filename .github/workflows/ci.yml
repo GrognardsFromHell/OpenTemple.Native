@@ -51,6 +51,8 @@ jobs:
     - name: Build
       run: |
         cmake -B build -A $PLATFORM -DCMAKE_BUILD_TYPE=RelWithDebInfo .
+        # Ignore the exit-code of this command since building ffmpeg-bink is a shitshow
+        cmake --build build --config RelWithDebInfo --target ffmpeg-bink || true
         cmake --build build --config RelWithDebInfo
         mkdir dist
         cp build/RelWithDebInfo/OpenTemple.Native.dll dist
