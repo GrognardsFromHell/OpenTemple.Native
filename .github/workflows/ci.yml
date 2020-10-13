@@ -113,6 +113,8 @@ jobs:
         with:
           token: ${{ secrets.github_token }}
           prefix: nightly
+      - name: Restore
+        run: dotnet restore managed
       - name: Build and Pack
         run: dotnet msbuild -t:Clean,Build,Pack -p:Configuration=Release -p:Platform="Any CPU" -p:NuGetFiles=nuget_files -p:PackageVersionSuffix=${{ steps.buildnumber.outputs.build_number }} managed
       - uses: actions/upload-artifact@v2
