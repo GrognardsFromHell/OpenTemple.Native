@@ -16,11 +16,11 @@ jobs:
       - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
       - run: cmake --build build --config RelWithDebInfo
       - run: mkdir build-stripped && strip --strip-unneeded -o build-stripped/libOpenTemple.Native.so build/libOpenTemple.Native.so
-      - uses: actions/upload-artifact@master
+      - uses: actions/upload-artifact@v2
         with:
           name: native_lib_linux
           path: 'build/libOpenTemple.Native.so'
-      - uses: actions/upload-artifact@master
+      - uses: actions/upload-artifact@v2
         with:
           name: native_lib_linux_stripped
           path: 'build-stripped/libOpenTemple.Native.so'
@@ -51,19 +51,16 @@ jobs:
     - name: Build
       run: |
         cmake -B build -A $PLATFORM -DCMAKE_BUILD_TYPE=RelWithDebInfo .
-        # Ignore the exit-code of this command since building ffmpeg-bink is a shitshow
+        # Ignore the exit-code of this command since building ffmpeg-bink is a shitshow due to ffmpeg and LTCG
         cmake --build build --config RelWithDebInfo --target ffmpeg-bink || true
-        cmake --build build --config RelWithDebInfo
-        mkdir dist
-        cp build/RelWithDebInfo/OpenTemple.Native.dll dist
-        cp build/RelWithDebInfo/OpenTemple.Native.pdb dist
+        cmake --build build --config RelWithDebInfo -t install
       shell: bash
       env:
         PLATFORM: ${{ matrix.platform }}
-    - uses: actions/upload-artifact@master
+    - uses: actions/upload-artifact@v2
       with:
           name: native_lib_windows_${{ matrix.arch }}
-          path: dist
+          path: build/nuget_files
 
   build-macosx:
     if: false # Currently disabled
@@ -78,11 +75,11 @@ jobs:
       - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
       - run: cmake --build build --config RelWithDebInfo
       - run: mkdir build-stripped && strip -x -o build-stripped/libOpenTemple.Native.dylib build/libOpenTemple.Native.dylib
-      - uses: actions/upload-artifact@master
+      - uses: actions/upload-artifact@v2
         with:
           name: native_lib_macos
           path: 'build/libOpenTemple.Native.dylib'
-      - uses: actions/upload-artifact@master
+      - uses: actions/upload-artifact@v2
         with:
           name: native_lib_macos_stripped
           path: 'build-stripped/libOpenTemple.Native.dylib'
@@ -118,7 +115,7 @@ jobs:
           prefix: nightly
       - name: Build and Pack
         run: dotnet msbuild -t:Clean,Build,Pack -p:Configuration=Release -p:Platform="Any CPU" -p:NuGetFiles=nuget_files -p:PackageVersionSuffix=${{ steps.buildnumber.outputs.build_number }}
-      - uses: actions/upload-artifact@master
+      - uses: actions/upload-artifact@v2
         with:
           name: nuget_package
           path: managed\Interop\bin\Release\*.nupkg
