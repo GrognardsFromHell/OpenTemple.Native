@@ -7,7 +7,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
         <PackageId>OpenTemple.Interop</PackageId>
-        <PackageVersion>1.0.0</PackageVersion>
+        <PackageVersionPrefix>1.0.0</PackageVersionPrefix>
     </PropertyGroup>
 
     <ItemGroup Condition="'$(NuGetFiles)' == '' And '$(Configuration)' == 'Debug'">
