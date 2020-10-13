@@ -8,6 +8,7 @@
 
         <PackageId>OpenTemple.Interop</PackageId>
         <PackageVersionPrefix>1.5.0</PackageVersionPrefix>
+        <IncludeSymbols>true</IncludeSymbols>
     </PropertyGroup>
 
     <ItemGroup Condition="'$(NuGetFiles)' == '' And '$(Configuration)' == 'Debug'">
