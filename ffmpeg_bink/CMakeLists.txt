@@ -26,12 +26,5 @@ target_compile_definitions(ffmpeg-bink PRIVATE -DBUILDING_VIDEOPLAYER)
 target_link_options(ffmpeg-bink PRIVATE /force)
 set_target_properties(ffmpeg-bink PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
 
-#
-# QtQuick Item for video playback
-#
-add_library(
-        bink-video-item
-        STATIC
-        BinkVideoItem.cpp BinkVideoItem.h VideoMaterial.cpp VideoMaterial.h VideoFrame.h VideoAudioSource.cpp VideoAudioSource.h)
-target_link_libraries(bink-video-item PUBLIC ffmpeg-bink soloud)
-target_include_directories(bink-video-item INTERFACE ${CMAKE_CURRENT_LIST_DIR})
+install(FILES $<TARGET_PDB_FILE:ffmpeg-bink> DESTINATION runtimes/${RUNTIME_ID}/natives)
+install(FILES $<TARGET_FILE:ffmpeg-bink> DESTINATION runtimes/${RUNTIME_ID}/natives)

@@ -5,16 +5,24 @@
         <AssemblyName>OpenTemple.Interop</AssemblyName>
         <RootNamespace>OpenTemple.Interop</RootNamespace>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        
+
         <PackageId>OpenTemple.Interop</PackageId>
         <PackageVersion>1.0.0</PackageVersion>
     </PropertyGroup>
-    
-    <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+
+    <ItemGroup Condition="'$(NuGetFiles)' == '' And '$(Configuration)' == 'Debug'">
         <None Include="..\..\cmake-build-debug\OpenTemple.Native.dll" Pack="true" Link="runtimes\win-x64\native\%(Filename)%(Extension)" PackagePath="runtimes\win-x64\native" CopyToOutputDirectory="PreserveNewest" />
         <None Include="..\..\cmake-build-debug\OpenTemple.Native.pdb" Pack="true" Link="runtimes\win-x64\native\%(Filename)%(Extension)" PackagePath="runtimes\win-x64\native" CopyToOutputDirectory="PreserveNewest" />
         <None Include="..\..\cmake-build-debug\ffmpeg_bink\ffmpeg-bink.dll" Pack="true" Link="runtimes\win-x64\native\%(Filename)%(Extension)" PackagePath="runtimes\win-x64\native" CopyToOutputDirectory="PreserveNewest" />
         <None Include="..\..\cmake-build-debug\ffmpeg_bink\ffmpeg-bink.pdb" Pack="true" Link="runtimes\win-x64\native\%(Filename)%(Extension)" PackagePath="runtimes\win-x64\native" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
+    <!--
+        This can be set via -p:NuGetFiles=cmake-build-debug\nuget_files from the commandline for example.
+        MSBuildStartupDirectory makes it relative to from where msbuild was called.
+    -->
+    <ItemGroup Condition="'$(NuGetFiles)' != ''">
+        <None Include="$(MSBuildStartupDirectory)\$(NuGetFiles)\**\*.*" PackagePath="" Pack="true" />
     </ItemGroup>
 
     <Target Name="InstallLocal">
