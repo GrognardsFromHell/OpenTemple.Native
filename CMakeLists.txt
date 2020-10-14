@@ -50,5 +50,5 @@ add_library(opentemple SHARED thirdparty_wrappers/soloud.def)
 target_link_libraries(opentemple PRIVATE game thirdparty_wrappers)
 set_target_properties(opentemple PROPERTIES OUTPUT_NAME "OpenTemple.Native")
 
-install(FILES $<TARGET_PDB_FILE:opentemple> DESTINATION runtimes/${RUNTIME_ID}/natives OPTIONAL)
-install(FILES $<TARGET_FILE:opentemple> DESTINATION runtimes/${RUNTIME_ID}/natives)
+install(FILES $<TARGET_PDB_FILE:opentemple> DESTINATION runtimes/${RUNTIME_ID}/native OPTIONAL)
+install(FILES $<TARGET_FILE:opentemple> DESTINATION runtimes/${RUNTIME_ID}/native)

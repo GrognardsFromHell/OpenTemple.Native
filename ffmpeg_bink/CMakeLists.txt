@@ -27,5 +27,5 @@ target_compile_definitions(ffmpeg-bink PRIVATE -DBUILDING_VIDEOPLAYER)
 target_link_options(ffmpeg-bink PRIVATE /FORCE:UNRESOLVED)
 set_target_properties(ffmpeg-bink PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
 
-install(FILES $<TARGET_PDB_FILE:ffmpeg-bink> DESTINATION runtimes/${RUNTIME_ID}/natives)
-install(FILES $<TARGET_FILE:ffmpeg-bink> DESTINATION runtimes/${RUNTIME_ID}/natives)
+install(FILES $<TARGET_PDB_FILE:ffmpeg-bink> DESTINATION runtimes/${RUNTIME_ID}/native)
+install(FILES $<TARGET_FILE:ffmpeg-bink> DESTINATION runtimes/${RUNTIME_ID}/native)
