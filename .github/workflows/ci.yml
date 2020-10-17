@@ -133,17 +133,16 @@ jobs:
           name: nuget_package
           path: managed\Interop\bin\Release\*.symbols.nupkg
 
-  push_package:
+  push-package:
     name: Push NuGet Package
     needs: [build-nuget-package]
     runs-on: windows-latest
     steps:
-      - name: Setup Nuget.exe
-        uses: warrenbuckley/Setup-Nuget@v1
       - uses: actions/download-artifact@v2
         with:
           name: nuget_package
       - name: Upload Package
-        run: |
-          nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/GrognardsFromHell/index.json" -UserName shartte -Password ${{ secrets.GITHUB_TOKEN }}
-          nuget push -NonInteractive "*.nupkg" -Source "GitHub"
+        run: sleet push *.nupkg
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.OPENTEMPLE_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.OPENTEMPLE_AWS_SECRET_ACCESS_KEY }}
