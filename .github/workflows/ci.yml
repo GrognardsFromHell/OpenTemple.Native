@@ -1,4 +1,3 @@
-
 name: CI
 on: [push]
 
@@ -38,27 +37,27 @@ jobs:
           # - arch: x86
           #   platform: Win32
     steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: recursive
-        lfs: true
-    - name: Extract ffmpeg dependency
-      run: |
-        cd thirdparty
-        curl -LJO https://github.com/GrognardsFromHell/ffmpeg-bink/releases/download/ffmpeg%2Fbuild%2F11/ffmpeg-win32-static.tar.xz
-        tar xfJ ffmpeg-win32-static.tar.xz
-      shell: bash
-    - name: Build
-      run: |
-        cmake -B build -A $PLATFORM -DCMAKE_BUILD_TYPE=RelWithDebInfo .
-        # Ignore the exit-code of this command since building ffmpeg-bink is a shitshow due to ffmpeg and LTCG
-        cmake --build build --config RelWithDebInfo --target ffmpeg-bink || true
-        cmake --build build --config RelWithDebInfo -t install
-      shell: bash
-      env:
-        PLATFORM: ${{ matrix.platform }}
-    - uses: actions/upload-artifact@v2
-      with:
+      - uses: actions/checkout@v1
+        with:
+          submodules: recursive
+          lfs: true
+      - name: Extract ffmpeg dependency
+        run: |
+          cd thirdparty
+          curl -LJO https://github.com/GrognardsFromHell/ffmpeg-bink/releases/download/ffmpeg%2Fbuild%2F11/ffmpeg-win32-static.tar.xz
+          tar xfJ ffmpeg-win32-static.tar.xz
+        shell: bash
+      - name: Build
+        run: |
+          cmake -B build -A $PLATFORM -DCMAKE_BUILD_TYPE=RelWithDebInfo .
+          # Ignore the exit-code of this command since building ffmpeg-bink is a shitshow due to ffmpeg and LTCG
+          cmake --build build --config RelWithDebInfo --target ffmpeg-bink || true
+          cmake --build build --config RelWithDebInfo -t install
+        shell: bash
+        env:
+          PLATFORM: ${{ matrix.platform }}
+      - uses: actions/upload-artifact@v2
+        with:
           name: native_lib_windows_${{ matrix.arch }}
           path: build/nuget_files
 
@@ -71,7 +70,7 @@ jobs:
         with:
           submodules: 'recursive'
           lfs: true
-      - run: brew install ninja nasm          
+      - run: brew install ninja nasm
       - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
       - run: cmake --build build --config RelWithDebInfo
       - run: mkdir build-stripped && strip -x -o build-stripped/libOpenTemple.Native.dylib build/libOpenTemple.Native.dylib
@@ -141,8 +140,10 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: nuget_package
+      - name: Install sleet
+        run: dotnet tool install -g sleet
       - name: Upload Package
         run: sleet push *.nupkg
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.OPENTEMPLE_AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.OPENTEMPLE_AWS_SECRET_ACCESS_KEY }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.OPENTEMPLE_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.OPENTEMPLE_AWS_SECRET_ACCESS_KEY }}
