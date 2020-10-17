@@ -130,7 +130,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: nuget_package
-          path: managed\Interop\bin\Release\*.symbols.nupkg
+          path: managed\Interop\bin\Release\*.nupkg
 
   push-package:
     name: Push NuGet Package
