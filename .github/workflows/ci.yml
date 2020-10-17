@@ -124,7 +124,7 @@ jobs:
                          -p:RepositoryType=git \
                          -p:RepositoryBranch=${GITHUB_REF} \
                          -p:RepositoryCommit=${GITHUB_SHA} \
-                         -p:VersionSuffix=${{ steps.buildnumber.outputs.build_number }} \
+                         -p:VersionSuffix=pre.${{ steps.buildnumber.outputs.build_number }} \
                          managed
         shell: bash
       - uses: actions/upload-artifact@v2
@@ -141,10 +141,11 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: nuget_package
+          path: packages
       - name: Install sleet
         run: dotnet tool install -g sleet
       - name: Upload Package
-        run: sleet push *.nupkg
+        run: sleet push packages\*.nupkg
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.OPENTEMPLE_AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.OPENTEMPLE_AWS_SECRET_ACCESS_KEY }}
