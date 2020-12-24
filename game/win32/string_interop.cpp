@@ -41,9 +41,9 @@ char *copyString(const char *str) {
   return result;
 }
 
-wchar_t *copyString(const wchar_t *str) {
+char16_t *copyString(const wchar_t *str) {
   auto len = wcslen(str);
-  auto result = reinterpret_cast<wchar_t *>(CoTaskMemAlloc(sizeof(wchar_t) * (len + 1)));
+  auto result = reinterpret_cast<char16_t *>(CoTaskMemAlloc(sizeof(wchar_t) * (len + 1)));
 
   memcpy(result, str, sizeof(wchar_t) * len);
   result[len] = 0;

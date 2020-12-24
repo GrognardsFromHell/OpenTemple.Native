@@ -42,7 +42,7 @@ static bool GetKnownFolder(const KNOWNFOLDERID &folderId, WidePathArr &path) {
 }
 
 // Get the system's preferred folder for storing the user's save games
-NATIVE_API wchar_t * GameFolders_GetUserDataFolder() {
+NATIVE_API char16_t * GameFolders_GetUserDataFolder() {
   ComInitializer com;
 
   if (!com) {

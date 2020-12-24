@@ -5,7 +5,7 @@
 
 using namespace winreg;
 
-NATIVE_API wchar_t *FindInstallDirectory() {
+NATIVE_API char16_t *FindInstallDirectory() {
   // GoG Product ID for ToEE is 1207658889, and by pure experimentation, we
   // found the following registry key:
   // HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\GOG.com\Games\1207658889\path

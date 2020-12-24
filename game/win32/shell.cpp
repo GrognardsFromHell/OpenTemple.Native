@@ -150,3 +150,24 @@ NATIVE_API int Shell_CopyToClipboard(HWND windowHandle, wchar_t *text) {
   CloseClipboard();
   return 0;
 }
+
+// Copies the text to the clipboard
+// See https://docs.microsoft.com/en-us/windows/win32/dataxchg/using-the-clipboard
+NATIVE_API int Shell_GetClipboardText(HWND windowHandle, char16_t **text) {
+  text = nullptr;
+
+  if (!OpenClipboard(windowHandle)) {
+    return -1;
+  }
+
+  auto data = reinterpret_cast<wchar_t *>(GetClipboardData(CF_UNICODETEXT));
+
+  if (!data) {
+    CloseClipboard();
+    return -2;
+  }
+
+  *text = copyString(data);
+  CloseClipboard();
+  return 0;
+}
