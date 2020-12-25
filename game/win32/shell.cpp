@@ -6,8 +6,6 @@
     linker,      \
     "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
-#include <string>
-#include "../interop/string_interop.h"
 #include "../utils.h"
 // clang-format off
 #include "windows_headers.h"
@@ -119,55 +117,4 @@ NATIVE_API void Shell_ShowMessage(bool errorIcon,
              TDCBF_OK_BUTTON,
              errorIcon ? TD_ERROR_ICON : TD_INFORMATION_ICON,
              &button);
-}
-
-// Copies the text to the clipboard
-// See https://docs.microsoft.com/en-us/windows/win32/dataxchg/using-the-clipboard
-NATIVE_API int Shell_CopyToClipboard(HWND windowHandle, wchar_t *text) {
-  if (!OpenClipboard(windowHandle)) {
-    return -1;
-  }
-
-  if (!EmptyClipboard()) {
-    CloseClipboard();
-    return -2;
-  }
-
-  auto charCount = wcslen(text);
-  auto hglbCopy = GlobalAlloc(GMEM_MOVEABLE, (charCount + 1) * sizeof(TCHAR));
-  if (!hglbCopy) {
-    CloseClipboard();
-    return -3;
-  }
-
-  auto lptstrCopy = GlobalLock(hglbCopy);
-  memcpy(lptstrCopy, text, charCount * sizeof(TCHAR));
-  ((wchar_t *)lptstrCopy)[charCount] = 0;
-  GlobalUnlock(hglbCopy);
-
-  SetClipboardData(CF_UNICODETEXT, hglbCopy);
-
-  CloseClipboard();
-  return 0;
-}
-
-// Gets the current clipboard content as Unicode text
-// See https://docs.microsoft.com/en-us/windows/win32/dataxchg/using-the-clipboard
-NATIVE_API int Shell_GetClipboardText(HWND windowHandle, char16_t **text) {
-  text = nullptr;
-
-  if (!OpenClipboard(windowHandle)) {
-    return -1;
-  }
-
-  auto data = reinterpret_cast<wchar_t *>(GetClipboardData(CF_UNICODETEXT));
-
-  if (!data) {
-    CloseClipboard();
-    return -2;
-  }
-
-  *text = copyString(data);
-  CloseClipboard();
-  return 0;
 }
