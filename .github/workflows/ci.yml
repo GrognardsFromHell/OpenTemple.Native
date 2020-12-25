@@ -106,12 +106,6 @@ jobs:
       #   with:
       #     name: native_lib_macos
       #     path: nuget_files
-      - name: Generate build number
-        id: buildnumber
-        uses: einaregilsson/build-number@v2
-        with:
-          token: ${{ secrets.github_token }}
-          prefix: nightly
       - name: Restore
         run: dotnet restore managed
       - name: Build and Pack
@@ -124,7 +118,7 @@ jobs:
                          -p:RepositoryType=git \
                          -p:RepositoryBranch=${GITHUB_REF} \
                          -p:RepositoryCommit=${GITHUB_SHA} \
-                         -p:VersionSuffix=pre.${{ steps.buildnumber.outputs.build_number }} \
+                         -p:VersionSuffix=pre.${{ github.run_number }} \
                          managed
         shell: bash
       - uses: actions/upload-artifact@v2
