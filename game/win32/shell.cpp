@@ -151,7 +151,7 @@ NATIVE_API int Shell_CopyToClipboard(HWND windowHandle, wchar_t *text) {
   return 0;
 }
 
-// Copies the text to the clipboard
+// Gets the current clipboard content as Unicode text
 // See https://docs.microsoft.com/en-us/windows/win32/dataxchg/using-the-clipboard
 NATIVE_API int Shell_GetClipboardText(HWND windowHandle, char16_t **text) {
   text = nullptr;
