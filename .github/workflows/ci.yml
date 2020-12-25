@@ -44,7 +44,7 @@ jobs:
       - name: Extract ffmpeg dependency
         run: |
           cd thirdparty
-          curl -LJO https://github.com/GrognardsFromHell/ffmpeg-bink/releases/download/ffmpeg%2Fbuild%2F11/ffmpeg-win32-static.tar.xz
+          curl -LJO https://github.com/GrognardsFromHell/ffmpeg-bink/releases/download/ffmpeg%2Fbuild%2F14/ffmpeg-win32-static.tar.xz
           tar xfJ ffmpeg-win32-static.tar.xz
         shell: bash
       - name: Build
