@@ -8,6 +8,7 @@ if (WIN32)
     target_compile_definitions(game_obj PRIVATE -D_CRT_SECURE_NO_WARNINGS)
     target_compile_definitions(game_obj PRIVATE -DUNICODE)
     target_compile_definitions(game_obj PRIVATE -D_UNICODE)
+    target_link_libraries(game_obj soloud)
 endif ()
 
 add_library(game INTERFACE)
