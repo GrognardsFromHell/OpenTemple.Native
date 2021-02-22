@@ -12,8 +12,8 @@ jobs:
           submodules: 'recursive'
           lfs: true
       - run: sudo apt-get update && sudo apt-get install -y nasm libsdl2-dev
-      - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
-      - run: cmake --build build --config RelWithDebInfo
+      - run: mkdir build && cd build && cmake -DRUNTIME_ID=linux-x64 -DCMAKE_BUILD_TYPE=Release ..
+      - run: cmake --build build --config Release
       - run: mkdir build-stripped && strip --strip-unneeded -o build-stripped/libOpenTemple.Native.so build/libOpenTemple.Native.so
       - uses: actions/upload-artifact@v2
         with:
@@ -29,30 +29,21 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        arch: [x64] # [x64, x86] (Disable 32-bit for now)
-        # The MSBuild configuration for 32-bit is not called x86, but Win32
+        arch: [x64, arm64]
         include:
           - arch: x64
             platform: x64
-          # - arch: x86
-          #   platform: Win32
+          - arch: arm64
+            platform: arm64
     steps:
       - uses: actions/checkout@v1
         with:
           submodules: recursive
           lfs: true
-      - name: Extract ffmpeg dependency
-        run: |
-          cd thirdparty
-          curl -LJO https://github.com/GrognardsFromHell/ffmpeg-bink/releases/download/ffmpeg%2Fbuild%2F14/ffmpeg-win32-static.tar.xz
-          tar xfJ ffmpeg-win32-static.tar.xz
-        shell: bash
       - name: Build
         run: |
-          cmake -B build -A $PLATFORM -DCMAKE_BUILD_TYPE=RelWithDebInfo .
-          # Ignore the exit-code of this command since building ffmpeg-bink is a shitshow due to ffmpeg and LTCG
-          cmake --build build --config RelWithDebInfo --target ffmpeg-bink || true
-          cmake --build build --config RelWithDebInfo -t install
+          cmake -B build -A $PLATFORM -DRUNTIME_ID=win-${PLATFORM} -DCMAKE_BUILD_TYPE=Release .
+          cmake --build build --config Release -t install
         shell: bash
         env:
           PLATFORM: ${{ matrix.platform }}
@@ -71,8 +62,8 @@ jobs:
           submodules: 'recursive'
           lfs: true
       - run: brew install ninja nasm
-      - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
-      - run: cmake --build build --config RelWithDebInfo
+      - run: mkdir build && cd build && cmake -DRUNTIME_ID=osx-x64 -DCMAKE_BUILD_TYPE=Release -G Ninja ..
+      - run: cmake --build build --config Release
       - run: mkdir build-stripped && strip -x -o build-stripped/libOpenTemple.Native.dylib build/libOpenTemple.Native.dylib
       - uses: actions/upload-artifact@v2
         with:

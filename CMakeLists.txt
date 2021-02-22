@@ -26,14 +26,10 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 
-# Determining the runtime ID is sadly not easy
-if (WIN32)
-    # NOTE: This does not detect ARM
-    if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
-        set(RUNTIME_ID "win-x64")
-    else ()
-        set(RUNTIME_ID "win-x86")
-    endif ()
+# Enable Debug Symbol Output (PDB) for release builds in MSVC
+if (MSVC)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
+    set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
 endif ()
 
 if (RUNTIME_ID STREQUAL "")
@@ -44,7 +40,6 @@ include(cmake/soloud.cmake)
 include(cmake/libjpegturbo.cmake)
 add_subdirectory(game)
 add_subdirectory(thirdparty_wrappers)
-add_subdirectory(ffmpeg_bink)
 
 add_library(opentemple SHARED thirdparty_wrappers/soloud.def)
 target_link_libraries(opentemple PRIVATE game thirdparty_wrappers)

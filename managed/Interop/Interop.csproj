@@ -14,8 +14,6 @@
     <ItemGroup Condition="'$(NuGetFiles)' == '' And '$(Configuration)' == 'Debug'">
         <None Include="..\..\cmake-build-debug\OpenTemple.Native.dll" Pack="true" Link="runtimes\win-x64\native\%(Filename)%(Extension)" PackagePath="runtimes\win-x64\native" CopyToOutputDirectory="PreserveNewest" />
         <None Include="..\..\cmake-build-debug\OpenTemple.Native.pdb" Pack="true" Link="runtimes\win-x64\native\%(Filename)%(Extension)" PackagePath="runtimes\win-x64\native" CopyToOutputDirectory="PreserveNewest" />
-        <None Include="..\..\cmake-build-debug\ffmpeg_bink\ffmpeg-bink.dll" Pack="true" Link="runtimes\win-x64\native\%(Filename)%(Extension)" PackagePath="runtimes\win-x64\native" CopyToOutputDirectory="PreserveNewest" />
-        <None Include="..\..\cmake-build-debug\ffmpeg_bink\ffmpeg-bink.pdb" Pack="true" Link="runtimes\win-x64\native\%(Filename)%(Extension)" PackagePath="runtimes\win-x64\native" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
     <!--
