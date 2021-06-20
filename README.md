@@ -21,6 +21,15 @@ folder to make compiling easier for Windows users.
 
 Visual Studio 2019 is required to build this project. We recommend the free Community version (or the standalone build tools).
 
+### Using NuGet Package Locally
+
+Sometimes you may want to use the NuGet package built by this repository in your local OpenTemple build directly.
+To do this, build the native component using CMake as described above, and then run `localbuild.cmd` from the
+managed subdirectory. This uses the build output from the `cmake-build-debug` directory. You need to use this
+as your CMake build directory, otherwise the native DLL will not be included in the NuGet package properly.
+Once you have run the script, change the OpenTemple.Interop dependency in your OpenTemple Core project
+file to the version number printed by `localbuild.cmd` to make use of the local package.  
+
 ## Dependencies
 
 [SoLoud](https://github.com/jarikomppa/soloud) is used for outputting sound on various platforms.
