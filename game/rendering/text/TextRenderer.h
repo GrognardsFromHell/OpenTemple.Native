@@ -26,26 +26,26 @@ class TextRenderer : public IDWriteTextRenderer {
   TextRenderer(const winrt::com_ptr<IDWriteFactory> &dWriteFactory,
                const winrt::com_ptr<ID2D1RenderTarget> &renderTarget);
 
-  HRESULT IsPixelSnappingDisabled(void *clientDrawingContext, BOOL *isDisabled) noexcept override;
-  HRESULT GetCurrentTransform(void *clientDrawingContext,
+  HRESULT STDMETHODCALLTYPE IsPixelSnappingDisabled(void *clientDrawingContext, BOOL *isDisabled) noexcept override;
+  HRESULT STDMETHODCALLTYPE GetCurrentTransform(void *clientDrawingContext,
                               DWRITE_MATRIX *transform) noexcept override;
-  HRESULT GetPixelsPerDip(void *clientDrawingContext, FLOAT *pixelsPerDip) noexcept override;
-  HRESULT DrawGlyphRun(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY,
+  HRESULT STDMETHODCALLTYPE GetPixelsPerDip(void *clientDrawingContext, FLOAT *pixelsPerDip) noexcept override;
+  HRESULT STDMETHODCALLTYPE DrawGlyphRun(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY,
                        DWRITE_MEASURING_MODE measuringMode, const DWRITE_GLYPH_RUN *glyphRun,
                        const DWRITE_GLYPH_RUN_DESCRIPTION *glyphRunDescription,
                        IUnknown *clientDrawingEffect) noexcept override;
-  HRESULT DrawUnderline(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY,
+  HRESULT STDMETHODCALLTYPE DrawUnderline(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY,
                         const DWRITE_UNDERLINE *underline,
                         IUnknown *clientDrawingEffect) noexcept override;
-  HRESULT DrawStrikethrough(void *clientDrawingContext, FLOAT baselineOriginX,
+  HRESULT STDMETHODCALLTYPE DrawStrikethrough(void *clientDrawingContext, FLOAT baselineOriginX,
                             FLOAT baselineOriginY, const DWRITE_STRIKETHROUGH *strikethrough,
                             IUnknown *clientDrawingEffect) noexcept override;
-  HRESULT DrawInlineObject(void *clientDrawingContext, FLOAT originX, FLOAT originY,
+  HRESULT STDMETHODCALLTYPE DrawInlineObject(void *clientDrawingContext, FLOAT originX, FLOAT originY,
                            IDWriteInlineObject *inlineObject, BOOL isSideways, BOOL isRightToLeft,
                            IUnknown *clientDrawingEffect) noexcept override;
-  HRESULT QueryInterface(const IID &riid, void **ppvObject) override;
-  ULONG AddRef() override;
-  ULONG Release() override;
+  HRESULT STDMETHODCALLTYPE QueryInterface(const IID &riid, void **ppvObject) override;
+  ULONG STDMETHODCALLTYPE AddRef() override;
+  ULONG STDMETHODCALLTYPE Release() override;
 
  private:
   winrt::com_ptr<IDWriteFactory2> _dWriteFactory2;

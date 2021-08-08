@@ -1,6 +1,6 @@
 
-#include "../interop/string_interop.h"
-#include "../utils.h"
+#include "../../interop/string_interop.h"
+#include "../../utils.h"
 #include "TextEngine.h"
 
 NATIVE_API ApiBool TextEngine_Create(ID2D1RenderTarget *renderTargetPtr,

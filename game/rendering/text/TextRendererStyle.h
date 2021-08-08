@@ -34,9 +34,9 @@ class __declspec(uuid("{4e27f114-78ee-410c-8a9b-4f641654214c}")) TextRendererSty
     return _outlineColor && _outlineWidth > 0;
   }
 
-  HRESULT QueryInterface(const IID &riid, void **ppvObject) noexcept override;
-  ULONG AddRef() noexcept override;
-  ULONG Release() noexcept override;
+  HRESULT STDMETHODCALLTYPE QueryInterface(const IID &riid, void **ppvObject) noexcept override;
+  ULONG STDMETHODCALLTYPE AddRef() noexcept override;
+  ULONG STDMETHODCALLTYPE Release() noexcept override;
 
  private:
   uint32_t _refCount = 1;

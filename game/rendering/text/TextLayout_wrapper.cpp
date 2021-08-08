@@ -1,6 +1,6 @@
 
-#include "../interop/string_interop.h"
-#include "../utils.h"
+#include "../../interop/string_interop.h"
+#include "../../utils.h"
 #include "TextLayout.h"
 
 NATIVE_API ApiBool TextLayout_SetStyle(TextLayout *layout,
