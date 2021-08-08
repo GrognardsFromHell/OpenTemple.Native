@@ -1,21 +1,25 @@
 
 #include "../utils.h"
 
+#include "windows_headers.h"
+#include <winrt/base.h>
 #include <string>
 
 #include "com_helper.h"
 
 #include "../interop/string_interop.h"
-#include "windows_headers.h"
+#include "../logging/Logger.h"
 
-static CComPtr<IKnownFolderManager> GetFolderManager() {
-  CComPtr<IKnownFolderManager> mgr;
-
-  if (!SUCCEEDED(mgr.CoCreateInstance(CLSID_KnownFolderManager))) {
+static winrt::com_ptr<IKnownFolderManager> GetFolderManager() noexcept {
+  try {
+    return winrt::create_instance<IKnownFolderManager>(CLSID_KnownFolderManager);
+  } catch (winrt::hresult_error &e) {
+    Logger::Error(std::wstring(L"Failed to create IKnownFolderManager: ") + e.message());
+    return nullptr;
+  } catch (std::exception &e) {
+    Logger::Error(std::wstring(L"Failed to create IKnownFolderManager: ") + localToWide(e.what()));
     return nullptr;
   }
-
-  return mgr;
 }
 
 using WidePathArr = wchar_t[MAX_PATH];
@@ -26,13 +30,15 @@ static bool GetKnownFolder(const KNOWNFOLDERID &folderId, WidePathArr &path) {
     return false;
   }
 
-  CComPtr<IKnownFolder> folder;
-  if (!SUCCEEDED(mgr->GetFolder(folderId, &folder))) {
+  winrt::com_ptr<IKnownFolder> folder;
+  if (!SUCCEEDED(mgr->GetFolder(folderId, folder.put()))) {
+    Logger::Error(L"Failed to get known folder.");
     return false;
   }
 
   LPWSTR folderPath;
   if (!SUCCEEDED(folder->GetPath(KF_FLAG_CREATE | KF_FLAG_INIT, &folderPath))) {
+    Logger::Error(L"Failed to get path of known folder.");
     return false;
   }
 
@@ -46,6 +52,7 @@ NATIVE_API char16_t * GameFolders_GetUserDataFolder() {
   ComInitializer com;
 
   if (!com) {
+    Logger::Error(L"Failed to initialize COM.");
     return nullptr;
   }
 

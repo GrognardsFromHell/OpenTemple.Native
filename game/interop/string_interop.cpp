@@ -1,7 +1,8 @@
 
+#include "string_interop.h"
+#include <combaseapi.h>
 #include <codecvt>
 #include <string>
-#include <combaseapi.h>
 
 /*
  * As per .NET docs, on Windows, we can directly return strings from P/Invoke as long as they
@@ -47,6 +48,24 @@ char16_t *copyString(const wchar_t *str) {
 
   memcpy(result, str, sizeof(wchar_t) * len);
   result[len] = 0;
+
+  return result;
+}
+
+std::wstring localToWide(std::string_view view) {
+  std::wstring result;
+
+  auto wideLength = MultiByteToWideChar(CP_ACP, 0, view.data(), view.length(), nullptr, 0);
+  if (wideLength == 0) {
+    return result;
+  }
+
+  result.resize(wideLength);
+
+  if (!MultiByteToWideChar(CP_ACP, 0, view.data(), view.length(), &result[0], result.length())) {
+    result.resize(0);
+    return result;
+  }
 
   return result;
 }

@@ -1,5 +1,6 @@
 
 #include "../../interop/string_interop.h"
+#include "../../logging/Logger.h"
 #include "../../utils.h"
 #include "TextEngine.h"
 
