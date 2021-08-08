@@ -23,6 +23,9 @@
     <ItemGroup Condition="'$(NuGetFiles)' != ''">
         <None Include="$(MSBuildStartupDirectory)\$(NuGetFiles)\**\*.*" PackagePath="" Pack="true" />
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="D3D" />
+    </ItemGroup>
 
     <Target Name="InstallLocal">
         <RemoveDir Directories="$(NuGetPackageRoot)$(PackageId)\$(PackageVersion)" ContinueOnError="true" />

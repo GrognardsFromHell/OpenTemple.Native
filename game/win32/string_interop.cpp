@@ -11,7 +11,7 @@
 // This is obviously not true for Linux at the moment, and needs to be redone
 static_assert(sizeof(wchar_t) == sizeof(char16_t));
 
-char16_t *copyString(const std::wstring &str) {
+char16_t *copyString(const std::wstring_view &str) {
   auto len = str.length();
   auto result = reinterpret_cast<char16_t *>(CoTaskMemAlloc(len * 2 + 2));
 
@@ -21,7 +21,7 @@ char16_t *copyString(const std::wstring &str) {
   return result;
 }
 
-char *copyString(const std::string &str) {
+char *copyString(const std::string_view &str) {
   auto len = str.length();
   auto result = reinterpret_cast<char *>(CoTaskMemAlloc(len + 1));
 

@@ -1,5 +1,11 @@
 
-file(GLOB GAME_SOURCES LIST_DIRECTORIES false CONFIGURE_DEPENDS *.cpp *.h interop/*.cpp interop/*.h)
+file(GLOB GAME_SOURCES
+        LIST_DIRECTORIES false
+        CONFIGURE_DEPENDS
+        *.cpp *.h
+        interop/*.cpp interop/*.h
+        logging/*.cpp logging/*.h
+        )
 
 add_library(game_obj OBJECT ${GAME_SOURCES})
 if (WIN32)
