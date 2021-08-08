@@ -20,29 +20,33 @@ inline bool SetStringProp(IPropertyStore *link, REFPROPERTYKEY propKey, wchar_t 
 }
 
 struct JumpListBuilder {
-  int Init() {
-    if (!SUCCEEDED(customList.CoCreateInstance(CLSID_DestinationList))) {
+  int Init() noexcept {
+    try {
+      customList = winrt::create_instance<ICustomDestinationList>(CLSID_DestinationList);
+    } catch (...) {
       return -1;
     }
 
-    if (!SUCCEEDED(customList->BeginList(&minSlots, IID_PPV_ARGS(&poaRemoved)))) {
+    if (!SUCCEEDED(customList->BeginList(&minSlots, IID_PPV_ARGS(poaRemoved.put())))) {
       return -2;
     }
 
-    if (!SUCCEEDED(tasks.CoCreateInstance(CLSID_EnumerableObjectCollection))) {
+    try {
+      tasks = winrt::create_instance<IObjectCollection>(CLSID_EnumerableObjectCollection);
+    } catch (...) {
       return -3;
     }
 
     return 0;
   }
 
-  int Commit() {
-    CComPtr<IObjectArray> poa;
-    if (!SUCCEEDED(tasks->QueryInterface(IID_PPV_ARGS(&poa)))) {
+  int Commit() noexcept {
+    auto poa = tasks.try_as<IObjectArray>();
+    if (!poa) {
       return -1;
     }
 
-    if (!SUCCEEDED(customList->AddUserTasks(poa))) {
+    if (!SUCCEEDED(customList->AddUserTasks(poa.get()))) {
       return -2;
     }
 
@@ -54,9 +58,11 @@ struct JumpListBuilder {
   }
 
   int AddTask(wchar_t *executable, wchar_t *arguments, wchar_t *title, wchar_t *iconPath,
-              int iconIndex, wchar_t *description) {
-    CComPtr<IShellLink> link;
-    if (!SUCCEEDED(link.CoCreateInstance(CLSID_ShellLink))) {
+              int iconIndex, wchar_t *description) noexcept {
+    winrt::com_ptr<IShellLink> link;
+    try {
+      link = winrt::create_instance<IShellLink>(CLSID_ShellLink);
+    } catch (...) {
       return -1;
     }
 
@@ -70,12 +76,12 @@ struct JumpListBuilder {
 
     // The title property is required on Jump List items provided as an IShellLink
     // instance.  This value is used as the display name in the Jump List.
-    CComPtr<IPropertyStore> pps;
-    if (!SUCCEEDED(link->QueryInterface(IID_PPV_ARGS(&pps)))) {
+    auto pps = link.try_as<IPropertyStore>();
+    if (!pps) {
       return -4;
     }
 
-    if (!SetStringProp(pps, PKEY_Title, title)) {
+    if (!SetStringProp(pps.get(), PKEY_Title, title)) {
       return -5;
     }
 
@@ -91,7 +97,7 @@ struct JumpListBuilder {
       return -8;
     }
 
-    if (!SUCCEEDED(tasks->AddObject(pps))) {
+    if (!SUCCEEDED(tasks->AddObject(pps.get()))) {
       return -9;
     }
 
@@ -99,9 +105,9 @@ struct JumpListBuilder {
   }
 
   UINT minSlots = 0;
-  CComPtr<IObjectArray> poaRemoved;
-  CComPtr<IObjectCollection> tasks;
-  CComPtr<ICustomDestinationList> customList;
+  winrt::com_ptr<IObjectArray> poaRemoved;
+  winrt::com_ptr<IObjectCollection> tasks;
+  winrt::com_ptr<ICustomDestinationList> customList;
 };
 
 NATIVE_API JumpListBuilder *JumpListBuilder_Create() {

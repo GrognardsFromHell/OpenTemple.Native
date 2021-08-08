@@ -37,11 +37,14 @@ NATIVE_API void Shell_OpenUrl(const wchar_t *url) {
  */
 NATIVE_API int Shell_PickFolder(wchar_t *title,
                                 wchar_t *startingDirectory,
-                                wchar_t **pickedFolder) {
+                                wchar_t **pickedFolder) noexcept {
   *pickedFolder = nullptr;
-  CComPtr<IFileOpenDialog> dialog;
 
-  if (!SUCCEEDED(dialog.CoCreateInstance(__uuidof(FileOpenDialog)))) {
+  winrt::com_ptr<IFileOpenDialog> dialog;
+
+  try {
+    dialog = winrt::create_instance<IFileOpenDialog>(winrt::guid_of<FileOpenDialog>());
+  } catch (...) {
     return -1;
   }
 
@@ -49,10 +52,10 @@ NATIVE_API int Shell_PickFolder(wchar_t *title,
 
   // Try setting the default folder
   if (startingDirectory) {
-    CComPtr<IShellItem> preselectedFolder;
+    winrt::com_ptr<IShellItem> preselectedFolder;
     if (SUCCEEDED(SHCreateItemFromParsingName(
-            startingDirectory, nullptr, IID_PPV_ARGS(&preselectedFolder)))) {
-      dialog->SetFolder(preselectedFolder);
+            startingDirectory, nullptr, IID_PPV_ARGS(preselectedFolder.put())))) {
+      dialog->SetFolder(preselectedFolder.get());
     }
   }
 
@@ -69,8 +72,8 @@ NATIVE_API int Shell_PickFolder(wchar_t *title,
     return 1;
   }
 
-  CComPtr<IShellItem> selectedItem;
-  if (!SUCCEEDED(dialog->GetResult(&selectedItem))) {
+  winrt::com_ptr<IShellItem> selectedItem;
+  if (!SUCCEEDED(dialog->GetResult(selectedItem.put()))) {
     return -3;
   }
 

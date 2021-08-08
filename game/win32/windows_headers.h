@@ -10,5 +10,5 @@
 
 #include <ShObjIdl.h>
 #include <ShlObj.h>
-#include <atlcomcli.h>
 #include <objbase.h>
+#include <winrt/base.h>

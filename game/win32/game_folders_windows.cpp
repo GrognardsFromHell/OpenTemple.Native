@@ -2,7 +2,6 @@
 #include "../utils.h"
 
 #include "windows_headers.h"
-#include <winrt/base.h>
 #include <string>
 
 #include "com_helper.h"
