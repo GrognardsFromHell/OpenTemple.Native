@@ -10,70 +10,96 @@ using OpenTemple.Interop;
 namespace SoLoud
 {
 
-public class SoloudObject
+public partial class SoloudObject
 {
     public IntPtr objhandle;
 }
 
 
 
-public class Soloud : SoloudObject
+public partial class Soloud : SoloudObject, IDisposable
 {
-	public const int SDL2 = 2;
+
+	public const string DllName = OpenTempleLib.Path;
+	public const int AUTO = 0;
 	public const int SDL1 = 1;
-	public const int BACKEND_MAX = 14;
+	public const int SDL2 = 2;
+	public const int PORTAUDIO = 3;
 	public const int WINMM = 4;
 	public const int XAUDIO2 = 5;
-	public const int OSS = 8;
 	public const int WASAPI = 6;
-	public const int CLIP_ROUNDOFF = 1;
-	public const int NULLDRIVER = 13;
-	public const int LEFT_HANDED_3D = 4;
-	public const int ENABLE_VISUALIZATION = 2;
-	public const int OPENAL = 9;
 	public const int ALSA = 7;
-	public const int COREAUDIO = 10;
-	public const int VITA_HOMEBREW = 12;
-	public const int AUTO = 0;
-	public const int PORTAUDIO = 3;
-	public const int OPENSLES = 11;
+	public const int JACK = 8;
+	public const int OSS = 9;
+	public const int OPENAL = 10;
+	public const int COREAUDIO = 11;
+	public const int OPENSLES = 12;
+	public const int VITA_HOMEBREW = 13;
+	public const int MINIAUDIO = 14;
+	public const int NOSOUND = 15;
+	public const int NULLDRIVER = 16;
+	public const int BACKEND_MAX = 17;
+	public const int CLIP_ROUNDOFF = 1;
+	public const int ENABLE_VISUALIZATION = 2;
+	public const int LEFT_HANDED_3D = 4;
+	public const int NO_FPU_REGISTER_CHANGE = 8;
+	public const int WAVE_SQUARE = 0;
+	public const int WAVE_SAW = 1;
+	public const int WAVE_SIN = 2;
+	public const int WAVE_TRIANGLE = 3;
+	public const int WAVE_BOUNCE = 4;
+	public const int WAVE_JAWS = 5;
+	public const int WAVE_HUMPS = 6;
+	public const int WAVE_FSQUARE = 7;
+	public const int WAVE_FSAW = 8;
+	public const int RESAMPLER_POINT = 0;
+	public const int RESAMPLER_LINEAR = 1;
+	public const int RESAMPLER_CATMULLROM = 2;
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr Soloud_create();
 	public Soloud()
 	{
 		objhandle = Soloud_create();
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr Soloud_destroy(IntPtr aObjHandle);
 	~Soloud()
 	{
 		Soloud_destroy(objhandle);
 	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			Soloud_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int Soloud_initEx(IntPtr aObjHandle, uint aFlags, uint aBackend, uint aSamplerate, uint aBufferSize, uint aChannels);
 	public int init(uint aFlags = CLIP_ROUNDOFF, uint aBackend = AUTO, uint aSamplerate = AUTO, uint aBufferSize = AUTO, uint aChannels = 2)
 	{
 		return Soloud_initEx(objhandle, aFlags, aBackend, aSamplerate, aBufferSize, aChannels);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_deinit(IntPtr aObjHandle);
 	public void deinit()
 	{
 		Soloud_deinit(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern uint Soloud_getVersion(IntPtr aObjHandle);
 	public uint getVersion()
 	{
 		return Soloud_getVersion(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr Soloud_getErrorString(IntPtr aObjHandle, int aErrorCode);
 	public string getErrorString(int aErrorCode)
 	{
@@ -81,14 +107,14 @@ public class Soloud : SoloudObject
 		return Marshal.PtrToStringAnsi(p);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern uint Soloud_getBackendId(IntPtr aObjHandle);
 	public uint getBackendId()
 	{
 		return Soloud_getBackendId(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr Soloud_getBackendString(IntPtr aObjHandle);
 	public string getBackendString()
 	{
@@ -96,448 +122,488 @@ public class Soloud : SoloudObject
 		return Marshal.PtrToStringAnsi(p);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern uint Soloud_getBackendChannels(IntPtr aObjHandle);
 	public uint getBackendChannels()
 	{
 		return Soloud_getBackendChannels(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern uint Soloud_getBackendSamplerate(IntPtr aObjHandle);
 	public uint getBackendSamplerate()
 	{
 		return Soloud_getBackendSamplerate(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern uint Soloud_getBackendBufferSize(IntPtr aObjHandle);
 	public uint getBackendBufferSize()
 	{
 		return Soloud_getBackendBufferSize(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int Soloud_setSpeakerPosition(IntPtr aObjHandle, uint aChannel, float aX, float aY, float aZ);
 	public int setSpeakerPosition(uint aChannel, float aX, float aY, float aZ)
 	{
 		return Soloud_setSpeakerPosition(objhandle, aChannel, aX, aY, aZ);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int Soloud_getSpeakerPosition(IntPtr aObjHandle, uint aChannel, float[] aX, float[] aY, float[] aZ);
 	public int getSpeakerPosition(uint aChannel, float[] aX, float[] aY, float[] aZ)
 	{
 		return Soloud_getSpeakerPosition(objhandle, aChannel, aX, aY, aZ);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern uint Soloud_playEx(IntPtr aObjHandle, IntPtr aSound, float aVolume, float aPan, int aPaused, uint aBus);
-	public uint play(SoloudObject aSound, float aVolume = -1.0f, float aPan = 0.0f, int aPaused = 0, uint aBus = 0)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern uint Soloud_playEx(IntPtr aObjHandle, IntPtr aSound, float aVolume, float aPan, [MarshalAs(UnmanagedType.Bool)] bool aPaused, uint aBus);
+	public uint play(SoloudObject aSound, float aVolume = -1.0f, float aPan = 0.0f, bool aPaused = false, uint aBus = 0)
 	{
 		return Soloud_playEx(objhandle, aSound.objhandle, aVolume, aPan, aPaused, aBus);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern uint Soloud_playClockedEx(IntPtr aObjHandle, double aSoundTime, IntPtr aSound, float aVolume, float aPan, uint aBus);
 	public uint playClocked(double aSoundTime, SoloudObject aSound, float aVolume = -1.0f, float aPan = 0.0f, uint aBus = 0)
 	{
 		return Soloud_playClockedEx(objhandle, aSoundTime, aSound.objhandle, aVolume, aPan, aBus);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern uint Soloud_play3dEx(IntPtr aObjHandle, IntPtr aSound, float aPosX, float aPosY, float aPosZ, float aVelX, float aVelY, float aVelZ, float aVolume, int aPaused, uint aBus);
-	public uint play3d(SoloudObject aSound, float aPosX, float aPosY, float aPosZ, float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f, float aVolume = 1.0f, int aPaused = 0, uint aBus = 0)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern uint Soloud_play3dEx(IntPtr aObjHandle, IntPtr aSound, float aPosX, float aPosY, float aPosZ, float aVelX, float aVelY, float aVelZ, float aVolume, [MarshalAs(UnmanagedType.Bool)] bool aPaused, uint aBus);
+	public uint play3d(SoloudObject aSound, float aPosX, float aPosY, float aPosZ, float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f, float aVolume = 1.0f, bool aPaused = false, uint aBus = 0)
 	{
 		return Soloud_play3dEx(objhandle, aSound.objhandle, aPosX, aPosY, aPosZ, aVelX, aVelY, aVelZ, aVolume, aPaused, aBus);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern uint Soloud_play3dClockedEx(IntPtr aObjHandle, double aSoundTime, IntPtr aSound, float aPosX, float aPosY, float aPosZ, float aVelX, float aVelY, float aVelZ, float aVolume, uint aBus);
 	public uint play3dClocked(double aSoundTime, SoloudObject aSound, float aPosX, float aPosY, float aPosZ, float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f, float aVolume = 1.0f, uint aBus = 0)
 	{
 		return Soloud_play3dClockedEx(objhandle, aSoundTime, aSound.objhandle, aPosX, aPosY, aPosZ, aVelX, aVelY, aVelZ, aVolume, aBus);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern uint Soloud_playBackgroundEx(IntPtr aObjHandle, IntPtr aSound, float aVolume, int aPaused, uint aBus);
-	public uint playBackground(SoloudObject aSound, float aVolume = -1.0f, int aPaused = 0, uint aBus = 0)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern uint Soloud_playBackgroundEx(IntPtr aObjHandle, IntPtr aSound, float aVolume, [MarshalAs(UnmanagedType.Bool)] bool aPaused, uint aBus);
+	public uint playBackground(SoloudObject aSound, float aVolume = -1.0f, bool aPaused = false, uint aBus = 0)
 	{
 		return Soloud_playBackgroundEx(objhandle, aSound.objhandle, aVolume, aPaused, aBus);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int Soloud_seek(IntPtr aObjHandle, uint aVoiceHandle, double aSeconds);
 	public int seek(uint aVoiceHandle, double aSeconds)
 	{
 		return Soloud_seek(objhandle, aVoiceHandle, aSeconds);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_stop(IntPtr aObjHandle, uint aVoiceHandle);
 	public void stop(uint aVoiceHandle)
 	{
 		Soloud_stop(objhandle, aVoiceHandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_stopAll(IntPtr aObjHandle);
 	public void stopAll()
 	{
 		Soloud_stopAll(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_stopAudioSource(IntPtr aObjHandle, IntPtr aSound);
 	public void stopAudioSource(SoloudObject aSound)
 	{
 		Soloud_stopAudioSource(objhandle, aSound.objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int Soloud_countAudioSource(IntPtr aObjHandle, IntPtr aSound);
 	public int countAudioSource(SoloudObject aSound)
 	{
 		return Soloud_countAudioSource(objhandle, aSound.objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_setFilterParameter(IntPtr aObjHandle, uint aVoiceHandle, uint aFilterId, uint aAttributeId, float aValue);
 	public void setFilterParameter(uint aVoiceHandle, uint aFilterId, uint aAttributeId, float aValue)
 	{
 		Soloud_setFilterParameter(objhandle, aVoiceHandle, aFilterId, aAttributeId, aValue);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern float Soloud_getFilterParameter(IntPtr aObjHandle, uint aVoiceHandle, uint aFilterId, uint aAttributeId);
 	public float getFilterParameter(uint aVoiceHandle, uint aFilterId, uint aAttributeId)
 	{
 		return Soloud_getFilterParameter(objhandle, aVoiceHandle, aFilterId, aAttributeId);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_fadeFilterParameter(IntPtr aObjHandle, uint aVoiceHandle, uint aFilterId, uint aAttributeId, float aTo, double aTime);
 	public void fadeFilterParameter(uint aVoiceHandle, uint aFilterId, uint aAttributeId, float aTo, double aTime)
 	{
 		Soloud_fadeFilterParameter(objhandle, aVoiceHandle, aFilterId, aAttributeId, aTo, aTime);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_oscillateFilterParameter(IntPtr aObjHandle, uint aVoiceHandle, uint aFilterId, uint aAttributeId, float aFrom, float aTo, double aTime);
 	public void oscillateFilterParameter(uint aVoiceHandle, uint aFilterId, uint aAttributeId, float aFrom, float aTo, double aTime)
 	{
 		Soloud_oscillateFilterParameter(objhandle, aVoiceHandle, aFilterId, aAttributeId, aFrom, aTo, aTime);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern double Soloud_getStreamTime(IntPtr aObjHandle, uint aVoiceHandle);
 	public double getStreamTime(uint aVoiceHandle)
 	{
 		return Soloud_getStreamTime(objhandle, aVoiceHandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern double Soloud_getStreamPosition(IntPtr aObjHandle, uint aVoiceHandle);
 	public double getStreamPosition(uint aVoiceHandle)
 	{
 		return Soloud_getStreamPosition(objhandle, aVoiceHandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern int Soloud_getPause(IntPtr aObjHandle, uint aVoiceHandle);
-	public int getPause(uint aVoiceHandle)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	[return:MarshalAs(UnmanagedType.Bool)]
+	internal static extern bool Soloud_getPause(IntPtr aObjHandle, uint aVoiceHandle);
+	public bool getPause(uint aVoiceHandle)
 	{
 		return Soloud_getPause(objhandle, aVoiceHandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern float Soloud_getVolume(IntPtr aObjHandle, uint aVoiceHandle);
 	public float getVolume(uint aVoiceHandle)
 	{
 		return Soloud_getVolume(objhandle, aVoiceHandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern float Soloud_getOverallVolume(IntPtr aObjHandle, uint aVoiceHandle);
 	public float getOverallVolume(uint aVoiceHandle)
 	{
 		return Soloud_getOverallVolume(objhandle, aVoiceHandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern float Soloud_getPan(IntPtr aObjHandle, uint aVoiceHandle);
 	public float getPan(uint aVoiceHandle)
 	{
 		return Soloud_getPan(objhandle, aVoiceHandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern float Soloud_getSamplerate(IntPtr aObjHandle, uint aVoiceHandle);
 	public float getSamplerate(uint aVoiceHandle)
 	{
 		return Soloud_getSamplerate(objhandle, aVoiceHandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern int Soloud_getProtectVoice(IntPtr aObjHandle, uint aVoiceHandle);
-	public int getProtectVoice(uint aVoiceHandle)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	[return:MarshalAs(UnmanagedType.Bool)]
+	internal static extern bool Soloud_getProtectVoice(IntPtr aObjHandle, uint aVoiceHandle);
+	public bool getProtectVoice(uint aVoiceHandle)
 	{
 		return Soloud_getProtectVoice(objhandle, aVoiceHandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern uint Soloud_getActiveVoiceCount(IntPtr aObjHandle);
 	public uint getActiveVoiceCount()
 	{
 		return Soloud_getActiveVoiceCount(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern uint Soloud_getVoiceCount(IntPtr aObjHandle);
 	public uint getVoiceCount()
 	{
 		return Soloud_getVoiceCount(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	[return:MarshalAs(UnmanagedType.Bool)]
 	internal static extern bool Soloud_isValidVoiceHandle(IntPtr aObjHandle, uint aVoiceHandle);
 	public bool isValidVoiceHandle(uint aVoiceHandle)
 	{
 		return Soloud_isValidVoiceHandle(objhandle, aVoiceHandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern float Soloud_getRelativePlaySpeed(IntPtr aObjHandle, uint aVoiceHandle);
 	public float getRelativePlaySpeed(uint aVoiceHandle)
 	{
 		return Soloud_getRelativePlaySpeed(objhandle, aVoiceHandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern float Soloud_getPostClipScaler(IntPtr aObjHandle);
 	public float getPostClipScaler()
 	{
 		return Soloud_getPostClipScaler(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern uint Soloud_getMainResampler(IntPtr aObjHandle);
+	public uint getMainResampler()
+	{
+		return Soloud_getMainResampler(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern float Soloud_getGlobalVolume(IntPtr aObjHandle);
 	public float getGlobalVolume()
 	{
 		return Soloud_getGlobalVolume(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern uint Soloud_getMaxActiveVoiceCount(IntPtr aObjHandle);
 	public uint getMaxActiveVoiceCount()
 	{
 		return Soloud_getMaxActiveVoiceCount(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern int Soloud_getLooping(IntPtr aObjHandle, uint aVoiceHandle);
-	public int getLooping(uint aVoiceHandle)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	[return:MarshalAs(UnmanagedType.Bool)]
+	internal static extern bool Soloud_getLooping(IntPtr aObjHandle, uint aVoiceHandle);
+	public bool getLooping(uint aVoiceHandle)
 	{
 		return Soloud_getLooping(objhandle, aVoiceHandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	[return:MarshalAs(UnmanagedType.Bool)]
+	internal static extern bool Soloud_getAutoStop(IntPtr aObjHandle, uint aVoiceHandle);
+	public bool getAutoStop(uint aVoiceHandle)
+	{
+		return Soloud_getAutoStop(objhandle, aVoiceHandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern double Soloud_getLoopPoint(IntPtr aObjHandle, uint aVoiceHandle);
 	public double getLoopPoint(uint aVoiceHandle)
 	{
 		return Soloud_getLoopPoint(objhandle, aVoiceHandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_setLoopPoint(IntPtr aObjHandle, uint aVoiceHandle, double aLoopPoint);
 	public void setLoopPoint(uint aVoiceHandle, double aLoopPoint)
 	{
 		Soloud_setLoopPoint(objhandle, aVoiceHandle, aLoopPoint);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void Soloud_setLooping(IntPtr aObjHandle, uint aVoiceHandle, int aLooping);
-	public void setLooping(uint aVoiceHandle, int aLooping)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Soloud_setLooping(IntPtr aObjHandle, uint aVoiceHandle, [MarshalAs(UnmanagedType.Bool)] bool aLooping);
+	public void setLooping(uint aVoiceHandle, bool aLooping)
 	{
 		Soloud_setLooping(objhandle, aVoiceHandle, aLooping);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Soloud_setAutoStop(IntPtr aObjHandle, uint aVoiceHandle, [MarshalAs(UnmanagedType.Bool)] bool aAutoStop);
+	public void setAutoStop(uint aVoiceHandle, bool aAutoStop)
+	{
+		Soloud_setAutoStop(objhandle, aVoiceHandle, aAutoStop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int Soloud_setMaxActiveVoiceCount(IntPtr aObjHandle, uint aVoiceCount);
 	public int setMaxActiveVoiceCount(uint aVoiceCount)
 	{
 		return Soloud_setMaxActiveVoiceCount(objhandle, aVoiceCount);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void Soloud_setInaudibleBehavior(IntPtr aObjHandle, uint aVoiceHandle, bool aMustTick, bool aKill);
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Soloud_setInaudibleBehavior(IntPtr aObjHandle, uint aVoiceHandle, [MarshalAs(UnmanagedType.Bool)] bool aMustTick, [MarshalAs(UnmanagedType.Bool)] bool aKill);
 	public void setInaudibleBehavior(uint aVoiceHandle, bool aMustTick, bool aKill)
 	{
 		Soloud_setInaudibleBehavior(objhandle, aVoiceHandle, aMustTick, aKill);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_setGlobalVolume(IntPtr aObjHandle, float aVolume);
 	public void setGlobalVolume(float aVolume)
 	{
 		Soloud_setGlobalVolume(objhandle, aVolume);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_setPostClipScaler(IntPtr aObjHandle, float aScaler);
 	public void setPostClipScaler(float aScaler)
 	{
 		Soloud_setPostClipScaler(objhandle, aScaler);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void Soloud_setPause(IntPtr aObjHandle, uint aVoiceHandle, int aPause);
-	public void setPause(uint aVoiceHandle, int aPause)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Soloud_setMainResampler(IntPtr aObjHandle, uint aResampler);
+	public void setMainResampler(uint aResampler)
+	{
+		Soloud_setMainResampler(objhandle, aResampler);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Soloud_setPause(IntPtr aObjHandle, uint aVoiceHandle, [MarshalAs(UnmanagedType.Bool)] bool aPause);
+	public void setPause(uint aVoiceHandle, bool aPause)
 	{
 		Soloud_setPause(objhandle, aVoiceHandle, aPause);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void Soloud_setPauseAll(IntPtr aObjHandle, int aPause);
-	public void setPauseAll(int aPause)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Soloud_setPauseAll(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aPause);
+	public void setPauseAll(bool aPause)
 	{
 		Soloud_setPauseAll(objhandle, aPause);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int Soloud_setRelativePlaySpeed(IntPtr aObjHandle, uint aVoiceHandle, float aSpeed);
 	public int setRelativePlaySpeed(uint aVoiceHandle, float aSpeed)
 	{
 		return Soloud_setRelativePlaySpeed(objhandle, aVoiceHandle, aSpeed);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void Soloud_setProtectVoice(IntPtr aObjHandle, uint aVoiceHandle, int aProtect);
-	public void setProtectVoice(uint aVoiceHandle, int aProtect)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Soloud_setProtectVoice(IntPtr aObjHandle, uint aVoiceHandle, [MarshalAs(UnmanagedType.Bool)] bool aProtect);
+	public void setProtectVoice(uint aVoiceHandle, bool aProtect)
 	{
 		Soloud_setProtectVoice(objhandle, aVoiceHandle, aProtect);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_setSamplerate(IntPtr aObjHandle, uint aVoiceHandle, float aSamplerate);
 	public void setSamplerate(uint aVoiceHandle, float aSamplerate)
 	{
 		Soloud_setSamplerate(objhandle, aVoiceHandle, aSamplerate);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_setPan(IntPtr aObjHandle, uint aVoiceHandle, float aPan);
 	public void setPan(uint aVoiceHandle, float aPan)
 	{
 		Soloud_setPan(objhandle, aVoiceHandle, aPan);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void Soloud_setPanAbsoluteEx(IntPtr aObjHandle, uint aVoiceHandle, float aLVolume, float aRVolume, float aLBVolume, float aRBVolume, float aCVolume, float aSVolume);
-	public void setPanAbsolute(uint aVoiceHandle, float aLVolume, float aRVolume, float aLBVolume = 0, float aRBVolume = 0, float aCVolume = 0, float aSVolume = 0)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Soloud_setPanAbsolute(IntPtr aObjHandle, uint aVoiceHandle, float aLVolume, float aRVolume);
+	public void setPanAbsolute(uint aVoiceHandle, float aLVolume, float aRVolume)
 	{
-		Soloud_setPanAbsoluteEx(objhandle, aVoiceHandle, aLVolume, aRVolume, aLBVolume, aRBVolume, aCVolume, aSVolume);
+		Soloud_setPanAbsolute(objhandle, aVoiceHandle, aLVolume, aRVolume);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Soloud_setChannelVolume(IntPtr aObjHandle, uint aVoiceHandle, uint aChannel, float aVolume);
+	public void setChannelVolume(uint aVoiceHandle, uint aChannel, float aVolume)
+	{
+		Soloud_setChannelVolume(objhandle, aVoiceHandle, aChannel, aVolume);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_setVolume(IntPtr aObjHandle, uint aVoiceHandle, float aVolume);
 	public void setVolume(uint aVoiceHandle, float aVolume)
 	{
 		Soloud_setVolume(objhandle, aVoiceHandle, aVolume);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_setDelaySamples(IntPtr aObjHandle, uint aVoiceHandle, uint aSamples);
 	public void setDelaySamples(uint aVoiceHandle, uint aSamples)
 	{
 		Soloud_setDelaySamples(objhandle, aVoiceHandle, aSamples);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_fadeVolume(IntPtr aObjHandle, uint aVoiceHandle, float aTo, double aTime);
 	public void fadeVolume(uint aVoiceHandle, float aTo, double aTime)
 	{
 		Soloud_fadeVolume(objhandle, aVoiceHandle, aTo, aTime);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_fadePan(IntPtr aObjHandle, uint aVoiceHandle, float aTo, double aTime);
 	public void fadePan(uint aVoiceHandle, float aTo, double aTime)
 	{
 		Soloud_fadePan(objhandle, aVoiceHandle, aTo, aTime);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_fadeRelativePlaySpeed(IntPtr aObjHandle, uint aVoiceHandle, float aTo, double aTime);
 	public void fadeRelativePlaySpeed(uint aVoiceHandle, float aTo, double aTime)
 	{
 		Soloud_fadeRelativePlaySpeed(objhandle, aVoiceHandle, aTo, aTime);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_fadeGlobalVolume(IntPtr aObjHandle, float aTo, double aTime);
 	public void fadeGlobalVolume(float aTo, double aTime)
 	{
 		Soloud_fadeGlobalVolume(objhandle, aTo, aTime);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_schedulePause(IntPtr aObjHandle, uint aVoiceHandle, double aTime);
 	public void schedulePause(uint aVoiceHandle, double aTime)
 	{
 		Soloud_schedulePause(objhandle, aVoiceHandle, aTime);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_scheduleStop(IntPtr aObjHandle, uint aVoiceHandle, double aTime);
 	public void scheduleStop(uint aVoiceHandle, double aTime)
 	{
 		Soloud_scheduleStop(objhandle, aVoiceHandle, aTime);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_oscillateVolume(IntPtr aObjHandle, uint aVoiceHandle, float aFrom, float aTo, double aTime);
 	public void oscillateVolume(uint aVoiceHandle, float aFrom, float aTo, double aTime)
 	{
 		Soloud_oscillateVolume(objhandle, aVoiceHandle, aFrom, aTo, aTime);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_oscillatePan(IntPtr aObjHandle, uint aVoiceHandle, float aFrom, float aTo, double aTime);
 	public void oscillatePan(uint aVoiceHandle, float aFrom, float aTo, double aTime)
 	{
 		Soloud_oscillatePan(objhandle, aVoiceHandle, aFrom, aTo, aTime);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_oscillateRelativePlaySpeed(IntPtr aObjHandle, uint aVoiceHandle, float aFrom, float aTo, double aTime);
 	public void oscillateRelativePlaySpeed(uint aVoiceHandle, float aFrom, float aTo, double aTime)
 	{
 		Soloud_oscillateRelativePlaySpeed(objhandle, aVoiceHandle, aFrom, aTo, aTime);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_oscillateGlobalVolume(IntPtr aObjHandle, float aFrom, float aTo, double aTime);
 	public void oscillateGlobalVolume(float aFrom, float aTo, double aTime)
 	{
 		Soloud_oscillateGlobalVolume(objhandle, aFrom, aTo, aTime);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_setGlobalFilter(IntPtr aObjHandle, uint aFilterId, IntPtr aFilter);
 	public void setGlobalFilter(uint aFilterId, SoloudObject aFilter)
 	{
 		Soloud_setGlobalFilter(objhandle, aFilterId, aFilter.objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void Soloud_setVisualizationEnable(IntPtr aObjHandle, int aEnable);
-	public void setVisualizationEnable(int aEnable)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Soloud_setVisualizationEnable(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aEnable);
+	public void setVisualizationEnable(bool aEnable)
 	{
 		Soloud_setVisualizationEnable(objhandle, aEnable);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr Soloud_calcFFT(IntPtr aObjHandle);
 	public float[] calcFFT()
 	{
@@ -557,7 +623,7 @@ public class Soloud : SoloudObject
 		return ret;
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr Soloud_getWave(IntPtr aObjHandle);
 	public float[] getWave()
 	{
@@ -577,168 +643,170 @@ public class Soloud : SoloudObject
 		return ret;
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern float Soloud_getApproximateVolume(IntPtr aObjHandle, uint aChannel);
 	public float getApproximateVolume(uint aChannel)
 	{
 		return Soloud_getApproximateVolume(objhandle, aChannel);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern uint Soloud_getLoopCount(IntPtr aObjHandle, uint aVoiceHandle);
 	public uint getLoopCount(uint aVoiceHandle)
 	{
 		return Soloud_getLoopCount(objhandle, aVoiceHandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern float Soloud_getInfo(IntPtr aObjHandle, uint aVoiceHandle, uint aInfoKey);
 	public float getInfo(uint aVoiceHandle, uint aInfoKey)
 	{
 		return Soloud_getInfo(objhandle, aVoiceHandle, aInfoKey);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern uint Soloud_createVoiceGroup(IntPtr aObjHandle);
 	public uint createVoiceGroup()
 	{
 		return Soloud_createVoiceGroup(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int Soloud_destroyVoiceGroup(IntPtr aObjHandle, uint aVoiceGroupHandle);
 	public int destroyVoiceGroup(uint aVoiceGroupHandle)
 	{
 		return Soloud_destroyVoiceGroup(objhandle, aVoiceGroupHandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int Soloud_addVoiceToGroup(IntPtr aObjHandle, uint aVoiceGroupHandle, uint aVoiceHandle);
 	public int addVoiceToGroup(uint aVoiceGroupHandle, uint aVoiceHandle)
 	{
 		return Soloud_addVoiceToGroup(objhandle, aVoiceGroupHandle, aVoiceHandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern int Soloud_isVoiceGroup(IntPtr aObjHandle, uint aVoiceGroupHandle);
-	public int isVoiceGroup(uint aVoiceGroupHandle)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	[return:MarshalAs(UnmanagedType.Bool)]
+	internal static extern bool Soloud_isVoiceGroup(IntPtr aObjHandle, uint aVoiceGroupHandle);
+	public bool isVoiceGroup(uint aVoiceGroupHandle)
 	{
 		return Soloud_isVoiceGroup(objhandle, aVoiceGroupHandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern int Soloud_isVoiceGroupEmpty(IntPtr aObjHandle, uint aVoiceGroupHandle);
-	public int isVoiceGroupEmpty(uint aVoiceGroupHandle)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	[return:MarshalAs(UnmanagedType.Bool)]
+	internal static extern bool Soloud_isVoiceGroupEmpty(IntPtr aObjHandle, uint aVoiceGroupHandle);
+	public bool isVoiceGroupEmpty(uint aVoiceGroupHandle)
 	{
 		return Soloud_isVoiceGroupEmpty(objhandle, aVoiceGroupHandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_update3dAudio(IntPtr aObjHandle);
 	public void update3dAudio()
 	{
 		Soloud_update3dAudio(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int Soloud_set3dSoundSpeed(IntPtr aObjHandle, float aSpeed);
 	public int set3dSoundSpeed(float aSpeed)
 	{
 		return Soloud_set3dSoundSpeed(objhandle, aSpeed);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern float Soloud_get3dSoundSpeed(IntPtr aObjHandle);
 	public float get3dSoundSpeed()
 	{
 		return Soloud_get3dSoundSpeed(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_set3dListenerParametersEx(IntPtr aObjHandle, float aPosX, float aPosY, float aPosZ, float aAtX, float aAtY, float aAtZ, float aUpX, float aUpY, float aUpZ, float aVelocityX, float aVelocityY, float aVelocityZ);
 	public void set3dListenerParameters(float aPosX, float aPosY, float aPosZ, float aAtX, float aAtY, float aAtZ, float aUpX, float aUpY, float aUpZ, float aVelocityX = 0.0f, float aVelocityY = 0.0f, float aVelocityZ = 0.0f)
 	{
 		Soloud_set3dListenerParametersEx(objhandle, aPosX, aPosY, aPosZ, aAtX, aAtY, aAtZ, aUpX, aUpY, aUpZ, aVelocityX, aVelocityY, aVelocityZ);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_set3dListenerPosition(IntPtr aObjHandle, float aPosX, float aPosY, float aPosZ);
 	public void set3dListenerPosition(float aPosX, float aPosY, float aPosZ)
 	{
 		Soloud_set3dListenerPosition(objhandle, aPosX, aPosY, aPosZ);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_set3dListenerAt(IntPtr aObjHandle, float aAtX, float aAtY, float aAtZ);
 	public void set3dListenerAt(float aAtX, float aAtY, float aAtZ)
 	{
 		Soloud_set3dListenerAt(objhandle, aAtX, aAtY, aAtZ);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_set3dListenerUp(IntPtr aObjHandle, float aUpX, float aUpY, float aUpZ);
 	public void set3dListenerUp(float aUpX, float aUpY, float aUpZ)
 	{
 		Soloud_set3dListenerUp(objhandle, aUpX, aUpY, aUpZ);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_set3dListenerVelocity(IntPtr aObjHandle, float aVelocityX, float aVelocityY, float aVelocityZ);
 	public void set3dListenerVelocity(float aVelocityX, float aVelocityY, float aVelocityZ)
 	{
 		Soloud_set3dListenerVelocity(objhandle, aVelocityX, aVelocityY, aVelocityZ);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_set3dSourceParametersEx(IntPtr aObjHandle, uint aVoiceHandle, float aPosX, float aPosY, float aPosZ, float aVelocityX, float aVelocityY, float aVelocityZ);
 	public void set3dSourceParameters(uint aVoiceHandle, float aPosX, float aPosY, float aPosZ, float aVelocityX = 0.0f, float aVelocityY = 0.0f, float aVelocityZ = 0.0f)
 	{
 		Soloud_set3dSourceParametersEx(objhandle, aVoiceHandle, aPosX, aPosY, aPosZ, aVelocityX, aVelocityY, aVelocityZ);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_set3dSourcePosition(IntPtr aObjHandle, uint aVoiceHandle, float aPosX, float aPosY, float aPosZ);
 	public void set3dSourcePosition(uint aVoiceHandle, float aPosX, float aPosY, float aPosZ)
 	{
 		Soloud_set3dSourcePosition(objhandle, aVoiceHandle, aPosX, aPosY, aPosZ);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_set3dSourceVelocity(IntPtr aObjHandle, uint aVoiceHandle, float aVelocityX, float aVelocityY, float aVelocityZ);
 	public void set3dSourceVelocity(uint aVoiceHandle, float aVelocityX, float aVelocityY, float aVelocityZ)
 	{
 		Soloud_set3dSourceVelocity(objhandle, aVoiceHandle, aVelocityX, aVelocityY, aVelocityZ);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_set3dSourceMinMaxDistance(IntPtr aObjHandle, uint aVoiceHandle, float aMinDistance, float aMaxDistance);
 	public void set3dSourceMinMaxDistance(uint aVoiceHandle, float aMinDistance, float aMaxDistance)
 	{
 		Soloud_set3dSourceMinMaxDistance(objhandle, aVoiceHandle, aMinDistance, aMaxDistance);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_set3dSourceAttenuation(IntPtr aObjHandle, uint aVoiceHandle, uint aAttenuationModel, float aAttenuationRolloffFactor);
 	public void set3dSourceAttenuation(uint aVoiceHandle, uint aAttenuationModel, float aAttenuationRolloffFactor)
 	{
 		Soloud_set3dSourceAttenuation(objhandle, aVoiceHandle, aAttenuationModel, aAttenuationRolloffFactor);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_set3dSourceDopplerFactor(IntPtr aObjHandle, uint aVoiceHandle, float aDopplerFactor);
 	public void set3dSourceDopplerFactor(uint aVoiceHandle, float aDopplerFactor)
 	{
 		Soloud_set3dSourceDopplerFactor(objhandle, aVoiceHandle, aDopplerFactor);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_mix(IntPtr aObjHandle, float[] aBuffer, uint aSamples);
 	public void mix(float[] aBuffer, uint aSamples)
 	{
 		Soloud_mix(objhandle, aBuffer, aSamples);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Soloud_mixSigned16(IntPtr aObjHandle, IntPtr aBuffer, uint aSamples);
 	public void mixSigned16(IntPtr aBuffer, uint aSamples)
 	{
@@ -746,51 +814,201 @@ public class Soloud : SoloudObject
 	}
 }
 
-public class AudioAttenuator : SoloudObject
+public partial class Ay : SoloudObject, IDisposable
 {
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern IntPtr AudioAttenuator_create();
-	public AudioAttenuator()
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr Ay_create();
+	public Ay()
 	{
-		objhandle = AudioAttenuator_create();
+		objhandle = Ay_create();
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern IntPtr AudioAttenuator_destroy(IntPtr aObjHandle);
-	~AudioAttenuator()
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr Ay_destroy(IntPtr aObjHandle);
+	~Ay()
 	{
-		AudioAttenuator_destroy(objhandle);
+		Ay_destroy(objhandle);
+	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			Ay_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern float AudioAttenuator_attenuate(IntPtr aObjHandle, float aDistance, float aMinDistance, float aMaxDistance, float aRolloffFactor);
-	public float attenuate(float aDistance, float aMinDistance, float aMaxDistance, float aRolloffFactor)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Ay_setVolume(IntPtr aObjHandle, float aVolume);
+	public void setVolume(float aVolume)
 	{
-		return AudioAttenuator_attenuate(objhandle, aDistance, aMinDistance, aMaxDistance, aRolloffFactor);
+		Ay_setVolume(objhandle, aVolume);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Ay_setLooping(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aLoop);
+	public void setLooping(bool aLoop)
+	{
+		Ay_setLooping(objhandle, aLoop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Ay_setAutoStop(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aAutoStop);
+	public void setAutoStop(bool aAutoStop)
+	{
+		Ay_setAutoStop(objhandle, aAutoStop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Ay_set3dMinMaxDistance(IntPtr aObjHandle, float aMinDistance, float aMaxDistance);
+	public void set3dMinMaxDistance(float aMinDistance, float aMaxDistance)
+	{
+		Ay_set3dMinMaxDistance(objhandle, aMinDistance, aMaxDistance);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Ay_set3dAttenuation(IntPtr aObjHandle, uint aAttenuationModel, float aAttenuationRolloffFactor);
+	public void set3dAttenuation(uint aAttenuationModel, float aAttenuationRolloffFactor)
+	{
+		Ay_set3dAttenuation(objhandle, aAttenuationModel, aAttenuationRolloffFactor);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Ay_set3dDopplerFactor(IntPtr aObjHandle, float aDopplerFactor);
+	public void set3dDopplerFactor(float aDopplerFactor)
+	{
+		Ay_set3dDopplerFactor(objhandle, aDopplerFactor);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Ay_set3dListenerRelative(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aListenerRelative);
+	public void set3dListenerRelative(bool aListenerRelative)
+	{
+		Ay_set3dListenerRelative(objhandle, aListenerRelative);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Ay_set3dDistanceDelay(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aDistanceDelay);
+	public void set3dDistanceDelay(bool aDistanceDelay)
+	{
+		Ay_set3dDistanceDelay(objhandle, aDistanceDelay);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Ay_set3dColliderEx(IntPtr aObjHandle, IntPtr aCollider, int aUserData);
+	public void set3dCollider(SoloudObject aCollider, int aUserData = 0)
+	{
+		Ay_set3dColliderEx(objhandle, aCollider.objhandle, aUserData);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Ay_set3dAttenuator(IntPtr aObjHandle, IntPtr aAttenuator);
+	public void set3dAttenuator(SoloudObject aAttenuator)
+	{
+		Ay_set3dAttenuator(objhandle, aAttenuator.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Ay_setInaudibleBehavior(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aMustTick, [MarshalAs(UnmanagedType.Bool)] bool aKill);
+	public void setInaudibleBehavior(bool aMustTick, bool aKill)
+	{
+		Ay_setInaudibleBehavior(objhandle, aMustTick, aKill);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Ay_setLoopPoint(IntPtr aObjHandle, double aLoopPoint);
+	public void setLoopPoint(double aLoopPoint)
+	{
+		Ay_setLoopPoint(objhandle, aLoopPoint);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern double Ay_getLoopPoint(IntPtr aObjHandle);
+	public double getLoopPoint()
+	{
+		return Ay_getLoopPoint(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Ay_setFilter(IntPtr aObjHandle, uint aFilterId, IntPtr aFilter);
+	public void setFilter(uint aFilterId, SoloudObject aFilter)
+	{
+		Ay_setFilter(objhandle, aFilterId, aFilter.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Ay_stop(IntPtr aObjHandle);
+	public void stop()
+	{
+		Ay_stop(objhandle);
 	}
 }
 
-public class BassboostFilter : SoloudObject
+public partial class BassboostFilter : SoloudObject, IDisposable
 {
-	public const int BOOST = 1;
 	public const int WET = 0;
+	public const int BOOST = 1;
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr BassboostFilter_create();
 	public BassboostFilter()
 	{
 		objhandle = BassboostFilter_create();
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr BassboostFilter_destroy(IntPtr aObjHandle);
 	~BassboostFilter()
 	{
 		BassboostFilter_destroy(objhandle);
 	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			BassboostFilter_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int BassboostFilter_getParamCount(IntPtr aObjHandle);
+	public int getParamCount()
+	{
+		return BassboostFilter_getParamCount(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr BassboostFilter_getParamName(IntPtr aObjHandle, uint aParamIndex);
+	public string getParamName(uint aParamIndex)
+	{
+		IntPtr p = BassboostFilter_getParamName(objhandle, aParamIndex);
+		return Marshal.PtrToStringAnsi(p);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern uint BassboostFilter_getParamType(IntPtr aObjHandle, uint aParamIndex);
+	public uint getParamType(uint aParamIndex)
+	{
+		return BassboostFilter_getParamType(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern float BassboostFilter_getParamMax(IntPtr aObjHandle, uint aParamIndex);
+	public float getParamMax(uint aParamIndex)
+	{
+		return BassboostFilter_getParamMax(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern float BassboostFilter_getParamMin(IntPtr aObjHandle, uint aParamIndex);
+	public float getParamMin(uint aParamIndex)
+	{
+		return BassboostFilter_getParamMin(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int BassboostFilter_setParams(IntPtr aObjHandle, float aBoost);
 	public int setParams(float aBoost)
 	{
@@ -798,106 +1016,164 @@ public class BassboostFilter : SoloudObject
 	}
 }
 
-public class BiquadResonantFilter : SoloudObject
+public partial class BiquadResonantFilter : SoloudObject, IDisposable
 {
-	public const int SAMPLERATE = 1;
+	public const int LOWPASS = 0;
+	public const int HIGHPASS = 1;
+	public const int BANDPASS = 2;
+	public const int WET = 0;
+	public const int TYPE = 1;
 	public const int FREQUENCY = 2;
 	public const int RESONANCE = 3;
-	public const int BANDPASS = 3;
-	public const int LOWPASS = 1;
-	public const int HIGHPASS = 2;
-	public const int NONE = 0;
-	public const int WET = 0;
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr BiquadResonantFilter_create();
 	public BiquadResonantFilter()
 	{
 		objhandle = BiquadResonantFilter_create();
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr BiquadResonantFilter_destroy(IntPtr aObjHandle);
 	~BiquadResonantFilter()
 	{
 		BiquadResonantFilter_destroy(objhandle);
 	}
-
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern int BiquadResonantFilter_setParams(IntPtr aObjHandle, int aType, float aSampleRate, float aFrequency, float aResonance);
-	public int setParams(int aType, float aSampleRate, float aFrequency, float aResonance)
+	public void Dispose()
 	{
-		return BiquadResonantFilter_setParams(objhandle, aType, aSampleRate, aFrequency, aResonance);
+		if (objhandle != IntPtr.Zero) {
+			BiquadResonantFilter_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int BiquadResonantFilter_getParamCount(IntPtr aObjHandle);
+	public int getParamCount()
+	{
+		return BiquadResonantFilter_getParamCount(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr BiquadResonantFilter_getParamName(IntPtr aObjHandle, uint aParamIndex);
+	public string getParamName(uint aParamIndex)
+	{
+		IntPtr p = BiquadResonantFilter_getParamName(objhandle, aParamIndex);
+		return Marshal.PtrToStringAnsi(p);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern uint BiquadResonantFilter_getParamType(IntPtr aObjHandle, uint aParamIndex);
+	public uint getParamType(uint aParamIndex)
+	{
+		return BiquadResonantFilter_getParamType(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern float BiquadResonantFilter_getParamMax(IntPtr aObjHandle, uint aParamIndex);
+	public float getParamMax(uint aParamIndex)
+	{
+		return BiquadResonantFilter_getParamMax(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern float BiquadResonantFilter_getParamMin(IntPtr aObjHandle, uint aParamIndex);
+	public float getParamMin(uint aParamIndex)
+	{
+		return BiquadResonantFilter_getParamMin(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int BiquadResonantFilter_setParams(IntPtr aObjHandle, int aType, float aFrequency, float aResonance);
+	public int setParams(int aType, float aFrequency, float aResonance)
+	{
+		return BiquadResonantFilter_setParams(objhandle, aType, aFrequency, aResonance);
 	}
 }
 
-public class Bus : SoloudObject
+public partial class Bus : SoloudObject, IDisposable
 {
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr Bus_create();
 	public Bus()
 	{
 		objhandle = Bus_create();
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr Bus_destroy(IntPtr aObjHandle);
 	~Bus()
 	{
 		Bus_destroy(objhandle);
 	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			Bus_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Bus_setFilter(IntPtr aObjHandle, uint aFilterId, IntPtr aFilter);
 	public void setFilter(uint aFilterId, SoloudObject aFilter)
 	{
 		Bus_setFilter(objhandle, aFilterId, aFilter.objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern uint Bus_playEx(IntPtr aObjHandle, IntPtr aSound, float aVolume, float aPan, int aPaused);
-	public uint play(SoloudObject aSound, float aVolume = 1.0f, float aPan = 0.0f, int aPaused = 0)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern uint Bus_playEx(IntPtr aObjHandle, IntPtr aSound, float aVolume, float aPan, [MarshalAs(UnmanagedType.Bool)] bool aPaused);
+	public uint play(SoloudObject aSound, float aVolume = 1.0f, float aPan = 0.0f, bool aPaused = false)
 	{
 		return Bus_playEx(objhandle, aSound.objhandle, aVolume, aPan, aPaused);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern uint Bus_playClockedEx(IntPtr aObjHandle, double aSoundTime, IntPtr aSound, float aVolume, float aPan);
 	public uint playClocked(double aSoundTime, SoloudObject aSound, float aVolume = 1.0f, float aPan = 0.0f)
 	{
 		return Bus_playClockedEx(objhandle, aSoundTime, aSound.objhandle, aVolume, aPan);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern uint Bus_play3dEx(IntPtr aObjHandle, IntPtr aSound, float aPosX, float aPosY, float aPosZ, float aVelX, float aVelY, float aVelZ, float aVolume, int aPaused);
-	public uint play3d(SoloudObject aSound, float aPosX, float aPosY, float aPosZ, float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f, float aVolume = 1.0f, int aPaused = 0)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern uint Bus_play3dEx(IntPtr aObjHandle, IntPtr aSound, float aPosX, float aPosY, float aPosZ, float aVelX, float aVelY, float aVelZ, float aVolume, [MarshalAs(UnmanagedType.Bool)] bool aPaused);
+	public uint play3d(SoloudObject aSound, float aPosX, float aPosY, float aPosZ, float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f, float aVolume = 1.0f, bool aPaused = false)
 	{
 		return Bus_play3dEx(objhandle, aSound.objhandle, aPosX, aPosY, aPosZ, aVelX, aVelY, aVelZ, aVolume, aPaused);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern uint Bus_play3dClockedEx(IntPtr aObjHandle, double aSoundTime, IntPtr aSound, float aPosX, float aPosY, float aPosZ, float aVelX, float aVelY, float aVelZ, float aVolume);
 	public uint play3dClocked(double aSoundTime, SoloudObject aSound, float aPosX, float aPosY, float aPosZ, float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f, float aVolume = 1.0f)
 	{
 		return Bus_play3dClockedEx(objhandle, aSoundTime, aSound.objhandle, aPosX, aPosY, aPosZ, aVelX, aVelY, aVelZ, aVolume);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int Bus_setChannels(IntPtr aObjHandle, uint aChannels);
 	public int setChannels(uint aChannels)
 	{
 		return Bus_setChannels(objhandle, aChannels);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void Bus_setVisualizationEnable(IntPtr aObjHandle, int aEnable);
-	public void setVisualizationEnable(int aEnable)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Bus_setVisualizationEnable(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aEnable);
+	public void setVisualizationEnable(bool aEnable)
 	{
 		Bus_setVisualizationEnable(objhandle, aEnable);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Bus_annexSound(IntPtr aObjHandle, uint aVoiceHandle);
+	public void annexSound(uint aVoiceHandle)
+	{
+		Bus_annexSound(objhandle, aVoiceHandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr Bus_calcFFT(IntPtr aObjHandle);
 	public float[] calcFFT()
 	{
@@ -917,7 +1193,7 @@ public class Bus : SoloudObject
 		return ret;
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr Bus_getWave(IntPtr aObjHandle);
 	public float[] getWave()
 	{
@@ -937,98 +1213,126 @@ public class Bus : SoloudObject
 		return ret;
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern float Bus_getApproximateVolume(IntPtr aObjHandle, uint aChannel);
 	public float getApproximateVolume(uint aChannel)
 	{
 		return Bus_getApproximateVolume(objhandle, aChannel);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern uint Bus_getActiveVoiceCount(IntPtr aObjHandle);
+	public uint getActiveVoiceCount()
+	{
+		return Bus_getActiveVoiceCount(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern uint Bus_getResampler(IntPtr aObjHandle);
+	public uint getResampler()
+	{
+		return Bus_getResampler(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Bus_setResampler(IntPtr aObjHandle, uint aResampler);
+	public void setResampler(uint aResampler)
+	{
+		Bus_setResampler(objhandle, aResampler);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Bus_setVolume(IntPtr aObjHandle, float aVolume);
 	public void setVolume(float aVolume)
 	{
 		Bus_setVolume(objhandle, aVolume);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void Bus_setLooping(IntPtr aObjHandle, int aLoop);
-	public void setLooping(int aLoop)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Bus_setLooping(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aLoop);
+	public void setLooping(bool aLoop)
 	{
 		Bus_setLooping(objhandle, aLoop);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Bus_setAutoStop(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aAutoStop);
+	public void setAutoStop(bool aAutoStop)
+	{
+		Bus_setAutoStop(objhandle, aAutoStop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Bus_set3dMinMaxDistance(IntPtr aObjHandle, float aMinDistance, float aMaxDistance);
 	public void set3dMinMaxDistance(float aMinDistance, float aMaxDistance)
 	{
 		Bus_set3dMinMaxDistance(objhandle, aMinDistance, aMaxDistance);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Bus_set3dAttenuation(IntPtr aObjHandle, uint aAttenuationModel, float aAttenuationRolloffFactor);
 	public void set3dAttenuation(uint aAttenuationModel, float aAttenuationRolloffFactor)
 	{
 		Bus_set3dAttenuation(objhandle, aAttenuationModel, aAttenuationRolloffFactor);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Bus_set3dDopplerFactor(IntPtr aObjHandle, float aDopplerFactor);
 	public void set3dDopplerFactor(float aDopplerFactor)
 	{
 		Bus_set3dDopplerFactor(objhandle, aDopplerFactor);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void Bus_set3dListenerRelative(IntPtr aObjHandle, int aListenerRelative);
-	public void set3dListenerRelative(int aListenerRelative)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Bus_set3dListenerRelative(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aListenerRelative);
+	public void set3dListenerRelative(bool aListenerRelative)
 	{
 		Bus_set3dListenerRelative(objhandle, aListenerRelative);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void Bus_set3dDistanceDelay(IntPtr aObjHandle, int aDistanceDelay);
-	public void set3dDistanceDelay(int aDistanceDelay)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Bus_set3dDistanceDelay(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aDistanceDelay);
+	public void set3dDistanceDelay(bool aDistanceDelay)
 	{
 		Bus_set3dDistanceDelay(objhandle, aDistanceDelay);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Bus_set3dColliderEx(IntPtr aObjHandle, IntPtr aCollider, int aUserData);
 	public void set3dCollider(SoloudObject aCollider, int aUserData = 0)
 	{
 		Bus_set3dColliderEx(objhandle, aCollider.objhandle, aUserData);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Bus_set3dAttenuator(IntPtr aObjHandle, IntPtr aAttenuator);
 	public void set3dAttenuator(SoloudObject aAttenuator)
 	{
 		Bus_set3dAttenuator(objhandle, aAttenuator.objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void Bus_setInaudibleBehavior(IntPtr aObjHandle, int aMustTick, int aKill);
-	public void setInaudibleBehavior(int aMustTick, int aKill)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Bus_setInaudibleBehavior(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aMustTick, [MarshalAs(UnmanagedType.Bool)] bool aKill);
+	public void setInaudibleBehavior(bool aMustTick, bool aKill)
 	{
 		Bus_setInaudibleBehavior(objhandle, aMustTick, aKill);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Bus_setLoopPoint(IntPtr aObjHandle, double aLoopPoint);
 	public void setLoopPoint(double aLoopPoint)
 	{
 		Bus_setLoopPoint(objhandle, aLoopPoint);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern double Bus_getLoopPoint(IntPtr aObjHandle);
 	public double getLoopPoint()
 	{
 		return Bus_getLoopPoint(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Bus_stop(IntPtr aObjHandle);
 	public void stop()
 	{
@@ -1036,49 +1340,141 @@ public class Bus : SoloudObject
 	}
 }
 
-public class DCRemovalFilter : SoloudObject
+public partial class DCRemovalFilter : SoloudObject, IDisposable
 {
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr DCRemovalFilter_create();
 	public DCRemovalFilter()
 	{
 		objhandle = DCRemovalFilter_create();
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr DCRemovalFilter_destroy(IntPtr aObjHandle);
 	~DCRemovalFilter()
 	{
 		DCRemovalFilter_destroy(objhandle);
 	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			DCRemovalFilter_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int DCRemovalFilter_setParamsEx(IntPtr aObjHandle, float aLength);
 	public int setParams(float aLength = 0.1f)
 	{
 		return DCRemovalFilter_setParamsEx(objhandle, aLength);
 	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int DCRemovalFilter_getParamCount(IntPtr aObjHandle);
+	public int getParamCount()
+	{
+		return DCRemovalFilter_getParamCount(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr DCRemovalFilter_getParamName(IntPtr aObjHandle, uint aParamIndex);
+	public string getParamName(uint aParamIndex)
+	{
+		IntPtr p = DCRemovalFilter_getParamName(objhandle, aParamIndex);
+		return Marshal.PtrToStringAnsi(p);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern uint DCRemovalFilter_getParamType(IntPtr aObjHandle, uint aParamIndex);
+	public uint getParamType(uint aParamIndex)
+	{
+		return DCRemovalFilter_getParamType(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern float DCRemovalFilter_getParamMax(IntPtr aObjHandle, uint aParamIndex);
+	public float getParamMax(uint aParamIndex)
+	{
+		return DCRemovalFilter_getParamMax(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern float DCRemovalFilter_getParamMin(IntPtr aObjHandle, uint aParamIndex);
+	public float getParamMin(uint aParamIndex)
+	{
+		return DCRemovalFilter_getParamMin(objhandle, aParamIndex);
+	}
 }
 
-public class EchoFilter : SoloudObject
+public partial class EchoFilter : SoloudObject, IDisposable
 {
+	public const int WET = 0;
+	public const int DELAY = 1;
+	public const int DECAY = 2;
+	public const int FILTER = 3;
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr EchoFilter_create();
 	public EchoFilter()
 	{
 		objhandle = EchoFilter_create();
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr EchoFilter_destroy(IntPtr aObjHandle);
 	~EchoFilter()
 	{
 		EchoFilter_destroy(objhandle);
 	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			EchoFilter_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int EchoFilter_getParamCount(IntPtr aObjHandle);
+	public int getParamCount()
+	{
+		return EchoFilter_getParamCount(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr EchoFilter_getParamName(IntPtr aObjHandle, uint aParamIndex);
+	public string getParamName(uint aParamIndex)
+	{
+		IntPtr p = EchoFilter_getParamName(objhandle, aParamIndex);
+		return Marshal.PtrToStringAnsi(p);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern uint EchoFilter_getParamType(IntPtr aObjHandle, uint aParamIndex);
+	public uint getParamType(uint aParamIndex)
+	{
+		return EchoFilter_getParamType(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern float EchoFilter_getParamMax(IntPtr aObjHandle, uint aParamIndex);
+	public float getParamMax(uint aParamIndex)
+	{
+		return EchoFilter_getParamMax(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern float EchoFilter_getParamMin(IntPtr aObjHandle, uint aParamIndex);
+	public float getParamMin(uint aParamIndex)
+	{
+		return EchoFilter_getParamMin(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int EchoFilter_setParamsEx(IntPtr aObjHandle, float aDelay, float aDecay, float aFilter);
 	public int setParams(float aDelay, float aDecay = 0.7f, float aFilter = 0.0f)
 	{
@@ -1086,45 +1482,133 @@ public class EchoFilter : SoloudObject
 	}
 }
 
-public class FFTFilter : SoloudObject
+public partial class FFTFilter : SoloudObject, IDisposable
 {
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr FFTFilter_create();
 	public FFTFilter()
 	{
 		objhandle = FFTFilter_create();
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr FFTFilter_destroy(IntPtr aObjHandle);
 	~FFTFilter()
 	{
 		FFTFilter_destroy(objhandle);
 	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			FFTFilter_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int FFTFilter_getParamCount(IntPtr aObjHandle);
+	public int getParamCount()
+	{
+		return FFTFilter_getParamCount(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr FFTFilter_getParamName(IntPtr aObjHandle, uint aParamIndex);
+	public string getParamName(uint aParamIndex)
+	{
+		IntPtr p = FFTFilter_getParamName(objhandle, aParamIndex);
+		return Marshal.PtrToStringAnsi(p);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern uint FFTFilter_getParamType(IntPtr aObjHandle, uint aParamIndex);
+	public uint getParamType(uint aParamIndex)
+	{
+		return FFTFilter_getParamType(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern float FFTFilter_getParamMax(IntPtr aObjHandle, uint aParamIndex);
+	public float getParamMax(uint aParamIndex)
+	{
+		return FFTFilter_getParamMax(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern float FFTFilter_getParamMin(IntPtr aObjHandle, uint aParamIndex);
+	public float getParamMin(uint aParamIndex)
+	{
+		return FFTFilter_getParamMin(objhandle, aParamIndex);
+	}
 }
 
-public class FlangerFilter : SoloudObject
+public partial class FlangerFilter : SoloudObject, IDisposable
 {
-	public const int FREQ = 2;
 	public const int WET = 0;
 	public const int DELAY = 1;
+	public const int FREQ = 2;
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr FlangerFilter_create();
 	public FlangerFilter()
 	{
 		objhandle = FlangerFilter_create();
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr FlangerFilter_destroy(IntPtr aObjHandle);
 	~FlangerFilter()
 	{
 		FlangerFilter_destroy(objhandle);
 	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			FlangerFilter_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int FlangerFilter_getParamCount(IntPtr aObjHandle);
+	public int getParamCount()
+	{
+		return FlangerFilter_getParamCount(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr FlangerFilter_getParamName(IntPtr aObjHandle, uint aParamIndex);
+	public string getParamName(uint aParamIndex)
+	{
+		IntPtr p = FlangerFilter_getParamName(objhandle, aParamIndex);
+		return Marshal.PtrToStringAnsi(p);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern uint FlangerFilter_getParamType(IntPtr aObjHandle, uint aParamIndex);
+	public uint getParamType(uint aParamIndex)
+	{
+		return FlangerFilter_getParamType(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern float FlangerFilter_getParamMax(IntPtr aObjHandle, uint aParamIndex);
+	public float getParamMax(uint aParamIndex)
+	{
+		return FlangerFilter_getParamMax(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern float FlangerFilter_getParamMin(IntPtr aObjHandle, uint aParamIndex);
+	public float getParamMin(uint aParamIndex)
+	{
+		return FlangerFilter_getParamMin(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int FlangerFilter_setParams(IntPtr aObjHandle, float aDelay, float aFreq);
 	public int setParams(float aDelay, float aFreq)
 	{
@@ -1132,27 +1616,145 @@ public class FlangerFilter : SoloudObject
 	}
 }
 
-public class LofiFilter : SoloudObject
+public partial class FreeverbFilter : SoloudObject, IDisposable
 {
+	public const int WET = 0;
+	public const int FREEZE = 1;
+	public const int ROOMSIZE = 2;
+	public const int DAMP = 3;
+	public const int WIDTH = 4;
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr FreeverbFilter_create();
+	public FreeverbFilter()
+	{
+		objhandle = FreeverbFilter_create();
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr FreeverbFilter_destroy(IntPtr aObjHandle);
+	~FreeverbFilter()
+	{
+		FreeverbFilter_destroy(objhandle);
+	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			FreeverbFilter_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int FreeverbFilter_getParamCount(IntPtr aObjHandle);
+	public int getParamCount()
+	{
+		return FreeverbFilter_getParamCount(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr FreeverbFilter_getParamName(IntPtr aObjHandle, uint aParamIndex);
+	public string getParamName(uint aParamIndex)
+	{
+		IntPtr p = FreeverbFilter_getParamName(objhandle, aParamIndex);
+		return Marshal.PtrToStringAnsi(p);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern uint FreeverbFilter_getParamType(IntPtr aObjHandle, uint aParamIndex);
+	public uint getParamType(uint aParamIndex)
+	{
+		return FreeverbFilter_getParamType(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern float FreeverbFilter_getParamMax(IntPtr aObjHandle, uint aParamIndex);
+	public float getParamMax(uint aParamIndex)
+	{
+		return FreeverbFilter_getParamMax(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern float FreeverbFilter_getParamMin(IntPtr aObjHandle, uint aParamIndex);
+	public float getParamMin(uint aParamIndex)
+	{
+		return FreeverbFilter_getParamMin(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int FreeverbFilter_setParams(IntPtr aObjHandle, float aMode, float aRoomSize, float aDamp, float aWidth);
+	public int setParams(float aMode, float aRoomSize, float aDamp, float aWidth)
+	{
+		return FreeverbFilter_setParams(objhandle, aMode, aRoomSize, aDamp, aWidth);
+	}
+}
+
+public partial class LofiFilter : SoloudObject, IDisposable
+{
+	public const int WET = 0;
 	public const int SAMPLERATE = 1;
 	public const int BITDEPTH = 2;
-	public const int WET = 0;
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr LofiFilter_create();
 	public LofiFilter()
 	{
 		objhandle = LofiFilter_create();
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr LofiFilter_destroy(IntPtr aObjHandle);
 	~LofiFilter()
 	{
 		LofiFilter_destroy(objhandle);
 	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			LofiFilter_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int LofiFilter_getParamCount(IntPtr aObjHandle);
+	public int getParamCount()
+	{
+		return LofiFilter_getParamCount(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr LofiFilter_getParamName(IntPtr aObjHandle, uint aParamIndex);
+	public string getParamName(uint aParamIndex)
+	{
+		IntPtr p = LofiFilter_getParamName(objhandle, aParamIndex);
+		return Marshal.PtrToStringAnsi(p);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern uint LofiFilter_getParamType(IntPtr aObjHandle, uint aParamIndex);
+	public uint getParamType(uint aParamIndex)
+	{
+		return LofiFilter_getParamType(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern float LofiFilter_getParamMax(IntPtr aObjHandle, uint aParamIndex);
+	public float getParamMax(uint aParamIndex)
+	{
+		return LofiFilter_getParamMax(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern float LofiFilter_getParamMin(IntPtr aObjHandle, uint aParamIndex);
+	public float getParamMin(uint aParamIndex)
+	{
+		return LofiFilter_getParamMin(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int LofiFilter_setParams(IntPtr aObjHandle, float aSampleRate, float aBitdepth);
 	public int setParams(float aSampleRate, float aBitdepth)
 	{
@@ -1160,150 +1762,626 @@ public class LofiFilter : SoloudObject
 	}
 }
 
-public class Queue : SoloudObject
+public partial class Monotone : SoloudObject, IDisposable
 {
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr Monotone_create();
+	public Monotone()
+	{
+		objhandle = Monotone_create();
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr Monotone_destroy(IntPtr aObjHandle);
+	~Monotone()
+	{
+		Monotone_destroy(objhandle);
+	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			Monotone_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int Monotone_setParamsEx(IntPtr aObjHandle, int aHardwareChannels, int aWaveform);
+	public int setParams(int aHardwareChannels, int aWaveform = Soloud.WAVE_SQUARE)
+	{
+		return Monotone_setParamsEx(objhandle, aHardwareChannels, aWaveform);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int Monotone_load(IntPtr aObjHandle, [MarshalAs(UnmanagedType.LPStr)] string aFilename);
+	public int load(string aFilename)
+	{
+		return Monotone_load(objhandle, aFilename);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int Monotone_loadMemEx(IntPtr aObjHandle, IntPtr aMem, uint aLength, [MarshalAs(UnmanagedType.Bool)] bool aCopy, [MarshalAs(UnmanagedType.Bool)] bool aTakeOwnership);
+	public int loadMem(IntPtr aMem, uint aLength, bool aCopy = false, bool aTakeOwnership = true)
+	{
+		return Monotone_loadMemEx(objhandle, aMem, aLength, aCopy, aTakeOwnership);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int Monotone_loadFile(IntPtr aObjHandle, IntPtr aFile);
+	public int loadFile(SoloudObject aFile)
+	{
+		return Monotone_loadFile(objhandle, aFile.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Monotone_setVolume(IntPtr aObjHandle, float aVolume);
+	public void setVolume(float aVolume)
+	{
+		Monotone_setVolume(objhandle, aVolume);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Monotone_setLooping(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aLoop);
+	public void setLooping(bool aLoop)
+	{
+		Monotone_setLooping(objhandle, aLoop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Monotone_setAutoStop(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aAutoStop);
+	public void setAutoStop(bool aAutoStop)
+	{
+		Monotone_setAutoStop(objhandle, aAutoStop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Monotone_set3dMinMaxDistance(IntPtr aObjHandle, float aMinDistance, float aMaxDistance);
+	public void set3dMinMaxDistance(float aMinDistance, float aMaxDistance)
+	{
+		Monotone_set3dMinMaxDistance(objhandle, aMinDistance, aMaxDistance);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Monotone_set3dAttenuation(IntPtr aObjHandle, uint aAttenuationModel, float aAttenuationRolloffFactor);
+	public void set3dAttenuation(uint aAttenuationModel, float aAttenuationRolloffFactor)
+	{
+		Monotone_set3dAttenuation(objhandle, aAttenuationModel, aAttenuationRolloffFactor);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Monotone_set3dDopplerFactor(IntPtr aObjHandle, float aDopplerFactor);
+	public void set3dDopplerFactor(float aDopplerFactor)
+	{
+		Monotone_set3dDopplerFactor(objhandle, aDopplerFactor);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Monotone_set3dListenerRelative(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aListenerRelative);
+	public void set3dListenerRelative(bool aListenerRelative)
+	{
+		Monotone_set3dListenerRelative(objhandle, aListenerRelative);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Monotone_set3dDistanceDelay(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aDistanceDelay);
+	public void set3dDistanceDelay(bool aDistanceDelay)
+	{
+		Monotone_set3dDistanceDelay(objhandle, aDistanceDelay);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Monotone_set3dColliderEx(IntPtr aObjHandle, IntPtr aCollider, int aUserData);
+	public void set3dCollider(SoloudObject aCollider, int aUserData = 0)
+	{
+		Monotone_set3dColliderEx(objhandle, aCollider.objhandle, aUserData);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Monotone_set3dAttenuator(IntPtr aObjHandle, IntPtr aAttenuator);
+	public void set3dAttenuator(SoloudObject aAttenuator)
+	{
+		Monotone_set3dAttenuator(objhandle, aAttenuator.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Monotone_setInaudibleBehavior(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aMustTick, [MarshalAs(UnmanagedType.Bool)] bool aKill);
+	public void setInaudibleBehavior(bool aMustTick, bool aKill)
+	{
+		Monotone_setInaudibleBehavior(objhandle, aMustTick, aKill);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Monotone_setLoopPoint(IntPtr aObjHandle, double aLoopPoint);
+	public void setLoopPoint(double aLoopPoint)
+	{
+		Monotone_setLoopPoint(objhandle, aLoopPoint);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern double Monotone_getLoopPoint(IntPtr aObjHandle);
+	public double getLoopPoint()
+	{
+		return Monotone_getLoopPoint(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Monotone_setFilter(IntPtr aObjHandle, uint aFilterId, IntPtr aFilter);
+	public void setFilter(uint aFilterId, SoloudObject aFilter)
+	{
+		Monotone_setFilter(objhandle, aFilterId, aFilter.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Monotone_stop(IntPtr aObjHandle);
+	public void stop()
+	{
+		Monotone_stop(objhandle);
+	}
+}
+
+public partial class Noise : SoloudObject, IDisposable
+{
+	public const int WHITE = 0;
+	public const int PINK = 1;
+	public const int BROWNISH = 2;
+	public const int BLUEISH = 3;
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr Noise_create();
+	public Noise()
+	{
+		objhandle = Noise_create();
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr Noise_destroy(IntPtr aObjHandle);
+	~Noise()
+	{
+		Noise_destroy(objhandle);
+	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			Noise_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Noise_setOctaveScale(IntPtr aObjHandle, float aOct0, float aOct1, float aOct2, float aOct3, float aOct4, float aOct5, float aOct6, float aOct7, float aOct8, float aOct9);
+	public void setOctaveScale(float aOct0, float aOct1, float aOct2, float aOct3, float aOct4, float aOct5, float aOct6, float aOct7, float aOct8, float aOct9)
+	{
+		Noise_setOctaveScale(objhandle, aOct0, aOct1, aOct2, aOct3, aOct4, aOct5, aOct6, aOct7, aOct8, aOct9);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Noise_setType(IntPtr aObjHandle, int aType);
+	public void setType(int aType)
+	{
+		Noise_setType(objhandle, aType);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Noise_setVolume(IntPtr aObjHandle, float aVolume);
+	public void setVolume(float aVolume)
+	{
+		Noise_setVolume(objhandle, aVolume);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Noise_setLooping(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aLoop);
+	public void setLooping(bool aLoop)
+	{
+		Noise_setLooping(objhandle, aLoop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Noise_setAutoStop(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aAutoStop);
+	public void setAutoStop(bool aAutoStop)
+	{
+		Noise_setAutoStop(objhandle, aAutoStop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Noise_set3dMinMaxDistance(IntPtr aObjHandle, float aMinDistance, float aMaxDistance);
+	public void set3dMinMaxDistance(float aMinDistance, float aMaxDistance)
+	{
+		Noise_set3dMinMaxDistance(objhandle, aMinDistance, aMaxDistance);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Noise_set3dAttenuation(IntPtr aObjHandle, uint aAttenuationModel, float aAttenuationRolloffFactor);
+	public void set3dAttenuation(uint aAttenuationModel, float aAttenuationRolloffFactor)
+	{
+		Noise_set3dAttenuation(objhandle, aAttenuationModel, aAttenuationRolloffFactor);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Noise_set3dDopplerFactor(IntPtr aObjHandle, float aDopplerFactor);
+	public void set3dDopplerFactor(float aDopplerFactor)
+	{
+		Noise_set3dDopplerFactor(objhandle, aDopplerFactor);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Noise_set3dListenerRelative(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aListenerRelative);
+	public void set3dListenerRelative(bool aListenerRelative)
+	{
+		Noise_set3dListenerRelative(objhandle, aListenerRelative);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Noise_set3dDistanceDelay(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aDistanceDelay);
+	public void set3dDistanceDelay(bool aDistanceDelay)
+	{
+		Noise_set3dDistanceDelay(objhandle, aDistanceDelay);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Noise_set3dColliderEx(IntPtr aObjHandle, IntPtr aCollider, int aUserData);
+	public void set3dCollider(SoloudObject aCollider, int aUserData = 0)
+	{
+		Noise_set3dColliderEx(objhandle, aCollider.objhandle, aUserData);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Noise_set3dAttenuator(IntPtr aObjHandle, IntPtr aAttenuator);
+	public void set3dAttenuator(SoloudObject aAttenuator)
+	{
+		Noise_set3dAttenuator(objhandle, aAttenuator.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Noise_setInaudibleBehavior(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aMustTick, [MarshalAs(UnmanagedType.Bool)] bool aKill);
+	public void setInaudibleBehavior(bool aMustTick, bool aKill)
+	{
+		Noise_setInaudibleBehavior(objhandle, aMustTick, aKill);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Noise_setLoopPoint(IntPtr aObjHandle, double aLoopPoint);
+	public void setLoopPoint(double aLoopPoint)
+	{
+		Noise_setLoopPoint(objhandle, aLoopPoint);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern double Noise_getLoopPoint(IntPtr aObjHandle);
+	public double getLoopPoint()
+	{
+		return Noise_getLoopPoint(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Noise_setFilter(IntPtr aObjHandle, uint aFilterId, IntPtr aFilter);
+	public void setFilter(uint aFilterId, SoloudObject aFilter)
+	{
+		Noise_setFilter(objhandle, aFilterId, aFilter.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Noise_stop(IntPtr aObjHandle);
+	public void stop()
+	{
+		Noise_stop(objhandle);
+	}
+}
+
+public partial class Openmpt : SoloudObject, IDisposable
+{
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr Openmpt_create();
+	public Openmpt()
+	{
+		objhandle = Openmpt_create();
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr Openmpt_destroy(IntPtr aObjHandle);
+	~Openmpt()
+	{
+		Openmpt_destroy(objhandle);
+	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			Openmpt_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int Openmpt_load(IntPtr aObjHandle, [MarshalAs(UnmanagedType.LPStr)] string aFilename);
+	public int load(string aFilename)
+	{
+		return Openmpt_load(objhandle, aFilename);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int Openmpt_loadMemEx(IntPtr aObjHandle, IntPtr aMem, uint aLength, [MarshalAs(UnmanagedType.Bool)] bool aCopy, [MarshalAs(UnmanagedType.Bool)] bool aTakeOwnership);
+	public int loadMem(IntPtr aMem, uint aLength, bool aCopy = false, bool aTakeOwnership = true)
+	{
+		return Openmpt_loadMemEx(objhandle, aMem, aLength, aCopy, aTakeOwnership);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int Openmpt_loadFile(IntPtr aObjHandle, IntPtr aFile);
+	public int loadFile(SoloudObject aFile)
+	{
+		return Openmpt_loadFile(objhandle, aFile.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Openmpt_setVolume(IntPtr aObjHandle, float aVolume);
+	public void setVolume(float aVolume)
+	{
+		Openmpt_setVolume(objhandle, aVolume);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Openmpt_setLooping(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aLoop);
+	public void setLooping(bool aLoop)
+	{
+		Openmpt_setLooping(objhandle, aLoop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Openmpt_setAutoStop(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aAutoStop);
+	public void setAutoStop(bool aAutoStop)
+	{
+		Openmpt_setAutoStop(objhandle, aAutoStop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Openmpt_set3dMinMaxDistance(IntPtr aObjHandle, float aMinDistance, float aMaxDistance);
+	public void set3dMinMaxDistance(float aMinDistance, float aMaxDistance)
+	{
+		Openmpt_set3dMinMaxDistance(objhandle, aMinDistance, aMaxDistance);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Openmpt_set3dAttenuation(IntPtr aObjHandle, uint aAttenuationModel, float aAttenuationRolloffFactor);
+	public void set3dAttenuation(uint aAttenuationModel, float aAttenuationRolloffFactor)
+	{
+		Openmpt_set3dAttenuation(objhandle, aAttenuationModel, aAttenuationRolloffFactor);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Openmpt_set3dDopplerFactor(IntPtr aObjHandle, float aDopplerFactor);
+	public void set3dDopplerFactor(float aDopplerFactor)
+	{
+		Openmpt_set3dDopplerFactor(objhandle, aDopplerFactor);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Openmpt_set3dListenerRelative(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aListenerRelative);
+	public void set3dListenerRelative(bool aListenerRelative)
+	{
+		Openmpt_set3dListenerRelative(objhandle, aListenerRelative);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Openmpt_set3dDistanceDelay(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aDistanceDelay);
+	public void set3dDistanceDelay(bool aDistanceDelay)
+	{
+		Openmpt_set3dDistanceDelay(objhandle, aDistanceDelay);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Openmpt_set3dColliderEx(IntPtr aObjHandle, IntPtr aCollider, int aUserData);
+	public void set3dCollider(SoloudObject aCollider, int aUserData = 0)
+	{
+		Openmpt_set3dColliderEx(objhandle, aCollider.objhandle, aUserData);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Openmpt_set3dAttenuator(IntPtr aObjHandle, IntPtr aAttenuator);
+	public void set3dAttenuator(SoloudObject aAttenuator)
+	{
+		Openmpt_set3dAttenuator(objhandle, aAttenuator.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Openmpt_setInaudibleBehavior(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aMustTick, [MarshalAs(UnmanagedType.Bool)] bool aKill);
+	public void setInaudibleBehavior(bool aMustTick, bool aKill)
+	{
+		Openmpt_setInaudibleBehavior(objhandle, aMustTick, aKill);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Openmpt_setLoopPoint(IntPtr aObjHandle, double aLoopPoint);
+	public void setLoopPoint(double aLoopPoint)
+	{
+		Openmpt_setLoopPoint(objhandle, aLoopPoint);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern double Openmpt_getLoopPoint(IntPtr aObjHandle);
+	public double getLoopPoint()
+	{
+		return Openmpt_getLoopPoint(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Openmpt_setFilter(IntPtr aObjHandle, uint aFilterId, IntPtr aFilter);
+	public void setFilter(uint aFilterId, SoloudObject aFilter)
+	{
+		Openmpt_setFilter(objhandle, aFilterId, aFilter.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Openmpt_stop(IntPtr aObjHandle);
+	public void stop()
+	{
+		Openmpt_stop(objhandle);
+	}
+}
+
+public partial class Queue : SoloudObject, IDisposable
+{
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr Queue_create();
 	public Queue()
 	{
 		objhandle = Queue_create();
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr Queue_destroy(IntPtr aObjHandle);
 	~Queue()
 	{
 		Queue_destroy(objhandle);
 	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			Queue_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int Queue_play(IntPtr aObjHandle, IntPtr aSound);
 	public int play(SoloudObject aSound)
 	{
 		return Queue_play(objhandle, aSound.objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern uint Queue_getQueueCount(IntPtr aObjHandle);
 	public uint getQueueCount()
 	{
 		return Queue_getQueueCount(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern int Queue_isCurrentlyPlaying(IntPtr aObjHandle, IntPtr aSound);
-	public int isCurrentlyPlaying(SoloudObject aSound)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	[return:MarshalAs(UnmanagedType.Bool)]
+	internal static extern bool Queue_isCurrentlyPlaying(IntPtr aObjHandle, IntPtr aSound);
+	public bool isCurrentlyPlaying(SoloudObject aSound)
 	{
 		return Queue_isCurrentlyPlaying(objhandle, aSound.objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int Queue_setParamsFromAudioSource(IntPtr aObjHandle, IntPtr aSound);
 	public int setParamsFromAudioSource(SoloudObject aSound)
 	{
 		return Queue_setParamsFromAudioSource(objhandle, aSound.objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int Queue_setParamsEx(IntPtr aObjHandle, float aSamplerate, uint aChannels);
 	public int setParams(float aSamplerate, uint aChannels = 2)
 	{
 		return Queue_setParamsEx(objhandle, aSamplerate, aChannels);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Queue_setVolume(IntPtr aObjHandle, float aVolume);
 	public void setVolume(float aVolume)
 	{
 		Queue_setVolume(objhandle, aVolume);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void Queue_setLooping(IntPtr aObjHandle, int aLoop);
-	public void setLooping(int aLoop)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Queue_setLooping(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aLoop);
+	public void setLooping(bool aLoop)
 	{
 		Queue_setLooping(objhandle, aLoop);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Queue_setAutoStop(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aAutoStop);
+	public void setAutoStop(bool aAutoStop)
+	{
+		Queue_setAutoStop(objhandle, aAutoStop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Queue_set3dMinMaxDistance(IntPtr aObjHandle, float aMinDistance, float aMaxDistance);
 	public void set3dMinMaxDistance(float aMinDistance, float aMaxDistance)
 	{
 		Queue_set3dMinMaxDistance(objhandle, aMinDistance, aMaxDistance);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Queue_set3dAttenuation(IntPtr aObjHandle, uint aAttenuationModel, float aAttenuationRolloffFactor);
 	public void set3dAttenuation(uint aAttenuationModel, float aAttenuationRolloffFactor)
 	{
 		Queue_set3dAttenuation(objhandle, aAttenuationModel, aAttenuationRolloffFactor);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Queue_set3dDopplerFactor(IntPtr aObjHandle, float aDopplerFactor);
 	public void set3dDopplerFactor(float aDopplerFactor)
 	{
 		Queue_set3dDopplerFactor(objhandle, aDopplerFactor);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void Queue_set3dListenerRelative(IntPtr aObjHandle, int aListenerRelative);
-	public void set3dListenerRelative(int aListenerRelative)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Queue_set3dListenerRelative(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aListenerRelative);
+	public void set3dListenerRelative(bool aListenerRelative)
 	{
 		Queue_set3dListenerRelative(objhandle, aListenerRelative);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void Queue_set3dDistanceDelay(IntPtr aObjHandle, int aDistanceDelay);
-	public void set3dDistanceDelay(int aDistanceDelay)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Queue_set3dDistanceDelay(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aDistanceDelay);
+	public void set3dDistanceDelay(bool aDistanceDelay)
 	{
 		Queue_set3dDistanceDelay(objhandle, aDistanceDelay);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Queue_set3dColliderEx(IntPtr aObjHandle, IntPtr aCollider, int aUserData);
 	public void set3dCollider(SoloudObject aCollider, int aUserData = 0)
 	{
 		Queue_set3dColliderEx(objhandle, aCollider.objhandle, aUserData);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Queue_set3dAttenuator(IntPtr aObjHandle, IntPtr aAttenuator);
 	public void set3dAttenuator(SoloudObject aAttenuator)
 	{
 		Queue_set3dAttenuator(objhandle, aAttenuator.objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void Queue_setInaudibleBehavior(IntPtr aObjHandle, int aMustTick, int aKill);
-	public void setInaudibleBehavior(int aMustTick, int aKill)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Queue_setInaudibleBehavior(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aMustTick, [MarshalAs(UnmanagedType.Bool)] bool aKill);
+	public void setInaudibleBehavior(bool aMustTick, bool aKill)
 	{
 		Queue_setInaudibleBehavior(objhandle, aMustTick, aKill);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Queue_setLoopPoint(IntPtr aObjHandle, double aLoopPoint);
 	public void setLoopPoint(double aLoopPoint)
 	{
 		Queue_setLoopPoint(objhandle, aLoopPoint);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern double Queue_getLoopPoint(IntPtr aObjHandle);
 	public double getLoopPoint()
 	{
 		return Queue_getLoopPoint(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Queue_setFilter(IntPtr aObjHandle, uint aFilterId, IntPtr aFilter);
 	public void setFilter(uint aFilterId, SoloudObject aFilter)
 	{
 		Queue_setFilter(objhandle, aFilterId, aFilter.objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Queue_stop(IntPtr aObjHandle);
 	public void stop()
 	{
@@ -1311,191 +2389,1032 @@ public class Queue : SoloudObject
 	}
 }
 
-public class RobotizeFilter : SoloudObject
+public partial class RobotizeFilter : SoloudObject, IDisposable
 {
 	public const int WET = 0;
+	public const int FREQ = 1;
+	public const int WAVE = 2;
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr RobotizeFilter_create();
 	public RobotizeFilter()
 	{
 		objhandle = RobotizeFilter_create();
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr RobotizeFilter_destroy(IntPtr aObjHandle);
 	~RobotizeFilter()
 	{
 		RobotizeFilter_destroy(objhandle);
 	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			RobotizeFilter_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int RobotizeFilter_getParamCount(IntPtr aObjHandle);
+	public int getParamCount()
+	{
+		return RobotizeFilter_getParamCount(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr RobotizeFilter_getParamName(IntPtr aObjHandle, uint aParamIndex);
+	public string getParamName(uint aParamIndex)
+	{
+		IntPtr p = RobotizeFilter_getParamName(objhandle, aParamIndex);
+		return Marshal.PtrToStringAnsi(p);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern uint RobotizeFilter_getParamType(IntPtr aObjHandle, uint aParamIndex);
+	public uint getParamType(uint aParamIndex)
+	{
+		return RobotizeFilter_getParamType(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern float RobotizeFilter_getParamMax(IntPtr aObjHandle, uint aParamIndex);
+	public float getParamMax(uint aParamIndex)
+	{
+		return RobotizeFilter_getParamMax(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern float RobotizeFilter_getParamMin(IntPtr aObjHandle, uint aParamIndex);
+	public float getParamMin(uint aParamIndex)
+	{
+		return RobotizeFilter_getParamMin(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void RobotizeFilter_setParams(IntPtr aObjHandle, float aFreq, int aWaveform);
+	public void setParams(float aFreq, int aWaveform)
+	{
+		RobotizeFilter_setParams(objhandle, aFreq, aWaveform);
+	}
 }
 
-public class Wav : SoloudObject
+public partial class Sfxr : SoloudObject, IDisposable
+{
+	public const int COIN = 0;
+	public const int LASER = 1;
+	public const int EXPLOSION = 2;
+	public const int POWERUP = 3;
+	public const int HURT = 4;
+	public const int JUMP = 5;
+	public const int BLIP = 6;
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr Sfxr_create();
+	public Sfxr()
+	{
+		objhandle = Sfxr_create();
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr Sfxr_destroy(IntPtr aObjHandle);
+	~Sfxr()
+	{
+		Sfxr_destroy(objhandle);
+	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			Sfxr_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Sfxr_resetParams(IntPtr aObjHandle);
+	public void resetParams()
+	{
+		Sfxr_resetParams(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int Sfxr_loadParams(IntPtr aObjHandle, [MarshalAs(UnmanagedType.LPStr)] string aFilename);
+	public int loadParams(string aFilename)
+	{
+		return Sfxr_loadParams(objhandle, aFilename);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int Sfxr_loadParamsMemEx(IntPtr aObjHandle, IntPtr aMem, uint aLength, [MarshalAs(UnmanagedType.Bool)] bool aCopy, [MarshalAs(UnmanagedType.Bool)] bool aTakeOwnership);
+	public int loadParamsMem(IntPtr aMem, uint aLength, bool aCopy = false, bool aTakeOwnership = true)
+	{
+		return Sfxr_loadParamsMemEx(objhandle, aMem, aLength, aCopy, aTakeOwnership);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int Sfxr_loadParamsFile(IntPtr aObjHandle, IntPtr aFile);
+	public int loadParamsFile(SoloudObject aFile)
+	{
+		return Sfxr_loadParamsFile(objhandle, aFile.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int Sfxr_loadPreset(IntPtr aObjHandle, int aPresetNo, int aRandSeed);
+	public int loadPreset(int aPresetNo, int aRandSeed)
+	{
+		return Sfxr_loadPreset(objhandle, aPresetNo, aRandSeed);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Sfxr_setVolume(IntPtr aObjHandle, float aVolume);
+	public void setVolume(float aVolume)
+	{
+		Sfxr_setVolume(objhandle, aVolume);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Sfxr_setLooping(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aLoop);
+	public void setLooping(bool aLoop)
+	{
+		Sfxr_setLooping(objhandle, aLoop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Sfxr_setAutoStop(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aAutoStop);
+	public void setAutoStop(bool aAutoStop)
+	{
+		Sfxr_setAutoStop(objhandle, aAutoStop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Sfxr_set3dMinMaxDistance(IntPtr aObjHandle, float aMinDistance, float aMaxDistance);
+	public void set3dMinMaxDistance(float aMinDistance, float aMaxDistance)
+	{
+		Sfxr_set3dMinMaxDistance(objhandle, aMinDistance, aMaxDistance);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Sfxr_set3dAttenuation(IntPtr aObjHandle, uint aAttenuationModel, float aAttenuationRolloffFactor);
+	public void set3dAttenuation(uint aAttenuationModel, float aAttenuationRolloffFactor)
+	{
+		Sfxr_set3dAttenuation(objhandle, aAttenuationModel, aAttenuationRolloffFactor);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Sfxr_set3dDopplerFactor(IntPtr aObjHandle, float aDopplerFactor);
+	public void set3dDopplerFactor(float aDopplerFactor)
+	{
+		Sfxr_set3dDopplerFactor(objhandle, aDopplerFactor);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Sfxr_set3dListenerRelative(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aListenerRelative);
+	public void set3dListenerRelative(bool aListenerRelative)
+	{
+		Sfxr_set3dListenerRelative(objhandle, aListenerRelative);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Sfxr_set3dDistanceDelay(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aDistanceDelay);
+	public void set3dDistanceDelay(bool aDistanceDelay)
+	{
+		Sfxr_set3dDistanceDelay(objhandle, aDistanceDelay);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Sfxr_set3dColliderEx(IntPtr aObjHandle, IntPtr aCollider, int aUserData);
+	public void set3dCollider(SoloudObject aCollider, int aUserData = 0)
+	{
+		Sfxr_set3dColliderEx(objhandle, aCollider.objhandle, aUserData);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Sfxr_set3dAttenuator(IntPtr aObjHandle, IntPtr aAttenuator);
+	public void set3dAttenuator(SoloudObject aAttenuator)
+	{
+		Sfxr_set3dAttenuator(objhandle, aAttenuator.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Sfxr_setInaudibleBehavior(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aMustTick, [MarshalAs(UnmanagedType.Bool)] bool aKill);
+	public void setInaudibleBehavior(bool aMustTick, bool aKill)
+	{
+		Sfxr_setInaudibleBehavior(objhandle, aMustTick, aKill);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Sfxr_setLoopPoint(IntPtr aObjHandle, double aLoopPoint);
+	public void setLoopPoint(double aLoopPoint)
+	{
+		Sfxr_setLoopPoint(objhandle, aLoopPoint);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern double Sfxr_getLoopPoint(IntPtr aObjHandle);
+	public double getLoopPoint()
+	{
+		return Sfxr_getLoopPoint(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Sfxr_setFilter(IntPtr aObjHandle, uint aFilterId, IntPtr aFilter);
+	public void setFilter(uint aFilterId, SoloudObject aFilter)
+	{
+		Sfxr_setFilter(objhandle, aFilterId, aFilter.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Sfxr_stop(IntPtr aObjHandle);
+	public void stop()
+	{
+		Sfxr_stop(objhandle);
+	}
+}
+
+public partial class Speech : SoloudObject, IDisposable
+{
+	public const int KW_SAW = 0;
+	public const int KW_TRIANGLE = 1;
+	public const int KW_SIN = 2;
+	public const int KW_SQUARE = 3;
+	public const int KW_PULSE = 4;
+	public const int KW_NOISE = 5;
+	public const int KW_WARBLE = 6;
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr Speech_create();
+	public Speech()
+	{
+		objhandle = Speech_create();
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr Speech_destroy(IntPtr aObjHandle);
+	~Speech()
+	{
+		Speech_destroy(objhandle);
+	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			Speech_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int Speech_setText(IntPtr aObjHandle, [MarshalAs(UnmanagedType.LPStr)] string aText);
+	public int setText(string aText)
+	{
+		return Speech_setText(objhandle, aText);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int Speech_setParamsEx(IntPtr aObjHandle, uint aBaseFrequency, float aBaseSpeed, float aBaseDeclination, int aBaseWaveform);
+	public int setParams(uint aBaseFrequency = 1330, float aBaseSpeed = 10.0f, float aBaseDeclination = 0.5f, int aBaseWaveform = KW_TRIANGLE)
+	{
+		return Speech_setParamsEx(objhandle, aBaseFrequency, aBaseSpeed, aBaseDeclination, aBaseWaveform);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Speech_setVolume(IntPtr aObjHandle, float aVolume);
+	public void setVolume(float aVolume)
+	{
+		Speech_setVolume(objhandle, aVolume);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Speech_setLooping(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aLoop);
+	public void setLooping(bool aLoop)
+	{
+		Speech_setLooping(objhandle, aLoop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Speech_setAutoStop(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aAutoStop);
+	public void setAutoStop(bool aAutoStop)
+	{
+		Speech_setAutoStop(objhandle, aAutoStop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Speech_set3dMinMaxDistance(IntPtr aObjHandle, float aMinDistance, float aMaxDistance);
+	public void set3dMinMaxDistance(float aMinDistance, float aMaxDistance)
+	{
+		Speech_set3dMinMaxDistance(objhandle, aMinDistance, aMaxDistance);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Speech_set3dAttenuation(IntPtr aObjHandle, uint aAttenuationModel, float aAttenuationRolloffFactor);
+	public void set3dAttenuation(uint aAttenuationModel, float aAttenuationRolloffFactor)
+	{
+		Speech_set3dAttenuation(objhandle, aAttenuationModel, aAttenuationRolloffFactor);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Speech_set3dDopplerFactor(IntPtr aObjHandle, float aDopplerFactor);
+	public void set3dDopplerFactor(float aDopplerFactor)
+	{
+		Speech_set3dDopplerFactor(objhandle, aDopplerFactor);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Speech_set3dListenerRelative(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aListenerRelative);
+	public void set3dListenerRelative(bool aListenerRelative)
+	{
+		Speech_set3dListenerRelative(objhandle, aListenerRelative);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Speech_set3dDistanceDelay(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aDistanceDelay);
+	public void set3dDistanceDelay(bool aDistanceDelay)
+	{
+		Speech_set3dDistanceDelay(objhandle, aDistanceDelay);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Speech_set3dColliderEx(IntPtr aObjHandle, IntPtr aCollider, int aUserData);
+	public void set3dCollider(SoloudObject aCollider, int aUserData = 0)
+	{
+		Speech_set3dColliderEx(objhandle, aCollider.objhandle, aUserData);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Speech_set3dAttenuator(IntPtr aObjHandle, IntPtr aAttenuator);
+	public void set3dAttenuator(SoloudObject aAttenuator)
+	{
+		Speech_set3dAttenuator(objhandle, aAttenuator.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Speech_setInaudibleBehavior(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aMustTick, [MarshalAs(UnmanagedType.Bool)] bool aKill);
+	public void setInaudibleBehavior(bool aMustTick, bool aKill)
+	{
+		Speech_setInaudibleBehavior(objhandle, aMustTick, aKill);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Speech_setLoopPoint(IntPtr aObjHandle, double aLoopPoint);
+	public void setLoopPoint(double aLoopPoint)
+	{
+		Speech_setLoopPoint(objhandle, aLoopPoint);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern double Speech_getLoopPoint(IntPtr aObjHandle);
+	public double getLoopPoint()
+	{
+		return Speech_getLoopPoint(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Speech_setFilter(IntPtr aObjHandle, uint aFilterId, IntPtr aFilter);
+	public void setFilter(uint aFilterId, SoloudObject aFilter)
+	{
+		Speech_setFilter(objhandle, aFilterId, aFilter.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Speech_stop(IntPtr aObjHandle);
+	public void stop()
+	{
+		Speech_stop(objhandle);
+	}
+}
+
+public partial class TedSid : SoloudObject, IDisposable
 {
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr TedSid_create();
+	public TedSid()
+	{
+		objhandle = TedSid_create();
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr TedSid_destroy(IntPtr aObjHandle);
+	~TedSid()
+	{
+		TedSid_destroy(objhandle);
+	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			TedSid_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int TedSid_load(IntPtr aObjHandle, [MarshalAs(UnmanagedType.LPStr)] string aFilename);
+	public int load(string aFilename)
+	{
+		return TedSid_load(objhandle, aFilename);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int TedSid_loadMemEx(IntPtr aObjHandle, IntPtr aMem, uint aLength, [MarshalAs(UnmanagedType.Bool)] bool aCopy, [MarshalAs(UnmanagedType.Bool)] bool aTakeOwnership);
+	public int loadMem(IntPtr aMem, uint aLength, bool aCopy = false, bool aTakeOwnership = true)
+	{
+		return TedSid_loadMemEx(objhandle, aMem, aLength, aCopy, aTakeOwnership);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int TedSid_loadFile(IntPtr aObjHandle, IntPtr aFile);
+	public int loadFile(SoloudObject aFile)
+	{
+		return TedSid_loadFile(objhandle, aFile.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void TedSid_setVolume(IntPtr aObjHandle, float aVolume);
+	public void setVolume(float aVolume)
+	{
+		TedSid_setVolume(objhandle, aVolume);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void TedSid_setLooping(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aLoop);
+	public void setLooping(bool aLoop)
+	{
+		TedSid_setLooping(objhandle, aLoop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void TedSid_setAutoStop(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aAutoStop);
+	public void setAutoStop(bool aAutoStop)
+	{
+		TedSid_setAutoStop(objhandle, aAutoStop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void TedSid_set3dMinMaxDistance(IntPtr aObjHandle, float aMinDistance, float aMaxDistance);
+	public void set3dMinMaxDistance(float aMinDistance, float aMaxDistance)
+	{
+		TedSid_set3dMinMaxDistance(objhandle, aMinDistance, aMaxDistance);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void TedSid_set3dAttenuation(IntPtr aObjHandle, uint aAttenuationModel, float aAttenuationRolloffFactor);
+	public void set3dAttenuation(uint aAttenuationModel, float aAttenuationRolloffFactor)
+	{
+		TedSid_set3dAttenuation(objhandle, aAttenuationModel, aAttenuationRolloffFactor);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void TedSid_set3dDopplerFactor(IntPtr aObjHandle, float aDopplerFactor);
+	public void set3dDopplerFactor(float aDopplerFactor)
+	{
+		TedSid_set3dDopplerFactor(objhandle, aDopplerFactor);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void TedSid_set3dListenerRelative(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aListenerRelative);
+	public void set3dListenerRelative(bool aListenerRelative)
+	{
+		TedSid_set3dListenerRelative(objhandle, aListenerRelative);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void TedSid_set3dDistanceDelay(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aDistanceDelay);
+	public void set3dDistanceDelay(bool aDistanceDelay)
+	{
+		TedSid_set3dDistanceDelay(objhandle, aDistanceDelay);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void TedSid_set3dColliderEx(IntPtr aObjHandle, IntPtr aCollider, int aUserData);
+	public void set3dCollider(SoloudObject aCollider, int aUserData = 0)
+	{
+		TedSid_set3dColliderEx(objhandle, aCollider.objhandle, aUserData);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void TedSid_set3dAttenuator(IntPtr aObjHandle, IntPtr aAttenuator);
+	public void set3dAttenuator(SoloudObject aAttenuator)
+	{
+		TedSid_set3dAttenuator(objhandle, aAttenuator.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void TedSid_setInaudibleBehavior(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aMustTick, [MarshalAs(UnmanagedType.Bool)] bool aKill);
+	public void setInaudibleBehavior(bool aMustTick, bool aKill)
+	{
+		TedSid_setInaudibleBehavior(objhandle, aMustTick, aKill);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void TedSid_setLoopPoint(IntPtr aObjHandle, double aLoopPoint);
+	public void setLoopPoint(double aLoopPoint)
+	{
+		TedSid_setLoopPoint(objhandle, aLoopPoint);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern double TedSid_getLoopPoint(IntPtr aObjHandle);
+	public double getLoopPoint()
+	{
+		return TedSid_getLoopPoint(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void TedSid_setFilter(IntPtr aObjHandle, uint aFilterId, IntPtr aFilter);
+	public void setFilter(uint aFilterId, SoloudObject aFilter)
+	{
+		TedSid_setFilter(objhandle, aFilterId, aFilter.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void TedSid_stop(IntPtr aObjHandle);
+	public void stop()
+	{
+		TedSid_stop(objhandle);
+	}
+}
+
+public partial class Vic : SoloudObject, IDisposable
+{
+	public const int PAL = 0;
+	public const int NTSC = 1;
+	public const int BASS = 0;
+	public const int ALTO = 1;
+	public const int SOPRANO = 2;
+	public const int NOISE = 3;
+	public const int MAX_REGS = 4;
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr Vic_create();
+	public Vic()
+	{
+		objhandle = Vic_create();
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr Vic_destroy(IntPtr aObjHandle);
+	~Vic()
+	{
+		Vic_destroy(objhandle);
+	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			Vic_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vic_setModel(IntPtr aObjHandle, int model);
+	public void setModel(int model)
+	{
+		Vic_setModel(objhandle, model);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int Vic_getModel(IntPtr aObjHandle);
+	public int getModel()
+	{
+		return Vic_getModel(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vic_setRegister(IntPtr aObjHandle, int reg, byte value);
+	public void setRegister(int reg, byte value)
+	{
+		Vic_setRegister(objhandle, reg, value);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern byte Vic_getRegister(IntPtr aObjHandle, int reg);
+	public byte getRegister(int reg)
+	{
+		return Vic_getRegister(objhandle, reg);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vic_setVolume(IntPtr aObjHandle, float aVolume);
+	public void setVolume(float aVolume)
+	{
+		Vic_setVolume(objhandle, aVolume);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vic_setLooping(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aLoop);
+	public void setLooping(bool aLoop)
+	{
+		Vic_setLooping(objhandle, aLoop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vic_setAutoStop(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aAutoStop);
+	public void setAutoStop(bool aAutoStop)
+	{
+		Vic_setAutoStop(objhandle, aAutoStop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vic_set3dMinMaxDistance(IntPtr aObjHandle, float aMinDistance, float aMaxDistance);
+	public void set3dMinMaxDistance(float aMinDistance, float aMaxDistance)
+	{
+		Vic_set3dMinMaxDistance(objhandle, aMinDistance, aMaxDistance);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vic_set3dAttenuation(IntPtr aObjHandle, uint aAttenuationModel, float aAttenuationRolloffFactor);
+	public void set3dAttenuation(uint aAttenuationModel, float aAttenuationRolloffFactor)
+	{
+		Vic_set3dAttenuation(objhandle, aAttenuationModel, aAttenuationRolloffFactor);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vic_set3dDopplerFactor(IntPtr aObjHandle, float aDopplerFactor);
+	public void set3dDopplerFactor(float aDopplerFactor)
+	{
+		Vic_set3dDopplerFactor(objhandle, aDopplerFactor);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vic_set3dListenerRelative(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aListenerRelative);
+	public void set3dListenerRelative(bool aListenerRelative)
+	{
+		Vic_set3dListenerRelative(objhandle, aListenerRelative);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vic_set3dDistanceDelay(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aDistanceDelay);
+	public void set3dDistanceDelay(bool aDistanceDelay)
+	{
+		Vic_set3dDistanceDelay(objhandle, aDistanceDelay);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vic_set3dColliderEx(IntPtr aObjHandle, IntPtr aCollider, int aUserData);
+	public void set3dCollider(SoloudObject aCollider, int aUserData = 0)
+	{
+		Vic_set3dColliderEx(objhandle, aCollider.objhandle, aUserData);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vic_set3dAttenuator(IntPtr aObjHandle, IntPtr aAttenuator);
+	public void set3dAttenuator(SoloudObject aAttenuator)
+	{
+		Vic_set3dAttenuator(objhandle, aAttenuator.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vic_setInaudibleBehavior(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aMustTick, [MarshalAs(UnmanagedType.Bool)] bool aKill);
+	public void setInaudibleBehavior(bool aMustTick, bool aKill)
+	{
+		Vic_setInaudibleBehavior(objhandle, aMustTick, aKill);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vic_setLoopPoint(IntPtr aObjHandle, double aLoopPoint);
+	public void setLoopPoint(double aLoopPoint)
+	{
+		Vic_setLoopPoint(objhandle, aLoopPoint);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern double Vic_getLoopPoint(IntPtr aObjHandle);
+	public double getLoopPoint()
+	{
+		return Vic_getLoopPoint(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vic_setFilter(IntPtr aObjHandle, uint aFilterId, IntPtr aFilter);
+	public void setFilter(uint aFilterId, SoloudObject aFilter)
+	{
+		Vic_setFilter(objhandle, aFilterId, aFilter.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vic_stop(IntPtr aObjHandle);
+	public void stop()
+	{
+		Vic_stop(objhandle);
+	}
+}
+
+public partial class Vizsn : SoloudObject, IDisposable
+{
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr Vizsn_create();
+	public Vizsn()
+	{
+		objhandle = Vizsn_create();
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr Vizsn_destroy(IntPtr aObjHandle);
+	~Vizsn()
+	{
+		Vizsn_destroy(objhandle);
+	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			Vizsn_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vizsn_setText(IntPtr aObjHandle, [MarshalAs(UnmanagedType.LPStr)] string aText);
+	public void setText(string aText)
+	{
+		Vizsn_setText(objhandle, aText);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vizsn_setVolume(IntPtr aObjHandle, float aVolume);
+	public void setVolume(float aVolume)
+	{
+		Vizsn_setVolume(objhandle, aVolume);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vizsn_setLooping(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aLoop);
+	public void setLooping(bool aLoop)
+	{
+		Vizsn_setLooping(objhandle, aLoop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vizsn_setAutoStop(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aAutoStop);
+	public void setAutoStop(bool aAutoStop)
+	{
+		Vizsn_setAutoStop(objhandle, aAutoStop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vizsn_set3dMinMaxDistance(IntPtr aObjHandle, float aMinDistance, float aMaxDistance);
+	public void set3dMinMaxDistance(float aMinDistance, float aMaxDistance)
+	{
+		Vizsn_set3dMinMaxDistance(objhandle, aMinDistance, aMaxDistance);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vizsn_set3dAttenuation(IntPtr aObjHandle, uint aAttenuationModel, float aAttenuationRolloffFactor);
+	public void set3dAttenuation(uint aAttenuationModel, float aAttenuationRolloffFactor)
+	{
+		Vizsn_set3dAttenuation(objhandle, aAttenuationModel, aAttenuationRolloffFactor);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vizsn_set3dDopplerFactor(IntPtr aObjHandle, float aDopplerFactor);
+	public void set3dDopplerFactor(float aDopplerFactor)
+	{
+		Vizsn_set3dDopplerFactor(objhandle, aDopplerFactor);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vizsn_set3dListenerRelative(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aListenerRelative);
+	public void set3dListenerRelative(bool aListenerRelative)
+	{
+		Vizsn_set3dListenerRelative(objhandle, aListenerRelative);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vizsn_set3dDistanceDelay(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aDistanceDelay);
+	public void set3dDistanceDelay(bool aDistanceDelay)
+	{
+		Vizsn_set3dDistanceDelay(objhandle, aDistanceDelay);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vizsn_set3dColliderEx(IntPtr aObjHandle, IntPtr aCollider, int aUserData);
+	public void set3dCollider(SoloudObject aCollider, int aUserData = 0)
+	{
+		Vizsn_set3dColliderEx(objhandle, aCollider.objhandle, aUserData);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vizsn_set3dAttenuator(IntPtr aObjHandle, IntPtr aAttenuator);
+	public void set3dAttenuator(SoloudObject aAttenuator)
+	{
+		Vizsn_set3dAttenuator(objhandle, aAttenuator.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vizsn_setInaudibleBehavior(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aMustTick, [MarshalAs(UnmanagedType.Bool)] bool aKill);
+	public void setInaudibleBehavior(bool aMustTick, bool aKill)
+	{
+		Vizsn_setInaudibleBehavior(objhandle, aMustTick, aKill);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vizsn_setLoopPoint(IntPtr aObjHandle, double aLoopPoint);
+	public void setLoopPoint(double aLoopPoint)
+	{
+		Vizsn_setLoopPoint(objhandle, aLoopPoint);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern double Vizsn_getLoopPoint(IntPtr aObjHandle);
+	public double getLoopPoint()
+	{
+		return Vizsn_getLoopPoint(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vizsn_setFilter(IntPtr aObjHandle, uint aFilterId, IntPtr aFilter);
+	public void setFilter(uint aFilterId, SoloudObject aFilter)
+	{
+		Vizsn_setFilter(objhandle, aFilterId, aFilter.objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Vizsn_stop(IntPtr aObjHandle);
+	public void stop()
+	{
+		Vizsn_stop(objhandle);
+	}
+}
+
+public partial class Wav : SoloudObject, IDisposable
+{
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr Wav_create();
 	public Wav()
 	{
 		objhandle = Wav_create();
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr Wav_destroy(IntPtr aObjHandle);
 	~Wav()
 	{
 		Wav_destroy(objhandle);
 	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			Wav_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int Wav_load(IntPtr aObjHandle, [MarshalAs(UnmanagedType.LPStr)] string aFilename);
 	public int load(string aFilename)
 	{
 		return Wav_load(objhandle, aFilename);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern int Wav_loadMemEx(IntPtr aObjHandle, IntPtr aMem, uint aLength, bool aCopy, bool aTakeOwnership);
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int Wav_loadMemEx(IntPtr aObjHandle, IntPtr aMem, uint aLength, [MarshalAs(UnmanagedType.Bool)] bool aCopy, [MarshalAs(UnmanagedType.Bool)] bool aTakeOwnership);
 	public int loadMem(IntPtr aMem, uint aLength, bool aCopy = false, bool aTakeOwnership = true)
 	{
 		return Wav_loadMemEx(objhandle, aMem, aLength, aCopy, aTakeOwnership);
 	}
-	public unsafe int loadMem(byte[] aMem)
-	{
-		fixed (void* data = aMem)
-		{
-			return Wav_loadMemEx(objhandle, new IntPtr(data),
-				(uint) aMem.Length, true, false);
-		}
-	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int Wav_loadFile(IntPtr aObjHandle, IntPtr aFile);
 	public int loadFile(SoloudObject aFile)
 	{
 		return Wav_loadFile(objhandle, aFile.objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int Wav_loadRawWave8Ex(IntPtr aObjHandle, IntPtr aMem, uint aLength, float aSamplerate, uint aChannels);
 	public int loadRawWave8(IntPtr aMem, uint aLength, float aSamplerate = 44100.0f, uint aChannels = 1)
 	{
 		return Wav_loadRawWave8Ex(objhandle, aMem, aLength, aSamplerate, aChannels);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int Wav_loadRawWave16Ex(IntPtr aObjHandle, IntPtr aMem, uint aLength, float aSamplerate, uint aChannels);
 	public int loadRawWave16(IntPtr aMem, uint aLength, float aSamplerate = 44100.0f, uint aChannels = 1)
 	{
 		return Wav_loadRawWave16Ex(objhandle, aMem, aLength, aSamplerate, aChannels);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern int Wav_loadRawWaveEx(IntPtr aObjHandle, float[] aMem, uint aLength, float aSamplerate, uint aChannels, bool aCopy, bool aTakeOwnership);
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int Wav_loadRawWaveEx(IntPtr aObjHandle, float[] aMem, uint aLength, float aSamplerate, uint aChannels, [MarshalAs(UnmanagedType.Bool)] bool aCopy, [MarshalAs(UnmanagedType.Bool)] bool aTakeOwnership);
 	public int loadRawWave(float[] aMem, uint aLength, float aSamplerate = 44100.0f, uint aChannels = 1, bool aCopy = false, bool aTakeOwnership = true)
 	{
 		return Wav_loadRawWaveEx(objhandle, aMem, aLength, aSamplerate, aChannels, aCopy, aTakeOwnership);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern double Wav_getLength(IntPtr aObjHandle);
 	public double getLength()
 	{
 		return Wav_getLength(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Wav_setVolume(IntPtr aObjHandle, float aVolume);
 	public void setVolume(float aVolume)
 	{
 		Wav_setVolume(objhandle, aVolume);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void Wav_setLooping(IntPtr aObjHandle, int aLoop);
-	public void setLooping(int aLoop)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Wav_setLooping(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aLoop);
+	public void setLooping(bool aLoop)
 	{
 		Wav_setLooping(objhandle, aLoop);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Wav_setAutoStop(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aAutoStop);
+	public void setAutoStop(bool aAutoStop)
+	{
+		Wav_setAutoStop(objhandle, aAutoStop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Wav_set3dMinMaxDistance(IntPtr aObjHandle, float aMinDistance, float aMaxDistance);
 	public void set3dMinMaxDistance(float aMinDistance, float aMaxDistance)
 	{
 		Wav_set3dMinMaxDistance(objhandle, aMinDistance, aMaxDistance);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Wav_set3dAttenuation(IntPtr aObjHandle, uint aAttenuationModel, float aAttenuationRolloffFactor);
 	public void set3dAttenuation(uint aAttenuationModel, float aAttenuationRolloffFactor)
 	{
 		Wav_set3dAttenuation(objhandle, aAttenuationModel, aAttenuationRolloffFactor);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Wav_set3dDopplerFactor(IntPtr aObjHandle, float aDopplerFactor);
 	public void set3dDopplerFactor(float aDopplerFactor)
 	{
 		Wav_set3dDopplerFactor(objhandle, aDopplerFactor);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void Wav_set3dListenerRelative(IntPtr aObjHandle, int aListenerRelative);
-	public void set3dListenerRelative(int aListenerRelative)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Wav_set3dListenerRelative(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aListenerRelative);
+	public void set3dListenerRelative(bool aListenerRelative)
 	{
 		Wav_set3dListenerRelative(objhandle, aListenerRelative);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void Wav_set3dDistanceDelay(IntPtr aObjHandle, int aDistanceDelay);
-	public void set3dDistanceDelay(int aDistanceDelay)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Wav_set3dDistanceDelay(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aDistanceDelay);
+	public void set3dDistanceDelay(bool aDistanceDelay)
 	{
 		Wav_set3dDistanceDelay(objhandle, aDistanceDelay);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Wav_set3dColliderEx(IntPtr aObjHandle, IntPtr aCollider, int aUserData);
 	public void set3dCollider(SoloudObject aCollider, int aUserData = 0)
 	{
 		Wav_set3dColliderEx(objhandle, aCollider.objhandle, aUserData);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Wav_set3dAttenuator(IntPtr aObjHandle, IntPtr aAttenuator);
 	public void set3dAttenuator(SoloudObject aAttenuator)
 	{
 		Wav_set3dAttenuator(objhandle, aAttenuator.objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void Wav_setInaudibleBehavior(IntPtr aObjHandle, int aMustTick, int aKill);
-	public void setInaudibleBehavior(int aMustTick, int aKill)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void Wav_setInaudibleBehavior(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aMustTick, [MarshalAs(UnmanagedType.Bool)] bool aKill);
+	public void setInaudibleBehavior(bool aMustTick, bool aKill)
 	{
 		Wav_setInaudibleBehavior(objhandle, aMustTick, aKill);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Wav_setLoopPoint(IntPtr aObjHandle, double aLoopPoint);
 	public void setLoopPoint(double aLoopPoint)
 	{
 		Wav_setLoopPoint(objhandle, aLoopPoint);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern double Wav_getLoopPoint(IntPtr aObjHandle);
 	public double getLoopPoint()
 	{
 		return Wav_getLoopPoint(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Wav_setFilter(IntPtr aObjHandle, uint aFilterId, IntPtr aFilter);
 	public void setFilter(uint aFilterId, SoloudObject aFilter)
 	{
 		Wav_setFilter(objhandle, aFilterId, aFilter.objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void Wav_stop(IntPtr aObjHandle);
 	public void stop()
 	{
@@ -1503,182 +3422,243 @@ public class Wav : SoloudObject
 	}
 }
 
-public class WaveShaperFilter : SoloudObject
+public partial class WaveShaperFilter : SoloudObject, IDisposable
 {
+	public const int WET = 0;
+	public const int AMOUNT = 1;
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr WaveShaperFilter_create();
 	public WaveShaperFilter()
 	{
 		objhandle = WaveShaperFilter_create();
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr WaveShaperFilter_destroy(IntPtr aObjHandle);
 	~WaveShaperFilter()
 	{
 		WaveShaperFilter_destroy(objhandle);
 	}
-
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern int WaveShaperFilter_setParamsEx(IntPtr aObjHandle, float aAmount, float aWet);
-	public int setParams(float aAmount, float aWet = 1.0f)
+	public void Dispose()
 	{
-		return WaveShaperFilter_setParamsEx(objhandle, aAmount, aWet);
+		if (objhandle != IntPtr.Zero) {
+			WaveShaperFilter_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int WaveShaperFilter_setParams(IntPtr aObjHandle, float aAmount);
+	public int setParams(float aAmount)
+	{
+		return WaveShaperFilter_setParams(objhandle, aAmount);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int WaveShaperFilter_getParamCount(IntPtr aObjHandle);
+	public int getParamCount()
+	{
+		return WaveShaperFilter_getParamCount(objhandle);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern IntPtr WaveShaperFilter_getParamName(IntPtr aObjHandle, uint aParamIndex);
+	public string getParamName(uint aParamIndex)
+	{
+		IntPtr p = WaveShaperFilter_getParamName(objhandle, aParamIndex);
+		return Marshal.PtrToStringAnsi(p);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern uint WaveShaperFilter_getParamType(IntPtr aObjHandle, uint aParamIndex);
+	public uint getParamType(uint aParamIndex)
+	{
+		return WaveShaperFilter_getParamType(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern float WaveShaperFilter_getParamMax(IntPtr aObjHandle, uint aParamIndex);
+	public float getParamMax(uint aParamIndex)
+	{
+		return WaveShaperFilter_getParamMax(objhandle, aParamIndex);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern float WaveShaperFilter_getParamMin(IntPtr aObjHandle, uint aParamIndex);
+	public float getParamMin(uint aParamIndex)
+	{
+		return WaveShaperFilter_getParamMin(objhandle, aParamIndex);
 	}
 }
 
-public class WavStream : SoloudObject
+public partial class WavStream : SoloudObject, IDisposable
 {
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr WavStream_create();
 	public WavStream()
 	{
 		objhandle = WavStream_create();
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr WavStream_destroy(IntPtr aObjHandle);
 	~WavStream()
 	{
 		WavStream_destroy(objhandle);
 	}
+	public void Dispose()
+	{
+		if (objhandle != IntPtr.Zero) {
+			WavStream_destroy(objhandle);
+			objhandle = IntPtr.Zero;
+			GC.SuppressFinalize(this);
+		}
+	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int WavStream_load(IntPtr aObjHandle, [MarshalAs(UnmanagedType.LPStr)] string aFilename);
 	public int load(string aFilename)
 	{
 		return WavStream_load(objhandle, aFilename);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern int WavStream_loadMemEx(IntPtr aObjHandle, IntPtr aData, uint aDataLen, bool aCopy, bool aTakeOwnership);
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern int WavStream_loadMemEx(IntPtr aObjHandle, IntPtr aData, uint aDataLen, [MarshalAs(UnmanagedType.Bool)] bool aCopy, [MarshalAs(UnmanagedType.Bool)] bool aTakeOwnership);
 	public int loadMem(IntPtr aData, uint aDataLen, bool aCopy = false, bool aTakeOwnership = true)
 	{
 		return WavStream_loadMemEx(objhandle, aData, aDataLen, aCopy, aTakeOwnership);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int WavStream_loadToMem(IntPtr aObjHandle, [MarshalAs(UnmanagedType.LPStr)] string aFilename);
 	public int loadToMem(string aFilename)
 	{
 		return WavStream_loadToMem(objhandle, aFilename);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int WavStream_loadFile(IntPtr aObjHandle, IntPtr aFile);
 	public int loadFile(SoloudObject aFile)
 	{
 		return WavStream_loadFile(objhandle, aFile.objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int WavStream_loadFileToMem(IntPtr aObjHandle, IntPtr aFile);
 	public int loadFileToMem(SoloudObject aFile)
 	{
 		return WavStream_loadFileToMem(objhandle, aFile.objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern double WavStream_getLength(IntPtr aObjHandle);
 	public double getLength()
 	{
 		return WavStream_getLength(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void WavStream_setVolume(IntPtr aObjHandle, float aVolume);
 	public void setVolume(float aVolume)
 	{
 		WavStream_setVolume(objhandle, aVolume);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void WavStream_setLooping(IntPtr aObjHandle, int aLoop);
-	public void setLooping(int aLoop)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void WavStream_setLooping(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aLoop);
+	public void setLooping(bool aLoop)
 	{
 		WavStream_setLooping(objhandle, aLoop);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void WavStream_setAutoStop(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aAutoStop);
+	public void setAutoStop(bool aAutoStop)
+	{
+		WavStream_setAutoStop(objhandle, aAutoStop);
+	}
+
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void WavStream_set3dMinMaxDistance(IntPtr aObjHandle, float aMinDistance, float aMaxDistance);
 	public void set3dMinMaxDistance(float aMinDistance, float aMaxDistance)
 	{
 		WavStream_set3dMinMaxDistance(objhandle, aMinDistance, aMaxDistance);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void WavStream_set3dAttenuation(IntPtr aObjHandle, uint aAttenuationModel, float aAttenuationRolloffFactor);
 	public void set3dAttenuation(uint aAttenuationModel, float aAttenuationRolloffFactor)
 	{
 		WavStream_set3dAttenuation(objhandle, aAttenuationModel, aAttenuationRolloffFactor);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void WavStream_set3dDopplerFactor(IntPtr aObjHandle, float aDopplerFactor);
 	public void set3dDopplerFactor(float aDopplerFactor)
 	{
 		WavStream_set3dDopplerFactor(objhandle, aDopplerFactor);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void WavStream_set3dListenerRelative(IntPtr aObjHandle, int aListenerRelative);
-	public void set3dListenerRelative(int aListenerRelative)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void WavStream_set3dListenerRelative(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aListenerRelative);
+	public void set3dListenerRelative(bool aListenerRelative)
 	{
 		WavStream_set3dListenerRelative(objhandle, aListenerRelative);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void WavStream_set3dDistanceDelay(IntPtr aObjHandle, int aDistanceDelay);
-	public void set3dDistanceDelay(int aDistanceDelay)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void WavStream_set3dDistanceDelay(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aDistanceDelay);
+	public void set3dDistanceDelay(bool aDistanceDelay)
 	{
 		WavStream_set3dDistanceDelay(objhandle, aDistanceDelay);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void WavStream_set3dColliderEx(IntPtr aObjHandle, IntPtr aCollider, int aUserData);
 	public void set3dCollider(SoloudObject aCollider, int aUserData = 0)
 	{
 		WavStream_set3dColliderEx(objhandle, aCollider.objhandle, aUserData);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void WavStream_set3dAttenuator(IntPtr aObjHandle, IntPtr aAttenuator);
 	public void set3dAttenuator(SoloudObject aAttenuator)
 	{
 		WavStream_set3dAttenuator(objhandle, aAttenuator.objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void WavStream_setInaudibleBehavior(IntPtr aObjHandle, int aMustTick, int aKill);
-	public void setInaudibleBehavior(int aMustTick, int aKill)
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
+	internal static extern void WavStream_setInaudibleBehavior(IntPtr aObjHandle, [MarshalAs(UnmanagedType.Bool)] bool aMustTick, [MarshalAs(UnmanagedType.Bool)] bool aKill);
+	public void setInaudibleBehavior(bool aMustTick, bool aKill)
 	{
 		WavStream_setInaudibleBehavior(objhandle, aMustTick, aKill);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void WavStream_setLoopPoint(IntPtr aObjHandle, double aLoopPoint);
 	public void setLoopPoint(double aLoopPoint)
 	{
 		WavStream_setLoopPoint(objhandle, aLoopPoint);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern double WavStream_getLoopPoint(IntPtr aObjHandle);
 	public double getLoopPoint()
 	{
 		return WavStream_getLoopPoint(objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void WavStream_setFilter(IntPtr aObjHandle, uint aFilterId, IntPtr aFilter);
 	public void setFilter(uint aFilterId, SoloudObject aFilter)
 	{
 		WavStream_setFilter(objhandle, aFilterId, aFilter.objhandle);
 	}
 
-	[DllImport(OpenTempleLib.Path, CallingConvention = CallingConvention.Cdecl)]
+	[DllImport(Soloud.DllName, CallingConvention = CallingConvention.Cdecl)]
 	internal static extern void WavStream_stop(IntPtr aObjHandle);
 	public void stop()
 	{

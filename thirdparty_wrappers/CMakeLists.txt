@@ -1,5 +1,5 @@
 
-add_library(thirdparty_wrappers_obj OBJECT soloud_c.cpp stb_image_wrapper.cpp libjpeg_turbo_wrapper.cpp)
+add_library(thirdparty_wrappers_obj OBJECT stb_image_wrapper.cpp libjpeg_turbo_wrapper.cpp)
 target_include_directories(thirdparty_wrappers_obj PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../thirdparty/stb)
 
 target_link_libraries(thirdparty_wrappers_obj PUBLIC libjpeg-turbo soloud)

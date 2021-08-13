@@ -41,7 +41,7 @@ include(cmake/libjpegturbo.cmake)
 add_subdirectory(game)
 add_subdirectory(thirdparty_wrappers)
 
-add_library(opentemple SHARED thirdparty_wrappers/soloud.def)
+add_library(opentemple SHARED thirdparty/soloud/src/c_api/soloud.def)
 target_link_libraries(opentemple PRIVATE game thirdparty_wrappers)
 set_target_properties(opentemple PROPERTIES OUTPUT_NAME "OpenTemple.Native")
 
