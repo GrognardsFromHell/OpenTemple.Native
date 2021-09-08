@@ -44,7 +44,7 @@ jobs:
           lfs: true
       - name: Build
         run: |
-          cmake -B build -A $PLATFORM -DRUNTIME_ID=win-${ARCH} -DCMAKE_BUILD_TYPE=Release .
+          cmake -B build -A $PLATFORM -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-${ARCH} -DRUNTIME_ID=win-${ARCH} -DCMAKE_BUILD_TYPE=Release .
           cmake --build build --config Release -t install
         shell: bash
         env:
