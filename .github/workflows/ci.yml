@@ -92,10 +92,14 @@ jobs:
         with:
           name: native_lib_windows_x64
           path: nuget_files
-      # - uses: actions/download-artifact@v2
-      #   with:
-      #     name: native_lib_windows_x86
-      #     path: nuget_files
+      - uses: actions/download-artifact@v2
+        with:
+          name: native_lib_windows_x86
+          path: nuget_files
+      - uses: actions/download-artifact@v2
+        with:
+          name: native_lib_windows_arm64
+          path: nuget_files
       # - uses: actions/download-artifact@v2
       #   with:
       #     name: native_lib_macos
