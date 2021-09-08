@@ -32,11 +32,11 @@ jobs:
         arch: [x86, x64, arm64]
         include:
           - arch: x86
-            platform: x86
+            platform: Win32
           - arch: x64
             platform: x64
           - arch: arm64
-            platform: arm64
+            platform: ARM64
     steps:
       - uses: actions/checkout@v1
         with:
@@ -44,10 +44,11 @@ jobs:
           lfs: true
       - name: Build
         run: |
-          cmake -B build -A $PLATFORM -DRUNTIME_ID=win-${PLATFORM} -DCMAKE_BUILD_TYPE=Release .
+          cmake -B build -A $PLATFORM -DRUNTIME_ID=win-${ARCH} -DCMAKE_BUILD_TYPE=Release .
           cmake --build build --config Release -t install
         shell: bash
         env:
+          ARCH: ${{ matrix.arch }}
           PLATFORM: ${{ matrix.platform }}
       - uses: actions/upload-artifact@v2
         with:
