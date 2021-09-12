@@ -31,9 +31,9 @@ static inline const TextRendererStyle &GetStyle(const TextRendererDrawingContext
 }
 
 TextRenderer::TextRenderer(const winrt::com_ptr<IDWriteFactory> &dWriteFactory,
-                           const winrt::com_ptr<ID2D1RenderTarget> &renderTarget)
-    : _dWriteFactory2(dWriteFactory.as<IDWriteFactory2>()), _renderTarget(renderTarget) {
-  _renderTarget->GetFactory(_factory.put());
+                           const winrt::com_ptr<ID2D1DeviceContext> &deviceContext)
+    : _dWriteFactory2(dWriteFactory.as<IDWriteFactory2>()), _context(deviceContext) {
+  _context->GetFactory(_factory.put());
 }
 
 HRESULT TextRenderer::IsPixelSnappingDisabled(void *clientDrawingContext,
@@ -44,13 +44,13 @@ HRESULT TextRenderer::IsPixelSnappingDisabled(void *clientDrawingContext,
 
 HRESULT TextRenderer::GetCurrentTransform(void *clientDrawingContext,
                                           DWRITE_MATRIX *transform) noexcept {
-  _renderTarget->GetTransform(reinterpret_cast<D2D1_MATRIX_3X2_F *>(transform));
+  _context->GetTransform(reinterpret_cast<D2D1_MATRIX_3X2_F *>(transform));
   return S_OK;
 }
 
 HRESULT TextRenderer::GetPixelsPerDip(void *clientDrawingContext, FLOAT *pixelsPerDip) noexcept {
   float unused;
-  _renderTarget->GetDpi(pixelsPerDip, &unused);
+  _context->GetDpi(pixelsPerDip, &unused);
   return S_OK;
 }
 
@@ -71,7 +71,7 @@ HRESULT TextRenderer::DrawGlyphRun(void *clientDrawingContext,
   if (shadowBrush) {
     auto origin = D2D1::Point2(baselineOriginX + 1, baselineOriginY + 1);
     WithOpacity(shadowBrush.get(), opacity, [&](auto brush) {
-      _renderTarget->DrawGlyphRun(origin, glyphRun, brush, measuringMode);
+      _context->DrawGlyphRun(origin, glyphRun, brush, measuringMode);
     });
   }
 
@@ -84,7 +84,7 @@ HRESULT TextRenderer::DrawGlyphRun(void *clientDrawingContext,
     } else {
       auto brush = style.GetColor().get();
       WithOpacity(brush, opacity, [&](auto brush) {
-        _renderTarget->DrawGlyphRun(D2D1::Point2(baselineOriginX, baselineOriginY), glyphRun, brush,
+        _context->DrawGlyphRun(D2D1::Point2(baselineOriginX, baselineOriginY), glyphRun, brush,
                                     measuringMode);
       });
     }
@@ -141,7 +141,7 @@ bool TextRenderer::DrawColoredLayers(float baselineOriginX,
     } else {
       if (solidBrush == nullptr) {
         winrt::check_hresult(
-            _renderTarget->CreateSolidColorBrush(&colorRun->runColor, nullptr, solidBrush.put()));
+            _context->CreateSolidColorBrush(&colorRun->runColor, nullptr, solidBrush.put()));
       } else {
         solidBrush->SetColor(colorRun->runColor);
       }
@@ -149,7 +149,7 @@ bool TextRenderer::DrawColoredLayers(float baselineOriginX,
     }
 
     WithOpacity(layerBrush, opacity, [&](auto brush) {
-      _renderTarget->DrawGlyphRun(
+      _context->DrawGlyphRun(
           D2D1::Point2(colorRun->baselineOriginX, colorRun->baselineOriginY),
           &colorRun->glyphRun,
           brush,
@@ -164,7 +164,7 @@ void TextRenderer::FillRectangle(const D2D_RECT_F &rect,
                                  const TextRendererStyle &style,
                                  float opacity) {
   WithOpacity(style.GetColor().get(), opacity,
-              [&](auto brush) { _renderTarget->FillRectangle(&rect, brush); });
+              [&](auto brush) { _context->FillRectangle(&rect, brush); });
 }
 
 HRESULT TextRenderer::DrawUnderline(void *clientDrawingContext, FLOAT baselineOriginX,
@@ -279,11 +279,11 @@ void TextRenderer::DrawOutline(const TextRendererStyle &style,
 
   if (fillBrush) {
     WithOpacity(fillBrush.get(), opacity,
-                [&](auto brush) { _renderTarget->FillGeometry(transformedGeometry.get(), brush); });
+                [&](auto brush) { _context->FillGeometry(transformedGeometry.get(), brush); });
   }
   if (outlineBrush) {
     WithOpacity(outlineBrush.get(), opacity, [&](auto brush) {
-      _renderTarget->DrawGeometry(transformedGeometry.get(), brush, outlineWidth);
+      _context->DrawGeometry(transformedGeometry.get(), brush, outlineWidth);
     });
   }
 }

@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace OpenTemple.Interop.Text
+namespace OpenTemple.Interop.Drawing
 {
     public enum NativeFontStretch : int
     {

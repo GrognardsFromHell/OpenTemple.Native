@@ -8,6 +8,7 @@ HRESULT MemoryFontLoader::CreateEnumeratorFromKey(
     void const *collectionKey,
     UINT32 collectionKeySize,
     IDWriteFontFileEnumerator **fontFileEnumerator) noexcept {
+  AddRef(); // For the enumerator we're about to return
   *fontFileEnumerator = this;
   _streamIndex = 0;
   return S_OK;

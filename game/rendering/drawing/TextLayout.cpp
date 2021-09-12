@@ -1,9 +1,9 @@
 
 #include "TextLayout.h"
+#include "DrawingEngine.h"
 #include "StyleConversion.h"
 #include "TextRenderer.h"
 #include "TextRendererStyle.h"
-#include "TextEngine.h"
 
 void TextLayout::Render(TextRenderer &renderer, float x, float y, float opacity) {
   auto &metrics = GetMetrics();

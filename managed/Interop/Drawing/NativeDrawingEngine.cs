@@ -1,24 +1,27 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace OpenTemple.Interop.Text
+namespace OpenTemple.Interop.Drawing
 {
     /// <summary>
     /// A text rendering engine.
     /// </summary>
-    public class NativeTextEngine : IDisposable
+    public class NativeDrawingEngine : IDisposable
     {
-        private static readonly char[] EmptyText = new[] {'\0'};
+        private static readonly char[] EmptyText = new[] { '\0' };
 
         private IntPtr _native;
 
-        /// <param name="renderTarget">Pointer to a ID2D1RenderTarget. RefCount should not be incremented.</param>
-        public NativeTextEngine(IntPtr renderTarget)
+        /// <param name="d3d11Device">Pointer to a ID3D11Device. RefCount should not be incremented.</param>
+        /// <param name="debugDevice">Enable the D2D debug layer.</param>
+        public NativeDrawingEngine(IntPtr d3d11Device, bool debugDevice)
         {
             CheckStructSizes();
 
-            if (!TextEngine_Create(renderTarget, out _native, out var error))
+            if (!DrawingEngine_Create(d3d11Device, debugDevice, out _native, out var error))
             {
                 throw new InvalidOperationException("Couldn't create native TextEngine: " + error);
             }
@@ -27,7 +30,7 @@ namespace OpenTemple.Interop.Text
         private static void CheckStructSizes()
         {
             // Validate struct compatibility between C# and native
-            TextEngine_GetStructSizes(out var paragraphStylesSize, out var textStylesSize);
+            DrawingEngine_GetStructSizes(out var paragraphStylesSize, out var textStylesSize);
             var managedParagraphStylesSize = Marshal.SizeOf<NativeParagraphStyle>();
             if (paragraphStylesSize != managedParagraphStylesSize)
             {
@@ -43,15 +46,60 @@ namespace OpenTemple.Interop.Text
             }
         }
 
+        public void BeginDraw()
+        {
+            DrawingEngine_BeginDraw(_native);
+        }
+
+        public void EndDraw()
+        {
+            if (!DrawingEngine_EndDraw(_native, out var error))
+            {
+                throw new InvalidOperationException(error);
+            }
+        }
+
+        public void PushClipRect(RectangleF clipRect, bool antiAliased)
+        {
+            DrawingEngine_PushClipRect(_native, clipRect.Left, clipRect.Top, clipRect.Right, clipRect.Bottom,
+                antiAliased);
+        }
+
+        public void PopClipRect()
+        {
+            DrawingEngine_PopClipRect(_native);
+        }
+
+        public void SetTransform(ref Matrix3x2 matrix)
+        {
+            DrawingEngine_SetTransform(_native, ref matrix);
+        }
+
+        public void GetTransform(out Matrix3x2 matrix)
+        {
+            DrawingEngine_GetTransform(_native, out matrix);
+        }
+
+        public void SetCanvasSize(SizeF size)
+        {
+            DrawingEngine_SetCanvasSize(_native, size.Width, size.Height);
+        }
+
+        public SizeF GetCanvasScale()
+        {
+            DrawingEngine_GetCanvasScale(_native, out var width, out var height);
+            return new SizeF(width, height);
+        }
+
         public List<string> FontFamilies
         {
             get
             {
-                var count = TextEngine_GetFontFamiliesCount(_native);
+                var count = DrawingEngine_GetFontFamiliesCount(_native);
                 var result = new List<string>(count);
                 for (var i = 0; i < count; i++)
                 {
-                    result.Add(TextEngine_GetFontFamilyName(_native, i));
+                    result.Add(DrawingEngine_GetFontFamilyName(_native, i));
                 }
 
                 return result;
@@ -67,15 +115,23 @@ namespace OpenTemple.Interop.Text
 
             fixed (byte* dataPtr = data)
             {
-                TextEngine_AddFontFile(_native, filename, dataPtr, data.Length);
+                DrawingEngine_AddFontFile(_native, filename, dataPtr, data.Length);
             }
         }
 
         public void ReloadFontFamilies()
         {
-            if (!TextEngine_ReloadFontFamilies(_native, out var error))
+            if (!DrawingEngine_ReloadFontFamilies(_native, out var error))
             {
                 throw new InvalidOperationException("Failed to reload font families: " + error);
+            }
+        }
+
+        public void SetRenderTarget(IntPtr d3d11Texture)
+        {
+            if (!DrawingEngine_SetRenderTarget(_native, d3d11Texture, out var error))
+            {
+                throw new InvalidOperationException("Failed to set render target: " + error);
             }
         }
 
@@ -94,7 +150,7 @@ namespace OpenTemple.Interop.Text
 
             fixed (char* textPtr = text)
             {
-                if (!TextEngine_CreateTextLayout(
+                if (!DrawingEngine_CreateTextLayout(
                     _native,
                     ref paragraphStyle,
                     ref textStyle,
@@ -115,7 +171,7 @@ namespace OpenTemple.Interop.Text
 
         public void RenderTextLayout(NativeTextLayout layout, float x, float y, float opacity)
         {
-            if (!TextEngine_RenderTextLayout(_native, layout.NativePointer, x, y, opacity, out var error))
+            if (!DrawingEngine_RenderTextLayout(_native, layout.NativePointer, x, y, opacity, out var error))
             {
                 throw new InvalidOperationException("Couldn't render text layout: " + error);
             }
@@ -124,7 +180,7 @@ namespace OpenTemple.Interop.Text
         public void RenderBackgroundAndBorder(float x, float y, float width, float height,
             ref NativeBackgroundAndBorderStyle style)
         {
-            if (!TextEngine_RenderBackgroundAndBorder(_native, x, y, width, height, ref style, out var error))
+            if (!DrawingEngine_RenderBackgroundAndBorder(_native, x, y, width, height, ref style, out var error))
             {
                 throw new InvalidOperationException("Couldn't render background and border: " + error);
             }
@@ -134,7 +190,7 @@ namespace OpenTemple.Interop.Text
         {
             if (_native != IntPtr.Zero)
             {
-                TextEngine_Free(_native);
+                DrawingEngine_Free(_native);
                 _native = IntPtr.Zero;
             }
         }
@@ -145,7 +201,7 @@ namespace OpenTemple.Interop.Text
             GC.SuppressFinalize(this);
         }
 
-        ~NativeTextEngine()
+        ~NativeDrawingEngine()
         {
             ReleaseUnmanagedResources();
         }
@@ -153,24 +209,60 @@ namespace OpenTemple.Interop.Text
         #region P/Invoke
 
         [DllImport(OpenTempleLib.Path)]
-        private static extern void TextEngine_GetStructSizes(
+        private static extern void DrawingEngine_GetStructSizes(
             out int paragraphStylesSize,
             out int textStylesSize
         );
 
         [DllImport(OpenTempleLib.Path)]
-        private static extern bool TextEngine_Create(
-            IntPtr renderTarget,
-            out IntPtr textEngine,
+        private static extern bool DrawingEngine_Create(
+            IntPtr d3d11Device,
+            bool debugDevice,
+            out IntPtr drawingEngine,
             [MarshalAs(UnmanagedType.LPWStr)]
             out string error);
 
         [DllImport(OpenTempleLib.Path)]
-        private static extern void TextEngine_Free(IntPtr textEngine);
+        private static extern void DrawingEngine_Free(IntPtr drawingEngine);
 
         [DllImport(OpenTempleLib.Path)]
-        private static extern unsafe void TextEngine_AddFontFile(
-            IntPtr textEngine,
+        private static extern void DrawingEngine_BeginDraw(IntPtr drawingEngine);
+
+        [DllImport(OpenTempleLib.Path)]
+        private static extern bool DrawingEngine_EndDraw(IntPtr drawingEngine,
+            [MarshalAs(UnmanagedType.LPWStr)]
+            out string error);
+
+        [DllImport(OpenTempleLib.Path)]
+        private static extern void DrawingEngine_PushClipRect(IntPtr drawingEngine, float left, float top,
+            float right, float bottom, bool antiAliased);
+
+        [DllImport(OpenTempleLib.Path)]
+        private static extern void DrawingEngine_PopClipRect(IntPtr drawingEngine);
+
+        [DllImport(OpenTempleLib.Path)]
+        private static extern bool DrawingEngine_SetRenderTarget(IntPtr drawingEngine,
+            IntPtr d3dRenderTarget,
+            [MarshalAs(UnmanagedType.LPWStr)]
+            out string error
+        );
+
+        [DllImport(OpenTempleLib.Path)]
+        private static extern void DrawingEngine_SetTransform(IntPtr drawingEngine, ref Matrix3x2 matrix);
+
+        [DllImport(OpenTempleLib.Path)]
+        private static extern void DrawingEngine_GetTransform(IntPtr drawingEngine, out Matrix3x2 matrix);
+
+        [DllImport(OpenTempleLib.Path)]
+        private static extern void DrawingEngine_SetCanvasSize(IntPtr drawingEngine, float width, float height);
+
+        [DllImport(OpenTempleLib.Path)]
+        private static extern void
+            DrawingEngine_GetCanvasScale(IntPtr drawingEngine, out float width, out float height);
+
+        [DllImport(OpenTempleLib.Path)]
+        private static extern unsafe void DrawingEngine_AddFontFile(
+            IntPtr drawingEngine,
             [MarshalAs(UnmanagedType.LPStr)]
             string filename,
             byte* data,
@@ -178,22 +270,22 @@ namespace OpenTemple.Interop.Text
         );
 
         [DllImport(OpenTempleLib.Path)]
-        private static extern bool TextEngine_ReloadFontFamilies(
-            IntPtr textEngine,
+        private static extern bool DrawingEngine_ReloadFontFamilies(
+            IntPtr drawingEngine,
             [MarshalAs(UnmanagedType.LPWStr)]
             out string error);
 
         [DllImport(OpenTempleLib.Path)]
         [SuppressGCTransition]
-        private static extern int TextEngine_GetFontFamiliesCount(IntPtr textEngine);
+        private static extern int DrawingEngine_GetFontFamiliesCount(IntPtr drawingEngine);
 
         [DllImport(OpenTempleLib.Path)]
         [return: MarshalAs(UnmanagedType.LPWStr)]
-        private static extern string TextEngine_GetFontFamilyName(IntPtr textEngine, int index);
+        private static extern string DrawingEngine_GetFontFamilyName(IntPtr drawingEngine, int index);
 
         [DllImport(OpenTempleLib.Path)]
-        private static extern unsafe bool TextEngine_CreateTextLayout(
-            IntPtr textEngine,
+        private static extern unsafe bool DrawingEngine_CreateTextLayout(
+            IntPtr drawingEngine,
             [In]
             ref NativeParagraphStyle paragraphStyle,
             [In]
@@ -208,8 +300,8 @@ namespace OpenTemple.Interop.Text
         );
 
         [DllImport(OpenTempleLib.Path)]
-        private static extern bool TextEngine_RenderTextLayout(
-            IntPtr textEngine,
+        private static extern bool DrawingEngine_RenderTextLayout(
+            IntPtr drawingEngine,
             IntPtr textLayout,
             float x,
             float y,
@@ -219,13 +311,14 @@ namespace OpenTemple.Interop.Text
         );
 
         [DllImport(OpenTempleLib.Path)]
-        private static extern bool TextEngine_RenderBackgroundAndBorder(
-            IntPtr textEngine,
+        private static extern bool DrawingEngine_RenderBackgroundAndBorder(
+            IntPtr drawingEngine,
             float x,
             float y,
             float width,
             float height,
-            [In] ref NativeBackgroundAndBorderStyle style,
+            [In]
+            ref NativeBackgroundAndBorderStyle style,
             [MarshalAs(UnmanagedType.LPWStr)]
             out string error
         );

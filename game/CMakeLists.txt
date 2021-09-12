@@ -19,4 +19,4 @@ endif ()
 
 add_library(game INTERFACE)
 target_sources(game INTERFACE $<TARGET_OBJECTS:game_obj>)
-target_link_libraries(game INTERFACE RuntimeObject.lib dwrite.lib)
+target_link_libraries(game INTERFACE RuntimeObject.lib dwrite.lib d2d1.lib)

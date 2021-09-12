@@ -1,6 +1,6 @@
 using System;
 
-namespace OpenTemple.Interop.Text
+namespace OpenTemple.Interop.Drawing
 {
     [Flags]
     public enum NativeTextStyleProperty

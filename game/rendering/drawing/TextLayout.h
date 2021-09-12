@@ -10,11 +10,11 @@
 #include "TextRendererStyle.h"
 
 class TextRenderer;
-class TextEngine;
+class DrawingEngine;
 
 class TextLayout {
  public:
-  TextLayout(TextEngine &engine,
+  TextLayout(DrawingEngine &engine,
              const winrt::com_ptr<IDWriteTextLayout> &layout,
              const bool hangingIndent,
              const float indent,
@@ -50,7 +50,7 @@ class TextLayout {
   bool HitTest(float x, float y, int *position, int *length, bool *trailingHit);
 
  private:
-  TextEngine &_engine;
+  DrawingEngine &_engine;
   const bool _hangingIndent;
   const float _indent;
   bool _metricsDirty = true;
