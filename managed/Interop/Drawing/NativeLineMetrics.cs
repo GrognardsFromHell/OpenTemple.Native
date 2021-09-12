@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace OpenTemple.Interop.Text
+namespace OpenTemple.Interop.Drawing
 {
     [StructLayout(LayoutKind.Sequential)]
     public readonly struct NativeLineMetrics

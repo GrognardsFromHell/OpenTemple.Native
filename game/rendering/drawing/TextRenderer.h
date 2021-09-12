@@ -24,7 +24,7 @@ struct TextRendererDrawingContext {
 class TextRenderer : public IDWriteTextRenderer {
  public:
   TextRenderer(const winrt::com_ptr<IDWriteFactory> &dWriteFactory,
-               const winrt::com_ptr<ID2D1RenderTarget> &renderTarget);
+               const winrt::com_ptr<ID2D1DeviceContext> &deviceContext);
 
   HRESULT STDMETHODCALLTYPE IsPixelSnappingDisabled(void *clientDrawingContext, BOOL *isDisabled) noexcept override;
   HRESULT STDMETHODCALLTYPE GetCurrentTransform(void *clientDrawingContext,
@@ -50,7 +50,7 @@ class TextRenderer : public IDWriteTextRenderer {
  private:
   winrt::com_ptr<IDWriteFactory2> _dWriteFactory2;
   winrt::com_ptr<ID2D1Factory> _factory;
-  winrt::com_ptr<ID2D1RenderTarget> _renderTarget;
+  winrt::com_ptr<ID2D1DeviceContext> _context;
 
   void FillRectangle(const D2D_RECT_F &rect, const TextRendererStyle &style, float opacity);
 

@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace OpenTemple.Interop.Text
+namespace OpenTemple.Interop.Drawing
 {
     public class NativeTextLayout : IDisposable
     {

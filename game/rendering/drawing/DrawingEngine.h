@@ -2,6 +2,8 @@
 #pragma once
 
 #include <d2d1_1.h>
+#include <d2d1_2.h>
+#include <d3d11.h>
 #include <dwrite_3.h>
 #include <unordered_map>
 #include "LRUCache11.h"
@@ -14,10 +16,19 @@
 
 class MemoryFontLoader;
 
-class TextEngine {
+class DrawingEngine {
  public:
-  explicit TextEngine(const winrt::com_ptr<ID2D1RenderTarget> &renderTarget);
-  ~TextEngine();
+  explicit DrawingEngine(const winrt::com_ptr<ID3D11Device> &d3dDevice, bool debugDevice);
+  ~DrawingEngine();
+
+  void BeginDraw() noexcept;
+  void EndDraw();
+
+  void PushClipRect(float left, float top, float right, float bottom, bool antiAliased) noexcept;
+  void PopClipRect() noexcept;
+
+  void SetTransform(const D2D1_MATRIX_3X2_F &matrix) noexcept;
+  void GetTransform(D2D1_MATRIX_3X2_F *matrix) noexcept;
 
   TextLayout *CreateTextLayout(const ParagraphStyle &paragraphStyle,
                                const TextStyle &textStyle,
@@ -45,11 +56,18 @@ class TextEngine {
 
   void RenderTextLayout(float x, float y, TextLayout &textLayout, float opacity);
 
-  void RenderBackgroundAndBorder(
-      float x, float y,
-      float width, float height,
-      const BackgroundAndBorderStyle &style
-  );
+  void RenderBackgroundAndBorder(float x, float y, float width, float height,
+                                 const BackgroundAndBorderStyle &style);
+
+  void SetRenderTarget(ID3D11Texture2D *renderTarget);
+
+  /**
+   * Sets the size of the "virtual canvas" that will be the space in which coordinates
+   * passed to the drawing engine are interpreted. This space is projected onto the
+   * render target by scaling the coordinates.
+   */
+  void SetCanvasSize(float width, float height) noexcept;
+  void GetCanvasScale(float *width, float *height) noexcept;
 
  private:
   winrt::com_ptr<IDWriteTextFormat2> GetTextFormat(const ParagraphStyle &paragraphStyle,
@@ -58,11 +76,11 @@ class TextEngine {
   }
   winrt::com_ptr<IDWriteTextFormat2> GetTextFormat(const TextFormatKey &key);
 
-  winrt::com_ptr<ID2D1RenderTarget> _renderTarget;
+  winrt::com_ptr<ID2D1DeviceContext> _context;
 
   std::unique_ptr<TextRenderer> _textRenderer;
 
-  winrt::com_ptr<IDWriteFactory1> _factory;
+  winrt::com_ptr<IDWriteFactory1> _textFactory;
 
   winrt::com_ptr<IDWriteFontCollection> _fontCollection;
 
@@ -76,4 +94,7 @@ class TextEngine {
   std::wstring _locale;
 
   lru11::Cache<uint32_t, winrt::com_ptr<ID2D1SolidColorBrush>> _colorBrushCache;
+
+  winrt::com_ptr<ID2D1Factory> _factory;
+
 };
