@@ -29,12 +29,14 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        arch: [x64] #, arm64]
+        arch: [x86, x64, arm64]
         include:
+          - arch: x86
+            platform: Win32
           - arch: x64
             platform: x64
-          #- arch: arm64
-          #  platform: arm64
+          - arch: arm64
+            platform: ARM64
     steps:
       - uses: actions/checkout@v1
         with:
@@ -42,10 +44,11 @@ jobs:
           lfs: true
       - name: Build
         run: |
-          cmake -B build -A $PLATFORM -DRUNTIME_ID=win-${PLATFORM} -DCMAKE_BUILD_TYPE=Release .
+          cmake -B build -A $PLATFORM -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-${ARCH}.cmake -DRUNTIME_ID=win-${ARCH} -DCMAKE_BUILD_TYPE=Release .
           cmake --build build --config Release -t install
         shell: bash
         env:
+          ARCH: ${{ matrix.arch }}
           PLATFORM: ${{ matrix.platform }}
       - uses: actions/upload-artifact@v2
         with:
@@ -89,10 +92,14 @@ jobs:
         with:
           name: native_lib_windows_x64
           path: nuget_files
-      # - uses: actions/download-artifact@v2
-      #   with:
-      #     name: native_lib_windows_x86
-      #     path: nuget_files
+      - uses: actions/download-artifact@v2
+        with:
+          name: native_lib_windows_x86
+          path: nuget_files
+      - uses: actions/download-artifact@v2
+        with:
+          name: native_lib_windows_arm64
+          path: nuget_files
       # - uses: actions/download-artifact@v2
       #   with:
       #     name: native_lib_macos

@@ -22,6 +22,7 @@ ExternalProject_Add(libjpeg-turbo-ep
         SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/../thirdparty/libjpeg-turbo
         BUILD_BYPRODUCTS ${libjpeg_turbo_libfile}
         CMAKE_ARGS
+        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
         -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON
         -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
         -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
