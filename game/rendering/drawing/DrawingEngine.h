@@ -95,6 +95,6 @@ class DrawingEngine {
 
   lru11::Cache<uint32_t, winrt::com_ptr<ID2D1SolidColorBrush>> _colorBrushCache;
 
-  winrt::com_ptr<ID2D1Factory> _factory;
+  winrt::com_ptr<ID2D1Factory1> _factory;
 
 };

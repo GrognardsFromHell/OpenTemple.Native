@@ -25,7 +25,7 @@ DrawingEngine::DrawingEngine(const winrt::com_ptr<ID3D11Device>& d3dDevice, bool
 
   // Create a D2D device on top of the DXGI device
   winrt::com_ptr<ID2D1Device> d2dDevice;
-  winrt::check_hresult(D2D1CreateDevice(dxgiDevice.get(), nullptr, d2dDevice.put()));
+  winrt::check_hresult(_factory->CreateDevice(dxgiDevice.get(), d2dDevice.put()));
 
   // Get Direct2D device's corresponding device context object.
   winrt::check_hresult(
