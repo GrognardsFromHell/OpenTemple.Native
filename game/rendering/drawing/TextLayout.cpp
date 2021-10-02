@@ -6,8 +6,6 @@
 #include "TextRendererStyle.h"
 
 void TextLayout::Render(TextRenderer &renderer, float x, float y, float opacity) {
-  auto &metrics = GetMetrics();
-
   TextRendererDrawingContext context(_defaultStyle, opacity);
   _layout->Draw(&context, &renderer, x + _indent, y);
 }
