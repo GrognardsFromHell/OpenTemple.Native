@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
     - uses: actions/checkout@v1
     - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=MinSizeRel ../nightly_installer

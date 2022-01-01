@@ -26,7 +26,7 @@ jobs:
 
   build-windows:
     name: Build Windows (${{ matrix.arch }})
-    runs-on: windows-latest
+    runs-on: windows-2022
     strategy:
       matrix:
         arch: [x86, x64, arm64]
@@ -80,7 +80,7 @@ jobs:
   build-nuget-package:
     name: Build Managed NuGet Package
     needs: [build-windows] # build-linux, build-windows, build-macosx]
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v1
       # Download all the dependents
@@ -127,7 +127,7 @@ jobs:
   push-package:
     name: Push NuGet Package
     needs: [build-nuget-package]
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v1
       - uses: actions/download-artifact@v2
