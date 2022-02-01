@@ -28,7 +28,7 @@ public static class Inflate
         switch (result)
         {
             case 0:
-            // OK
+                return; // OK
             case 1:
                 throw new OutOfMemoryException();
             case 2:
