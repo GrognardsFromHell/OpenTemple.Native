@@ -2,7 +2,7 @@
 #include <zlib-ng.h>
 #include "../game/utils.h"
 
-NATIVE_API ApiBool zlib_ng_uncompress(uint8_t *dest, size_t *destLen, const uint8_t *src,
+NATIVE_API ApiBool Inflate_Uncompress(uint8_t *dest, size_t *destLen, const uint8_t *src,
                                       size_t *srcLen) {
   auto result = zng_uncompress2(dest, destLen, src, srcLen);
   switch (result) {

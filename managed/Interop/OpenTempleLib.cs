@@ -1,7 +1,5 @@
-namespace OpenTemple.Interop
+namespace OpenTemple.Interop;
+public static class OpenTempleLib
 {
-    public static class OpenTempleLib
-    {
-        public const string Path = @"OpenTemple.Native";
-    }
+    public const string Path = @"OpenTemple.Native";
 }
