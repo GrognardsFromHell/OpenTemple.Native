@@ -1,6 +1,6 @@
 
 #
-# Build soloud as a static library externally
+# Build zlib-ng as a static library externally
 #
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(zlibng_libsuffix d)
