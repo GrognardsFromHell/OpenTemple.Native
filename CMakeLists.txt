@@ -38,6 +38,7 @@ endif ()
 
 include(cmake/soloud.cmake)
 include(cmake/libjpegturbo.cmake)
+include(cmake/sdl.cmake)
 include(cmake/zlib-ng.cmake)
 add_subdirectory(game)
 add_subdirectory(thirdparty_wrappers)
