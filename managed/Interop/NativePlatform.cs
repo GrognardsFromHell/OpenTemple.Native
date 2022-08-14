@@ -97,26 +97,6 @@ public static class NativePlatform
         Shell_ShowMessage(errorIcon, title, emphasizedText, detailedText);
     }
 
-    /// <summary>
-    /// Copies text to the system clipboard.
-    /// </summary>
-    public static void SetClipboardText(IntPtr nativeWindowHandle, string text)
-    {
-        var errorCode = Shell_SetClipboardText(nativeWindowHandle, text);
-        if (errorCode != 0)
-        {
-            Debug.Print("Failed to copy text '{0}' to clipboard: {1}", text, errorCode);
-        }
-    }
-
-    /// <summary>
-    /// Gets text from the system clipboard.
-    /// </summary>
-    public static bool TryGetClipboardText(IntPtr nativeWindowHandle, [NotNullWhen(true)] out string text)
-    {
-        return Shell_GetClipboardText(nativeWindowHandle, out text) == 0 && text != null;
-    }
-
     [DllImport(OpenTempleLib.Path, CharSet = CharSet.Unicode)]
     private static extern string GameFolders_GetUserDataFolder();
 
@@ -147,19 +127,6 @@ public static class NativePlatform
         string promptTitle,
         string promptEmphasized,
         string promptDetailed);
-
-    [DllImport(OpenTempleLib.Path, CharSet = CharSet.Unicode)]
-    private static extern int Shell_SetClipboardText(
-        IntPtr nativeWindowHandle,
-        string text
-    );
-
-    [DllImport(OpenTempleLib.Path, CharSet = CharSet.Unicode)]
-    private static extern int Shell_GetClipboardText(
-        IntPtr nativeWindowHandle,
-        [MarshalAs(UnmanagedType.LPWStr)]
-        out string text
-    );
 
     [DllImport(OpenTempleLib.Path, CharSet = CharSet.Unicode)]
     public static extern string FindInstallDirectory();
