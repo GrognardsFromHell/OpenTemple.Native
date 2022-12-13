@@ -34,9 +34,32 @@ public class NativeTextLayout : IDisposable
         }
     }
 
-    public bool HitTest(float x, float y, out int start, out int length, out bool trailingHit)
+    public bool HitTestPoint(float x, float y, out int start, out int length, out bool trailingHit)
     {
         return TextLayout_HitTest(NativePointer, x, y, out start, out length, out trailingHit);
+    }
+
+    public NativeHitTestRect HitTestTextPosition(int textPosition, bool afterPosition)
+    {
+        TextLayout_HitTestTextPosition(NativePointer, textPosition, afterPosition, out var rect);
+        return rect;
+    }
+
+    public NativeHitTestRect[] HitTestTextRange(int start, int length)
+    {
+        HitTestTextRange(start, length, Span<NativeHitTestRect>.Empty, out var count);
+        var rects = new NativeHitTestRect[count];
+        HitTestTextRange(start, length, rects, out _);
+        return rects;
+    }
+
+    /// <returns>False if the metrics span was too small.</returns>
+    public unsafe bool HitTestTextRange(int start, int length, Span<NativeHitTestRect> rects, out int actualRectsCount)
+    {
+        fixed (NativeHitTestRect* rectsPtr = rects)
+        {
+            return TextLayout_HitTestTextRange(NativePointer, start, length, rectsPtr, rects.Length, out actualRectsCount);
+        }
     }
 
     public NativeLineMetrics[] GetLineMetrics()
@@ -82,8 +105,7 @@ public class NativeTextLayout : IDisposable
         uint length,
         NativeTextStyleProperty properties,
         ref NativeTextStyle style,
-        [MarshalAs(UnmanagedType.LPWStr)]
-        out string error
+        [MarshalAs(UnmanagedType.LPWStr)] out string error
     );
 
     [DllImport(OpenTempleLib.Path)]
@@ -103,6 +125,24 @@ public class NativeTextLayout : IDisposable
         out int start,
         out int length,
         out bool trailingHit
+    );
+
+    [DllImport(OpenTempleLib.Path)]
+    private static extern void TextLayout_HitTestTextPosition(
+        IntPtr textLayout,
+        int textPosition,
+        bool afterPosition,
+        out NativeHitTestRect rect
+    );
+
+    [DllImport(OpenTempleLib.Path)]
+    private static extern unsafe bool TextLayout_HitTestTextRange(
+        IntPtr textLayout,
+        int start,
+        int length,
+        NativeHitTestRect* rects,
+        int rectsCount,
+        out int actualRectsCount
     );
 
     [DllImport(OpenTempleLib.Path)]

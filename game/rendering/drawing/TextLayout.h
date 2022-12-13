@@ -5,6 +5,7 @@
 #include <winrt/base.h>
 
 #include <utility>
+#include <vector>
 
 #include "Style.h"
 #include "TextRendererStyle.h"
@@ -25,8 +26,7 @@ class TextLayout {
         _layout2(layout.try_as<IDWriteTextLayout2>()),
         _hangingIndent(hangingIndent),
         _indent(indent),
-        _defaultStyle(std::move(defaultStyle)) {
-  }
+        _defaultStyle(std::move(defaultStyle)) {}
 
   void Render(TextRenderer &renderer, float x, float y, float opacity);
 
@@ -47,7 +47,21 @@ class TextLayout {
 
   void SetMaxHeight(float maxHeight);
 
-  bool HitTest(float x, float y, int *position, int *length, bool *trailingHit);
+  bool HitTestPoint(float x, float y, int *position, int *length, bool *trailingHit);
+
+  /**
+   * @param textPosition
+   * @param trailingHit Indicates that the returned position and metrics should be for text
+   * after the position. If a font size change occurs at the given text position, this
+   * determines whether the returned position will be for the smaller or larger font.
+   */
+  void HitTestTextPosition(uint32_t textPosition, bool afterPosition, DWRITE_HIT_TEST_METRICS *metrics);
+
+  bool HitTestTextRange(uint32_t start,
+                        uint32_t length,
+                        DWRITE_HIT_TEST_METRICS *metrics,
+                        uint32_t metricsCount,
+                        uint32_t *actualMetricsCount);
 
  private:
   DrawingEngine &_engine;

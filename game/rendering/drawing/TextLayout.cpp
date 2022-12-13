@@ -95,8 +95,7 @@ bool TextLayout::GetLineMetrics(DWRITE_LINE_METRICS *lineMetrics,
   return true;
 }
 
-bool TextLayout::HitTest(float x, float y, int *position, int *length, bool *trailingHit) {
-
+bool TextLayout::HitTestPoint(float x, float y, int *position, int *length, bool *trailingHit) {
   x -= _indent;
 
   BOOL trailingHitBool = 0;
@@ -105,8 +104,8 @@ bool TextLayout::HitTest(float x, float y, int *position, int *length, bool *tra
   winrt::check_hresult(_layout->HitTestPoint(x, y, &trailingHitBool, &inside, &metrics));
 
   *trailingHit = trailingHitBool;
-  *position = (int) metrics.textPosition;
-  *length = (int) metrics.length;
+  *position = (int)metrics.textPosition;
+  *length = (int)metrics.length;
 
   // If we have a hanging indent, the first character is a fake inline object
   // We need to adjust the position accordingly
@@ -121,4 +120,27 @@ bool TextLayout::HitTest(float x, float y, int *position, int *length, bool *tra
   }
 
   return inside != 0;
+}
+
+void TextLayout::HitTestTextPosition(uint32_t textPosition, bool afterPosition, DWRITE_HIT_TEST_METRICS *metrics) {
+  float x = 0;
+  float y = 0;
+  winrt::check_hresult(_layout->HitTestTextPosition(textPosition, afterPosition, &x, &y, metrics));
+  metrics->left += _indent;
+}
+
+bool TextLayout::HitTestTextRange(uint32_t start, uint32_t length, DWRITE_HIT_TEST_METRICS *metrics,
+                                  uint32_t metricsCount, uint32_t *actualMetricsCount) {
+  auto result =
+      _layout->HitTestTextRange(start, length, 0, 0, metrics, metricsCount, actualMetricsCount);
+  if (result == E_NOT_SUFFICIENT_BUFFER) {
+    return false;
+  }
+  winrt::check_hresult(result);
+  // Correct the left edge by adding our indent
+  auto count = min(*actualMetricsCount, metricsCount);
+  for (auto i = 0u; i < count; i++) {
+    metrics[i].left += _indent;
+  }
+  return true;
 }
