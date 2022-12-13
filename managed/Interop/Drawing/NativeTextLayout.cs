@@ -36,7 +36,7 @@ public class NativeTextLayout : IDisposable
 
     public bool HitTestPoint(float x, float y, out int start, out int length, out bool trailingHit)
     {
-        return TextLayout_HitTest(NativePointer, x, y, out start, out length, out trailingHit);
+        return TextLayout_HitTestPoint(NativePointer, x, y, out start, out length, out trailingHit);
     }
 
     public NativeHitTestRect HitTestTextPosition(int textPosition, bool afterPosition)
@@ -119,7 +119,7 @@ public class NativeTextLayout : IDisposable
         out int actualLineCount);
 
     [DllImport(OpenTempleLib.Path)]
-    private static extern bool TextLayout_HitTest(
+    private static extern bool TextLayout_HitTestPoint(
         IntPtr textLayout,
         float x, float y,
         out int start,
