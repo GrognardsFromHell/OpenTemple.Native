@@ -25,7 +25,7 @@
  *
  */
 #endregion
-
+#define NETSTANDARD2_0
 #region Using Statements
 using System;
 using System.Diagnostics;
