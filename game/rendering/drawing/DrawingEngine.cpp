@@ -93,6 +93,11 @@ winrt::com_ptr<IDWriteTextFormat2> DrawingEngine::GetTextFormat(const TextFormat
     result->SetTrimming(&trimmingOptions, trimmingSign.get());
   }
 
+  // Try the auto-completion action here
+  switch (key.LineSpacingMode) {
+
+  }
+
   _textFormatCache.insert(key, result);
 
   return std::move(result);
