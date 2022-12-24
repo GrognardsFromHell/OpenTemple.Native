@@ -8,14 +8,14 @@ public enum NativeTextAlign : int
     Center,
     Right,
     Justified
-};
+}
 
 public enum NativeParagraphAlign : int
 {
     Near = 0,
     Far,
     Center
-};
+}
 
 public enum NativeWordWrap : int
 {
@@ -24,7 +24,7 @@ public enum NativeWordWrap : int
     EmergencyBreak,
     WholeWord,
     Character
-};
+}
 
 public enum NativeTrimMode : int
 {
@@ -33,13 +33,20 @@ public enum NativeTrimMode : int
     EmergencyBreak,
     WholeWord,
     Character
-};
+}
 
 public enum NativeTrimmingSign : int
 {
     None = 0,
     Ellipsis
-};
+}
+
+public enum NativeLineSpacingMode : int
+{
+    Default = 0, 
+    Uniform, 
+    Proportional
+}
 
 [StructLayout(LayoutKind.Sequential)]
 public struct NativeParagraphStyle
@@ -53,4 +60,9 @@ public struct NativeParagraphStyle
     public NativeWordWrap WordWrap;
     public NativeTrimMode TrimMode;
     public NativeTrimmingSign TrimmingSign;
+    public NativeLineSpacingMode LineSpacingMode;
+    // If mode is proportional, this is a factor
+    // If mode is default this is ignored
+    // If mode is uniform, this is an absolute pixel value
+    public float LineHeight;
 }

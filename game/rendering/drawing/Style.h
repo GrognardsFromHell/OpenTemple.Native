@@ -8,6 +8,12 @@ enum class TextAlign : int { Left = 0, Center, Right, Justified };
 
 enum class ParagraphAlign : int { Near = 0, Far, Center };
 
+/**
+ * Look here for a good explanation of what can be set and how it works.
+ * https://learn.microsoft.com/en-us/windows/win32/api/dwrite_3/ns-dwrite_3-dwrite_line_spacing
+ */
+enum class LineSpacingMode : int { Default = 0, Uniform, Proportional };
+
 enum class FontStretch : int {
   UltraCondensed = 0,
   ExtraCondensed,
@@ -86,6 +92,11 @@ struct ParagraphStyle {
   WordWrap WordWrap;
   TrimMode TrimMode;
   TrimmingSign TrimmingSign;
+  LineSpacingMode LineSpacingMode; // Default, Uniform, Proportional
+  // If mode is proportional, this is a factor
+  // If mode is default this is ignored
+  // If mode is uniform, this is an absolute pixel value
+  float LineHeight;
 };
 
 struct TextStyle {

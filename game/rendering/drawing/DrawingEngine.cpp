@@ -93,6 +93,12 @@ winrt::com_ptr<IDWriteTextFormat2> DrawingEngine::GetTextFormat(const TextFormat
     result->SetTrimming(&trimmingOptions, trimmingSign.get());
   }
 
+  if (key.LineSpacingMode == LineSpacingMode::Uniform) {
+    SetAbsoluteLineHeight(result, key.LineHeight);
+  } else if (key.LineSpacingMode == LineSpacingMode::Proportional) {
+    SetProportionalLineHeight(result, key.LineHeight);
+  }
+
   _textFormatCache.insert(key, result);
 
   return std::move(result);
@@ -319,4 +325,25 @@ void DrawingEngine::GetCanvasScale(float* width, float* height) noexcept {
   _context->GetDpi(width, height);
   *width /= 96.0f;
   *height /= 96.0f;
+}
+
+void DrawingEngine::SetAbsoluteLineHeight(const winrt::com_ptr<IDWriteTextFormat2>& textFormat,
+                                          float height) {
+  // While DWrite docs recommend 80% of lineHeight for baseline, we've not achieved great results
+  // with that. So instead, we'll not scale baseLine at all, but rather use the baseLine
+  // determined from a test layout just containing the letter "m".
+  winrt::com_ptr<IDWriteTextLayout> testLayout;
+  _textFactory->CreateTextLayout(L"m", 1, textFormat.get(), 1000, 1000, testLayout.put());
+  DWRITE_LINE_METRICS lineMetrics{};
+  UINT32 actualCount;
+  testLayout->GetLineMetrics(&lineMetrics, 1, &actualCount);
+
+  winrt::check_hresult(
+      textFormat->SetLineSpacing(DWRITE_LINE_SPACING_METHOD_UNIFORM, height, lineMetrics.baseline));
+}
+
+void DrawingEngine::SetProportionalLineHeight(const winrt::com_ptr<IDWriteTextFormat2>& textFormat,
+                                              float lineHeightFactor) {
+  // The docs say this is only available in Windows 10, but Wine also implements it
+  textFormat->SetLineSpacing(DWRITE_LINE_SPACING_METHOD_PROPORTIONAL, lineHeightFactor, 1);
 }

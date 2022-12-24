@@ -97,4 +97,6 @@ class DrawingEngine {
 
   winrt::com_ptr<ID2D1Factory1> _factory;
 
+  void SetAbsoluteLineHeight(const winrt::com_ptr<IDWriteTextFormat2>& textFormat, float height);
+  void SetProportionalLineHeight(const winrt::com_ptr<IDWriteTextFormat2>& textFormat, float lineHeightFactor);
 };

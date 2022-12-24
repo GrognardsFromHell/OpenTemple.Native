@@ -21,7 +21,9 @@ struct TextFormatKey {
         ParagraphAlignment(paragraphStyle.ParagraphAlignment),
         WordWrap(paragraphStyle.WordWrap),
         TrimMode(paragraphStyle.TrimMode),
-        TrimmingSign(paragraphStyle.TrimmingSign) {}
+        TrimmingSign(paragraphStyle.TrimmingSign),
+        LineSpacingMode(paragraphStyle.LineSpacingMode),
+        LineHeight(paragraphStyle.LineHeight) {}
 
   const std::wstring FontFamilyName;
   const FontWeight FontWeight;
@@ -34,6 +36,8 @@ struct TextFormatKey {
   const WordWrap WordWrap;
   const TrimMode TrimMode;
   const TrimmingSign TrimmingSign;
+  const LineSpacingMode LineSpacingMode;
+  const float LineHeight;
 };
 
 namespace std {
@@ -50,7 +54,9 @@ struct hash<TextFormatKey> {
            std::hash<int>()((int)key.ParagraphAlignment) ^  //
            std::hash<int>()((int)key.WordWrap) ^            //
            std::hash<int>()((int)key.TrimMode) ^            //
-           std::hash<int>()((int)key.TrimmingSign);
+           std::hash<int>()((int)key.TrimmingSign) ^        //
+           std::hash<int>()((int)key.LineSpacingMode) ^     //
+           std::hash<float>()(key.LineHeight);
   }
 };
 
@@ -67,7 +73,9 @@ struct equal_to<TextFormatKey> {
            left.ParagraphAlignment == right.ParagraphAlignment &&  //
            left.WordWrap == right.WordWrap &&                      //
            left.TrimMode == right.TrimMode &&                      //
-           left.TrimmingSign == right.TrimmingSign;
+           left.TrimmingSign == right.TrimmingSign &&                      //
+           left.LineSpacingMode == right.LineSpacingMode &&        //
+           left.LineHeight == right.LineHeight;
   }
 };
 }  // namespace std
