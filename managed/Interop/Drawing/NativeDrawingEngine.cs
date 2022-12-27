@@ -9,15 +9,15 @@ namespace OpenTemple.Interop.Drawing;
 /// <summary>
 /// A text rendering engine.
 /// </summary>
-public class NativeDrawingEngine : IDisposable
+public partial class NativeDrawingEngine : IDisposable
 {
     private static readonly char[] EmptyText = new[] { '\0' };
 
-    private IntPtr _native;
+    private nint _native;
 
     /// <param name="d3d11Device">Pointer to a ID3D11Device. RefCount should not be incremented.</param>
     /// <param name="debugDevice">Enable the D2D debug layer.</param>
-    public NativeDrawingEngine(IntPtr d3d11Device, bool debugDevice)
+    public NativeDrawingEngine(nint d3d11Device, bool debugDevice)
     {
         CheckStructSizes();
 
@@ -127,7 +127,7 @@ public class NativeDrawingEngine : IDisposable
         }
     }
 
-    public void SetRenderTarget(IntPtr d3d11Texture)
+    public void SetRenderTarget(nint d3d11Texture)
     {
         if (!DrawingEngine_SetRenderTarget(_native, d3d11Texture, out var error))
         {
@@ -180,7 +180,7 @@ public class NativeDrawingEngine : IDisposable
     public void RenderBackgroundAndBorder(float x, float y, float width, float height,
         ref NativeBackgroundAndBorderStyle style)
     {
-        if (!DrawingEngine_RenderBackgroundAndBorder(_native, x, y, width, height, ref style, out var error))
+        if (!DrawingEngine_RenderBackgroundAndBorder(_native, x, y, width, height, in style, out var error))
         {
             throw new InvalidOperationException("Couldn't render background and border: " + error);
         }
@@ -188,10 +188,10 @@ public class NativeDrawingEngine : IDisposable
 
     private void ReleaseUnmanagedResources()
     {
-        if (_native != IntPtr.Zero)
+        if (_native != nint.Zero)
         {
             DrawingEngine_Free(_native);
-            _native = IntPtr.Zero;
+            _native = nint.Zero;
         }
     }
 
@@ -208,84 +208,90 @@ public class NativeDrawingEngine : IDisposable
 
     #region P/Invoke
 
-    [DllImport(OpenTempleLib.Path)]
-    private static extern void DrawingEngine_GetStructSizes(
+    [LibraryImport(OpenTempleLib.Path)]
+    [SuppressGCTransition]
+    private static partial void DrawingEngine_GetStructSizes(
         out int paragraphStylesSize,
         out int textStylesSize
     );
 
-    [DllImport(OpenTempleLib.Path)]
-    private static extern bool DrawingEngine_Create(
-        IntPtr d3d11Device,
-        bool debugDevice,
-        out IntPtr drawingEngine,
+    [LibraryImport(OpenTempleLib.Path)]
+    [return:MarshalAs(UnmanagedType.Bool)]
+    private static partial bool DrawingEngine_Create(
+        nint d3d11Device,
+        [MarshalAs(UnmanagedType.Bool)] bool debugDevice,
+        out nint drawingEngine,
         [MarshalAs(UnmanagedType.LPWStr)]
         out string error);
 
-    [DllImport(OpenTempleLib.Path)]
-    private static extern void DrawingEngine_Free(IntPtr drawingEngine);
+    [LibraryImport(OpenTempleLib.Path)]
+    private static partial void DrawingEngine_Free(nint drawingEngine);
 
-    [DllImport(OpenTempleLib.Path)]
-    private static extern void DrawingEngine_BeginDraw(IntPtr drawingEngine);
+    [LibraryImport(OpenTempleLib.Path)]
+    private static partial void DrawingEngine_BeginDraw(nint drawingEngine);
 
-    [DllImport(OpenTempleLib.Path)]
-    private static extern bool DrawingEngine_EndDraw(IntPtr drawingEngine,
+    [LibraryImport(OpenTempleLib.Path)]
+    [return:MarshalAs(UnmanagedType.Bool)]
+    private static partial bool DrawingEngine_EndDraw(nint drawingEngine,
         [MarshalAs(UnmanagedType.LPWStr)]
         out string error);
 
-    [DllImport(OpenTempleLib.Path)]
-    private static extern void DrawingEngine_PushClipRect(IntPtr drawingEngine, float left, float top,
-        float right, float bottom, bool antiAliased);
+    [LibraryImport(OpenTempleLib.Path)]
+    private static partial void DrawingEngine_PushClipRect(nint drawingEngine, float left, float top,
+        float right, float bottom, [MarshalAs(UnmanagedType.Bool)] bool antiAliased);
 
-    [DllImport(OpenTempleLib.Path)]
-    private static extern void DrawingEngine_PopClipRect(IntPtr drawingEngine);
+    [LibraryImport(OpenTempleLib.Path)]
+    private static partial void DrawingEngine_PopClipRect(nint drawingEngine);
 
-    [DllImport(OpenTempleLib.Path)]
-    private static extern bool DrawingEngine_SetRenderTarget(IntPtr drawingEngine,
-        IntPtr d3dRenderTarget,
+    [LibraryImport(OpenTempleLib.Path)]
+    [return:MarshalAs(UnmanagedType.Bool)]
+    private static partial bool DrawingEngine_SetRenderTarget(nint drawingEngine,
+        nint d3dRenderTarget,
         [MarshalAs(UnmanagedType.LPWStr)]
         out string error
     );
 
     [DllImport(OpenTempleLib.Path)]
-    private static extern void DrawingEngine_SetTransform(IntPtr drawingEngine, ref Matrix3x2 matrix);
+    private static extern void DrawingEngine_SetTransform(nint drawingEngine, ref Matrix3x2 matrix);
 
     [DllImport(OpenTempleLib.Path)]
-    private static extern void DrawingEngine_GetTransform(IntPtr drawingEngine, out Matrix3x2 matrix);
+    private static extern void DrawingEngine_GetTransform(nint drawingEngine, out Matrix3x2 matrix);
 
-    [DllImport(OpenTempleLib.Path)]
-    private static extern void DrawingEngine_SetCanvasSize(IntPtr drawingEngine, float width, float height);
+    [LibraryImport(OpenTempleLib.Path)]
+    private static partial void DrawingEngine_SetCanvasSize(nint drawingEngine, float width, float height);
 
-    [DllImport(OpenTempleLib.Path)]
-    private static extern void
-        DrawingEngine_GetCanvasScale(IntPtr drawingEngine, out float width, out float height);
+    [LibraryImport(OpenTempleLib.Path)]
+    private static partial void
+        DrawingEngine_GetCanvasScale(nint drawingEngine, out float width, out float height);
 
-    [DllImport(OpenTempleLib.Path)]
-    private static extern unsafe void DrawingEngine_AddFontFile(
-        IntPtr drawingEngine,
+    [LibraryImport(OpenTempleLib.Path)]
+    private static unsafe partial void DrawingEngine_AddFontFile(
+        nint drawingEngine,
         [MarshalAs(UnmanagedType.LPStr)]
         string filename,
         byte* data,
         int dataLength
     );
 
-    [DllImport(OpenTempleLib.Path)]
-    private static extern bool DrawingEngine_ReloadFontFamilies(
-        IntPtr drawingEngine,
+    [LibraryImport(OpenTempleLib.Path)]
+    [return:MarshalAs(UnmanagedType.Bool)]
+    private static partial bool DrawingEngine_ReloadFontFamilies(
+        nint drawingEngine,
         [MarshalAs(UnmanagedType.LPWStr)]
         out string error);
 
-    [DllImport(OpenTempleLib.Path)]
+    [LibraryImport(OpenTempleLib.Path)]
     [SuppressGCTransition]
-    private static extern int DrawingEngine_GetFontFamiliesCount(IntPtr drawingEngine);
+    private static partial int DrawingEngine_GetFontFamiliesCount(nint drawingEngine);
 
-    [DllImport(OpenTempleLib.Path)]
+    [LibraryImport(OpenTempleLib.Path)]
     [return: MarshalAs(UnmanagedType.LPWStr)]
-    private static extern string DrawingEngine_GetFontFamilyName(IntPtr drawingEngine, int index);
+    private static partial string DrawingEngine_GetFontFamilyName(nint drawingEngine, int index);
 
     [DllImport(OpenTempleLib.Path)]
+    [return:MarshalAs(UnmanagedType.Bool)]
     private static extern unsafe bool DrawingEngine_CreateTextLayout(
-        IntPtr drawingEngine,
+        nint drawingEngine,
         [In]
         ref NativeParagraphStyle paragraphStyle,
         [In]
@@ -294,15 +300,16 @@ public class NativeDrawingEngine : IDisposable
         int textLength,
         float maxWidth,
         float maxHeight,
-        out IntPtr textLayout,
+        out nint textLayout,
         [MarshalAs(UnmanagedType.LPWStr)]
         out string error
     );
 
-    [DllImport(OpenTempleLib.Path)]
-    private static extern bool DrawingEngine_RenderTextLayout(
-        IntPtr drawingEngine,
-        IntPtr textLayout,
+    [LibraryImport(OpenTempleLib.Path)]
+    [return:MarshalAs(UnmanagedType.Bool)]
+    private static partial bool DrawingEngine_RenderTextLayout(
+        nint drawingEngine,
+        nint textLayout,
         float x,
         float y,
         float opacity,
@@ -310,15 +317,15 @@ public class NativeDrawingEngine : IDisposable
         out string error
     );
 
-    [DllImport(OpenTempleLib.Path)]
-    private static extern bool DrawingEngine_RenderBackgroundAndBorder(
-        IntPtr drawingEngine,
+    [LibraryImport(OpenTempleLib.Path)]
+    [return:MarshalAs(UnmanagedType.Bool)]
+    private static partial bool DrawingEngine_RenderBackgroundAndBorder(
+        nint drawingEngine,
         float x,
         float y,
         float width,
         float height,
-        [In]
-        ref NativeBackgroundAndBorderStyle style,
+        in NativeBackgroundAndBorderStyle style,
         [MarshalAs(UnmanagedType.LPWStr)]
         out string error
     );

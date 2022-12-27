@@ -3,11 +3,11 @@ using System.Runtime.InteropServices;
 
 namespace OpenTemple.Interop.Drawing;
 
-public class NativeTextLayout : IDisposable
+public partial class NativeTextLayout : IDisposable
 {
-    public IntPtr NativePointer { get; private set; }
+    public nint NativePointer { get; private set; }
 
-    public NativeTextLayout(IntPtr native)
+    public NativeTextLayout(nint native)
     {
         NativePointer = native;
     }
@@ -70,16 +70,28 @@ public class NativeTextLayout : IDisposable
         return metrics;
     }
 
-    public void SetMaxWidth(float maxWidth) => TextLayout_SetMaxWidth(NativePointer, maxWidth);
+    public void SetMaxWidth(float maxWidth)
+    {
+        if (!TextLayout_SetMaxWidth(NativePointer, maxWidth))
+        {
+            throw new ArgumentException("Invalid maximum width given: " + maxWidth);
+        }
+    }
 
-    public void SetMaxHeight(float maxHeight) => TextLayout_SetMaxHeight(NativePointer, maxHeight);
+    public void SetMaxHeight(float maxHeight)
+    {
+        if (!TextLayout_SetMaxHeight(NativePointer, maxHeight))
+        {
+            throw new ArgumentException("Invalid maximum width given: " + maxHeight);
+        }
+    }
 
     private void ReleaseUnmanagedResources()
     {
-        if (NativePointer != IntPtr.Zero)
+        if (NativePointer != nint.Zero)
         {
             TextLayout_Free(NativePointer);
-            NativePointer = IntPtr.Zero;
+            NativePointer = nint.Zero;
         }
     }
 
@@ -96,11 +108,14 @@ public class NativeTextLayout : IDisposable
 
     #region P/Invoke
 
-    [DllImport(OpenTempleLib.Path)]
-    private static extern bool TextLayout_Free(IntPtr textLayout);
+    [LibraryImport(OpenTempleLib.Path)]
+    [return:MarshalAs(UnmanagedType.Bool)]
+    [SuppressGCTransition]
+    private static partial void TextLayout_Free(nint textLayout);
 
     [DllImport(OpenTempleLib.Path)]
-    private static extern bool TextLayout_SetStyle(IntPtr textLayout,
+    [return:MarshalAs(UnmanagedType.Bool)]
+    private static extern bool TextLayout_SetStyle(nint textLayout,
         uint start,
         uint length,
         NativeTextStyleProperty properties,
@@ -108,36 +123,39 @@ public class NativeTextLayout : IDisposable
         [MarshalAs(UnmanagedType.LPWStr)] out string error
     );
 
-    [DllImport(OpenTempleLib.Path)]
+    [LibraryImport(OpenTempleLib.Path)]
     [SuppressGCTransition]
-    private static extern void TextLayout_GetMetrics(IntPtr textLayout, out NativeMetrics metrics);
+    private static partial void TextLayout_GetMetrics(nint textLayout, out NativeMetrics metrics);
 
-    [DllImport(OpenTempleLib.Path)]
-    private static extern unsafe bool TextLayout_GetLineMetrics(IntPtr textLayout,
+    [LibraryImport(OpenTempleLib.Path)]
+    [return:MarshalAs(UnmanagedType.Bool)]
+    private static unsafe partial bool TextLayout_GetLineMetrics(nint textLayout,
         NativeLineMetrics* metrics,
         int metricsCount,
         out int actualLineCount);
 
-    [DllImport(OpenTempleLib.Path)]
-    private static extern bool TextLayout_HitTestPoint(
-        IntPtr textLayout,
+    [LibraryImport(OpenTempleLib.Path)]
+    [return:MarshalAs(UnmanagedType.Bool)]
+    private static partial bool TextLayout_HitTestPoint(
+        nint textLayout,
         float x, float y,
         out int start,
         out int length,
-        out bool trailingHit
+        [MarshalAs(UnmanagedType.Bool)] out bool trailingHit
     );
 
-    [DllImport(OpenTempleLib.Path)]
-    private static extern void TextLayout_HitTestTextPosition(
-        IntPtr textLayout,
+    [LibraryImport(OpenTempleLib.Path)]
+    private static partial void TextLayout_HitTestTextPosition(
+        nint textLayout,
         int textPosition,
-        bool afterPosition,
+        [MarshalAs(UnmanagedType.Bool)] bool afterPosition,
         out NativeHitTestRect rect
     );
 
-    [DllImport(OpenTempleLib.Path)]
-    private static extern unsafe bool TextLayout_HitTestTextRange(
-        IntPtr textLayout,
+    [LibraryImport(OpenTempleLib.Path)]
+    [return:MarshalAs(UnmanagedType.Bool)]
+    private static unsafe partial bool TextLayout_HitTestTextRange(
+        nint textLayout,
         int start,
         int length,
         NativeHitTestRect* rects,
@@ -145,15 +163,17 @@ public class NativeTextLayout : IDisposable
         out int actualRectsCount
     );
 
-    [DllImport(OpenTempleLib.Path)]
-    private static extern void TextLayout_SetMaxWidth(
-        IntPtr textLayout,
+    [LibraryImport(OpenTempleLib.Path)]
+    [return:MarshalAs(UnmanagedType.Bool)]
+    private static partial bool TextLayout_SetMaxWidth(
+        nint textLayout,
         float maxWidth
     );
 
-    [DllImport(OpenTempleLib.Path)]
-    private static extern void TextLayout_SetMaxHeight(
-        IntPtr textLayout,
+    [LibraryImport(OpenTempleLib.Path)]
+    [return:MarshalAs(UnmanagedType.Bool)]
+    private static partial bool TextLayout_SetMaxHeight(
+        nint textLayout,
         float maxHeight
     );
 
