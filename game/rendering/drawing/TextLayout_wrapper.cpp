@@ -193,10 +193,20 @@ NATIVE_API ApiBool TextLayout_HitTestTextRange(TextLayout *layout,
   return result;
 }
 
-NATIVE_API void TextLayout_SetMaxWidth(TextLayout *layout, float maxWidth) noexcept {
-  layout->SetMaxWidth(maxWidth);
+NATIVE_API ApiBool TextLayout_SetMaxWidth(TextLayout *layout, float maxWidth) noexcept {
+  try {
+    layout->SetMaxWidth(maxWidth);
+    return true;
+  } catch (const winrt::hresult_error &e) {
+    return false;
+  }
 }
 
-NATIVE_API void TextLayout_SetMaxHeight(TextLayout *layout, float maxHeight) noexcept {
-  layout->SetMaxHeight(maxHeight);
+NATIVE_API ApiBool TextLayout_SetMaxHeight(TextLayout *layout, float maxHeight) noexcept {
+  try {
+    layout->SetMaxHeight(maxHeight);
+    return true;
+  } catch (const winrt::hresult_error &e) {
+    return false;
+  }
 }
